@@ -90,7 +90,7 @@ export function renderPengeluaran(container, state, showToast) {
                     <div style="font-size: 0.85rem; color: hsl(var(--text-secondary)); margin-top: 2px;">${item.description}</div>
                   </td>
                   <td style="font-weight: 800; color: hsl(var(--danger)); width: 22%;">
-                    -${formatRupiah(item.amount)}
+                    ${formatRupiah(item.amount)}
                   </td>
                   <td style="text-align: center; width: 60px;">
                     <button class="icon-btn btn-del-keluar" data-id="${item.id}" title="Hapus Pengeluaran" style="color: hsl(var(--danger));">

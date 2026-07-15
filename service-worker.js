@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gmahk-bendahara-v2.0';
+const CACHE_NAME = 'gmahk-bendahara-v5.8';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -15,6 +15,7 @@ const ASSETS_TO_CACHE = [
   './js/views/pengeluaran.js',
   './js/views/kirim-dskt.js',
   './js/views/laporan.js',
+  './js/views/persentase.js',
   './js/views/pengaturan.js',
   'https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
