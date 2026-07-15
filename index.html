@@ -24,7 +24,9 @@
 </head>
 <body>
   <div id="app-container">
-    <!-- Desktop & Tablet Sidebar Navigation -->
+    <!-- Trigger Zone untuk Autohide Sidebar di tepi kiri layar -->
+    <div class="sidebar-trigger-zone" title="Arahkan kursor ke tepi kiri layar untuk membuka menu"></div>
+    <!-- Desktop & Tablet Sidebar Navigation (Autohide) -->
     <aside class="sidebar">
       <div class="sidebar-header">
         <div class="brand-logo" style="padding: 2px; overflow: hidden;">
@@ -41,13 +43,9 @@
           <i data-lucide="layout-dashboard"></i>
           <span>Dashboard & Arus Kas</span>
         </a>
-        <a href="#" class="nav-item" data-view="pemasukan">
-          <i data-lucide="plus-circle"></i>
-          <span>Pencatatan Pemasukan</span>
-        </a>
-        <a href="#" class="nav-item" data-view="pengeluaran">
-          <i data-lucide="minus-circle"></i>
-          <span>Pencatatan Pengeluaran</span>
+        <a href="#" class="nav-item" data-view="jurnal">
+          <i data-lucide="book-open"></i>
+          <span>Pencatatan Jurnal</span>
         </a>
         <a href="#" class="nav-item" data-view="kirim-dskt">
           <i data-lucide="send"></i>
@@ -55,7 +53,11 @@
         </a>
         <a href="#" class="nav-item" data-view="laporan">
           <i data-lucide="file-spreadsheet"></i>
-          <span>Laporan & Ekspor Excel</span>
+          <span>Laporan</span>
+        </a>
+        <a href="#" class="nav-item" data-view="persentase">
+          <i data-lucide="pie-chart"></i>
+          <span>Persentase</span>
         </a>
         <a href="#" class="nav-item" data-view="pengaturan">
           <i data-lucide="settings"></i>
@@ -79,7 +81,7 @@
       <!-- Top Sticky Bar -->
       <header class="topbar">
         <div class="page-title-area">
-          <button class="icon-btn" id="btn-mobile-menu" style="display: none; margin-right: 8px;" aria-label="Menu">
+          <button class="icon-btn" id="btn-mobile-menu" style="display: inline-flex; margin-right: 14px;" title="Buka/Tutup Menu Sidebar (Autohide)" aria-label="Menu">
             <i data-lucide="menu"></i>
           </button>
           <h2 id="topbar-page-title">Dashboard & Arus Kas</h2>
@@ -115,13 +117,9 @@
       <i data-lucide="layout-dashboard"></i>
       <span>Dashboard</span>
     </a>
-    <a href="#" class="bottom-nav-item" data-view="pemasukan">
-      <i data-lucide="plus-circle"></i>
-      <span>Masuk</span>
-    </a>
-    <a href="#" class="bottom-nav-item" data-view="pengeluaran">
-      <i data-lucide="minus-circle"></i>
-      <span>Keluar</span>
+    <a href="#" class="bottom-nav-item" data-view="jurnal">
+      <i data-lucide="book-open"></i>
+      <span>Jurnal</span>
     </a>
     <a href="#" class="bottom-nav-item" data-view="kirim-dskt">
       <i data-lucide="send"></i>
@@ -130,6 +128,10 @@
     <a href="#" class="bottom-nav-item" data-view="laporan">
       <i data-lucide="file-spreadsheet"></i>
       <span>Laporan</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-view="persentase">
+      <i data-lucide="pie-chart"></i>
+      <span>Persen</span>
     </a>
     <a href="#" class="bottom-nav-item" data-view="pengaturan">
       <i data-lucide="settings"></i>
@@ -140,12 +142,10 @@
   <!-- Toast Notification Container -->
   <div id="toast-container"></div>
 
-  <!-- CSS untuk Mobile Hamburger Button -->
+  <!-- CSS untuk Hamburger Button (Selalu aktif karena Sidebar Autohide) -->
   <style>
-    @media (max-width: 768px) {
-      #btn-mobile-menu {
-        display: flex !important;
-      }
+    #btn-mobile-menu {
+      display: inline-flex !important;
     }
   </style>
 
