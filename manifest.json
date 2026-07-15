@@ -1,22 +1,28 @@
 {
+  "id": "com.gmahk.bendahara.app",
   "name": "Bendahara Gereja Advent (GMAHK)",
   "short_name": "Bendahara GMAHK",
-  "description": "Aplikasi WebApp Perbendaharaan Gereja Masehi Advent Hari Ketujuh dengan Kalkulasi Arus Kas Otomatis & Sinkronisasi Google Sheets",
+  "description": "Aplikasi WebApp & POS Perbendaharaan Gereja Masehi Advent Hari Ketujuh dengan Kalkulasi Arus Kas, Cetak Struk Thermal POS, & Sinkronisasi Google Sheets",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#1e3a8a",
   "orientation": "any",
+  "categories": ["finance", "productivity", "utilities"],
   "icons": [
     {
       "src": "gmahk.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "gmahk.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "prefer_related_applications": false
 }

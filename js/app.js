@@ -2055,6 +2055,52 @@ function doGet(e) {
       }
     }, { passive: false });
 
+    // Registrasi Service Worker & Penanganan Install PWA Android/Tablet
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').then((reg) => {
+          console.log('ServiceWorker berhasil diregistrasi dengan scope: ', reg.scope);
+        }).catch((err) => {
+          console.warn('ServiceWorker gagal diregistrasi (mungkin karena protokol file:// lokal): ', err);
+        });
+      });
+    }
+
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    const modalInstall = document.getElementById('modal-install-android');
+    document.getElementById('btn-open-install-modal')?.addEventListener('click', () => {
+      modalInstall?.classList.add('active');
+    });
+    document.getElementById('btn-close-install-modal')?.addEventListener('click', () => {
+      modalInstall?.classList.remove('active');
+    });
+    document.getElementById('btn-close-install-modal-2')?.addEventListener('click', () => {
+      modalInstall?.classList.remove('active');
+    });
+
+    document.getElementById('btn-native-install-trigger')?.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          showToast("Aplikasi berhasil dipasang ke Layar Utama HP / Tablet!", "success");
+          modalInstall?.classList.remove('active');
+        }
+        deferredPrompt = null;
+      } else {
+        const instText = document.getElementById('install-instruction-text');
+        if (instText) {
+          instText.style.display = 'block';
+          showToast("Silakan ikuti panduan manual melalui ikon 3 titik browser Android Anda.", "info");
+        }
+      }
+    });
+
     updateTopbarInfo(state);
     navigateTo(currentView);
   }

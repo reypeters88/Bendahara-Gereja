@@ -1,8 +1,9 @@
-const CACHE_NAME = 'gmahk-bendahara-v1.0';
+const CACHE_NAME = 'gmahk-bendahara-v2.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
+  './gmahk.png',
   './css/style.css',
   './js/app.js',
   './js/state.js',
@@ -25,7 +26,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE).catch((err) => {
-        console.warn('Service Worker cache.addAll error (beberapa asset eksternal mungkin dilewati):', err);
+        console.warn('Service Worker cache.addAll error (beberapa asset eksternal mungkin dilewati saat offline):', err);
       });
     })
   );

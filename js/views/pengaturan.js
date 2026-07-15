@@ -130,6 +130,31 @@ export function renderPengaturan(container, state, showToast) {
         </div>
       </div>
 
+      <!-- Install Aplikasi HP & Tablet Android -->
+      <div class="glass-card" style="grid-column: 1 / -1;">
+        <h3 style="font-size: 1.2rem; font-weight: 700; color: hsl(var(--accent-gold)); margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
+          <i data-lucide="smartphone" style="display: inline; vertical-align: -3px; margin-right: 6px;"></i>
+          Pasang Aplikasi di HP & Tablet Android (PWA / Standalone APK)
+        </h3>
+        <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 280px;">
+            <p style="font-size: 0.88rem; color: hsl(var(--text-primary)); margin-bottom: 8px;">
+              Aplikasi ini dirancang sebagai <b>Progressive Web App (PWA)</b> modern yang siap berjalan di perangkat Android maupun Tablet. Anda dapat memasangnya langsung ke layar utama tanpa melalui Play Store, atau mengemasnya menjadi file <code>.APK</code> untuk dibagikan secara offline.
+            </p>
+            <div style="display: flex; gap: 14px; font-size: 0.8rem; color: hsl(var(--text-muted)); flex-wrap: wrap;">
+              <span><i data-lucide="check-circle" style="color: hsl(var(--success)); width:14px; height:14px; display:inline;"></i> Mode Fullscreen Layar Utama</span>
+              <span><i data-lucide="check-circle" style="color: hsl(var(--success)); width:14px; height:14px; display:inline;"></i> Buka Cepat Tanpa Alamat Web</span>
+              <span><i data-lucide="check-circle" style="color: hsl(var(--success)); width:14px; height:14px; display:inline;"></i> Ikon Resmi GMAHK</span>
+            </div>
+          </div>
+          <div>
+            <button type="button" class="btn btn-gold" id="btn-settings-open-install" style="padding: 14px 22px; font-weight: 800; white-space: nowrap;">
+              <i data-lucide="download"></i> Pasang / Lihat Panduan Android
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
   `;
 
@@ -223,6 +248,11 @@ export function renderPengaturan(container, state, showToast) {
       }
     };
     reader.readAsText(file);
+  });
+
+  // Open Install Android Modal
+  container.querySelector('#btn-settings-open-install')?.addEventListener('click', () => {
+    document.getElementById('modal-install-android')?.classList.add('active');
   });
 
   // Reset All
