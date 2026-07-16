@@ -640,6 +640,27 @@
     }
   }
 
+  // === EXCEL HELPER FUNCTIONS ===
+  function downloadExcel(filename, headers, sampleRow) {
+    if (!window.XLSX) {
+      showToast("Library Excel belum termuat.", "danger");
+      return;
+    }
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([headers, sampleRow]);
+    const wscols = headers.map(h => ({wch: Math.max(h.length, 15)}));
+    ws['!cols'] = wscols;
+    XLSX.utils.book_append_sheet(wb, ws, "Template");
+    XLSX.writeFile(wb, filename);
+  }
+
+
+
+  function parseNumber(str) {
+    if (!str) return 0;
+    return Number(String(str).replace(/[^0-9-]/g, '')) || 0;
+  }
+
   const GOOGLE_SCRIPT_TEMPLATE_CODE = `function setupSheets() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheetMasuk = ss.getSheetByName("Sheet Pemasukan");
@@ -3618,6 +3639,20 @@ function doGet(e) {
               <label class="btn btn-secondary" style="flex: 1; justify-content: center; font-size: 0.85rem; cursor: pointer; margin: 0;"><i data-lucide="upload"></i><span>Impor Data JSON</span><input type="file" id="input-import-json" accept=".json" style="display: none;" /></label>
             </div>
           </div>
+          <div style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 20px;">
+            <h4 style="font-size: 0.95rem; font-weight: 700; color: hsl(var(--text-primary)); margin-bottom: 12px;">Impor Data dari Excel</h4>
+            <p style="font-size: 0.8rem; color: hsl(var(--text-muted)); margin-bottom: 12px;">Unduh template di bawah, isi data di Excel, simpan file seperti biasa (.xlsx), lalu unggah untuk menggabungkannya ke aplikasi.</p>
+            
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
+              <button type="button" class="btn btn-secondary" id="btn-download-csv-pemasukan" style="flex: 1; justify-content: center; font-size: 0.85rem;"><i data-lucide="file-spreadsheet"></i><span>Template Pemasukan</span></button>
+              <label class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.85rem; cursor: pointer; margin: 0; background: linear-gradient(135deg, hsl(160, 84%, 30%), hsl(var(--accent-blue))); border: none; color: white;"><i data-lucide="upload"></i><span>Unggah Excel Pemasukan</span><input type="file" id="input-import-csv-pemasukan" accept=".xlsx, .xls" style="display: none;" /></label>
+            </div>
+
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary" id="btn-download-csv-pengeluaran" style="flex: 1; justify-content: center; font-size: 0.85rem;"><i data-lucide="file-spreadsheet"></i><span>Template Pengeluaran</span></button>
+              <label class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.85rem; cursor: pointer; margin: 0; background: linear-gradient(135deg, hsl(340, 80%, 40%), hsl(var(--danger))); border: none; color: white;"><i data-lucide="upload"></i><span>Unggah Excel Pengeluaran</span><input type="file" id="input-import-csv-pengeluaran" accept=".xlsx, .xls" style="display: none;" /></label>
+            </div>
+          </div>
           <div style="margin-top: 24px; text-align: center;"><button type="button" class="btn btn-danger" id="btn-reset-all" style="padding: 8px 16px; font-size: 0.8rem; background: transparent; border-color: rgba(239,68,68,0.4);"><i data-lucide="alert-triangle"></i><span>Reset / Bersihkan Seluruh Data Jemaat</span></button></div>
         </div>
       </div>
@@ -3716,6 +3751,85 @@ function doGet(e) {
         } catch (err) { showToast("Error membaca file JSON: " + err.message, "danger"); }
       };
       reader.readAsText(file);
+    });
+
+    container.querySelector('#btn-download-csv-pemasukan')?.addEventListener('click', () => {
+      downloadExcel("Template_Pemasukan.xlsx", ["Tanggal (YYYY-MM-DD)", "Sabat / Minggu", "Nama Anggota", "Persepuluhan", "Persembahan Terpadu", "Persembahan Khusus (Gereja)", "Persembahan Pembangunan", "Lain-lain", "No Kuitansi", "Catatan"], ["2023-10-15", "Sabat ke-3", "John Doe", 500000, 100000, 50000, 0, 0, "KWT-001", "Transfer Bank"]);
+      showToast("Template Excel Pemasukan berhasil diunduh.", "success");
+    });
+
+    container.querySelector('#btn-download-csv-pengeluaran')?.addEventListener('click', () => {
+      downloadExcel("Template_Pengeluaran.xlsx", ["Tanggal (YYYY-MM-DD)", "Kategori / Departemen", "Keterangan / Uraian", "Jumlah Pengeluaran", "No Voucher", "Dana Pembangunan (Ya/Tidak)"], ["2023-10-16", "Operasional Gereja", "Bayar Listrik PLN", 250000, "VK-001", "Tidak"]);
+      showToast("Template Excel Pengeluaran berhasil diunduh.", "success");
+    });
+
+    function processExcelFile(file, isPemasukan) {
+      if (!window.XLSX) { showToast("Library Excel belum termuat.", "danger"); return; }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, {type: 'array', cellDates: true});
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const rows = XLSX.utils.sheet_to_json(worksheet, {header: 1, raw: false, dateNF: "yyyy-mm-dd"});
+          
+          if (rows.length < 2) throw new Error("File Excel kosong atau tidak ada data.");
+          let imported = 0;
+          for (let i = 1; i < rows.length; i++) {
+            const cols = rows[i];
+            if (!cols || cols.length < 3 || !cols[0]) continue; // Skip invalid
+            
+            const dateStr = String(cols[0]).trim();
+            if (isPemasukan) {
+              const newItem = {
+                id: "TRM-" + Date.now() + Math.floor(Math.random()*1000) + i,
+                date: dateStr,
+                sabbathName: String(cols[1] || "-"),
+                memberName: String(cols[2] || "-"),
+                persepuluhan: parseNumber(cols[3]),
+                persembahanTerpadu: parseNumber(cols[4]),
+                persembahanKhusus: parseNumber(cols[5]),
+                persembahanPembangunan: parseNumber(cols[6]),
+                lainLain: parseNumber(cols[7]),
+                receiptNo: String(cols[8] || ("KWT-EXC-" + Date.now().toString().slice(-4))),
+                notes: String(cols[9] || "")
+              };
+              state.pemasukan.push(newItem);
+            } else {
+              const isBuild = String(cols[5]).toLowerCase().includes('ya');
+              const newItem = {
+                id: "OUT-" + Date.now() + Math.floor(Math.random()*1000) + i,
+                date: dateStr,
+                departmentName: String(cols[1] || "-"),
+                departmentId: 1, // Default fallback
+                description: String(cols[2] || "-"),
+                amount: parseNumber(cols[3]),
+                voucherNo: String(cols[4] || ("VK-EXC-" + Date.now().toString().slice(-4))),
+                isBuildingFund: isBuild
+              };
+              state.pengeluaran.push(newItem);
+            }
+            imported++;
+          }
+          localStorage.setItem('gmahk_bendahara_state_v1', JSON.stringify(state));
+          showToast(`Berhasil mengimpor ${imported} data ${isPemasukan ? 'pemasukan' : 'pengeluaran'}! Memuat ulang...`, "success");
+          setTimeout(() => window.location.reload(), 1500);
+        } catch (err) { showToast("Error memproses Excel: " + err.message, "danger"); }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    container.querySelector('#input-import-csv-pemasukan')?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) processExcelFile(file, true);
+      e.target.value = "";
+    });
+
+    container.querySelector('#input-import-csv-pengeluaran')?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) processExcelFile(file, false);
+      e.target.value = "";
     });
 
     container.querySelector('#btn-reset-all')?.addEventListener('click', () => {
