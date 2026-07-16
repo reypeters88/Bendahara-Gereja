@@ -3617,6 +3617,10 @@ function doGet(e) {
             </div>
             <p style="font-size: 0.78rem; color: hsl(var(--text-muted)); margin-top: 6px;">Masukkan URL Web App dari file code.gs yang telah Anda pasang di Google Apps Script.</p>
           </div>
+          <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="st-autopull" ${settings.autoPullOnLoad ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: hsl(var(--accent-blue)); cursor: pointer;" />
+            <label for="st-autopull" style="font-size: 0.9rem; cursor: pointer; user-select: none;">Tarik Data Otomatis Saat Aplikasi Dibuka</label>
+          </div>
           <div style="display: flex; gap: 12px; margin-bottom: 12px;">
             <button type="button" class="btn btn-gold" id="btn-sync-now" style="flex: 1; justify-content: center; padding: 14px;"><i data-lucide="upload-cloud"></i><span>Kirim / Sync Data ke Sheets</span></button>
             <button type="button" class="btn btn-primary" id="btn-pull-now" style="flex: 1; justify-content: center; padding: 14px; background: linear-gradient(135deg, hsl(160, 84%, 30%), hsl(var(--accent-blue))); border: none; color: white;"><i data-lucide="download-cloud"></i><span>Tarik Data dari Sheets</span></button>
@@ -3676,7 +3680,8 @@ function doGet(e) {
         saldoAwalGereja: Number(container.querySelector('#st-saldo-grj').value) || 0,
         saldoAwalPembangunan: Number(container.querySelector('#st-saldo-pbg').value) || 0,
         saldoAwalDskt: Number(container.querySelector('#st-saldo-dskt').value) || 0,
-        webhookUrl: container.querySelector('#st-webhook').value.trim()
+        webhookUrl: container.querySelector('#st-webhook').value.trim(),
+        autoPullOnLoad: container.querySelector('#st-autopull') ? container.querySelector('#st-autopull').checked : false
       });
       showToast("Pengaturan identitas dan saldo awal berhasil disimpan!", "success");
       renderPengaturan(container, getState());
@@ -4089,6 +4094,32 @@ function doGet(e) {
 
     updateTopbarInfo(state);
     navigateTo(currentView);
+
+    // Auto-Pull on Load
+    if (state.settings && state.settings.autoPullOnLoad && state.settings.webhookUrl) {
+      setTimeout(async () => {
+        showToast("Memeriksa pembaruan data dari Google Sheets...", "info");
+        try {
+          const res = await pullFromGoogleSheets(state.settings.webhookUrl);
+          if (res.success && res.data) {
+            let dataChanged = false;
+            if (JSON.stringify(state.pemasukan) !== JSON.stringify(res.data.pemasukan || [])) { state.pemasukan = res.data.pemasukan || []; dataChanged = true; }
+            if (JSON.stringify(state.pengeluaran) !== JSON.stringify(res.data.pengeluaran || [])) { state.pengeluaran = res.data.pengeluaran || []; dataChanged = true; }
+            if (JSON.stringify(state.kirimDskt) !== JSON.stringify(res.data.kirimDskt || [])) { state.kirimDskt = res.data.kirimDskt || []; dataChanged = true; }
+            
+            if (dataChanged) {
+              localStorage.setItem('gmahk_bendahara_state_v1', JSON.stringify(state));
+              showToast("Ada data baru! Aplikasi otomatis diperbarui.", "success");
+              setTimeout(() => window.location.reload(), 1500);
+            } else {
+              showToast("Data Anda sudah sinkron (terbaru).", "info");
+            }
+          }
+        } catch(e) {
+          console.error("Auto pull failed", e);
+        }
+      }, 2000);
+    }
   }
 
   // Ekspor fungsi utama ke window agar bisa diakses jika diperlukan
