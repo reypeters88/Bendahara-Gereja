@@ -36,13 +36,15 @@ export async function syncToGoogleSheets(url, stateData) {
         data: {
           pemasukan: stateData.pemasukan || [],
           pengeluaran: stateData.pengeluaran || [],
-          kirimDskt: stateData.kirimDskt || []
+          kirimDskt: stateData.kirimDskt || [],
+          kirimPembangunan: stateData.kirimPembangunan || []
         }
       })
     });
 
-    if (response.ok || response.type === 'opaque') {
-      return { success: true, message: "Data berhasil dikirim ke Google Sheets (Sheet Pemasukan, Pengeluaran & Kirim DSKT)!" };
+    const data = await response.json();
+    if (data.status === 'success') {
+      return { success: true, message: "Data berhasil dikirim ke Google Sheets (Pemasukan, Pengeluaran, Kirim DSKT & Pembangunan)!" };
     } else {
       return { success: false, message: `Gagal mengirim data. Status: ${response.status}` };
     }
@@ -79,33 +81,41 @@ export const GOOGLE_SCRIPT_TEMPLATE_CODE = `function setupSheets() {
     sheetKeluar.setFrozenRows(1);
   }
 
-  var sheetDskt = ss.getSheetByName("Sheet Kirim DSKT");
-  if (!sheetDskt) {
-    sheetDskt = ss.insertSheet("Sheet Kirim DSKT");
-    sheetDskt.appendRow([
-      "ID Transaksi", "Tanggal Kirim", "Jumlah Dikirim ke DSKT", "No. Referensi / Bank", "Catatan"
+  var sheetKirimDskt = ss.getSheetByName("Sheet Kirim DSKT");
+  if (!sheetKirimDskt) {
+    sheetKirimDskt = ss.insertSheet("Sheet Kirim DSKT");
+    sheetKirimDskt.appendRow([
+      "ID Transaksi", "Tanggal Kirim", "Nominal Dikirim", "Bank / Tujuan", "No. Referensi / Kuitansi", "Keterangan"
     ]);
-    sheetDskt.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#d97706").setFontColor("#ffffff");
-    sheetDskt.setFrozenRows(1);
+    sheetKirimDskt.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#ca8a04").setFontColor("#ffffff");
+    sheetKirimDskt.setFrozenRows(1);
+  }
+
+  var sheetKirimPembangunan = ss.getSheetByName("Sheet Kirim Pembangunan");
+  if (!sheetKirimPembangunan) {
+    sheetKirimPembangunan = ss.insertSheet("Sheet Kirim Pembangunan");
+    sheetKirimPembangunan.appendRow([
+      "ID Transaksi", "Tanggal Kirim", "Nominal Dikirim", "Bank / Tujuan", "No. Referensi / Bukti Transfer", "Keterangan"
+    ]);
+    sheetKirimPembangunan.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#2563eb").setFontColor("#ffffff");
+    sheetKirimPembangunan.setFrozenRows(1);
   }
   
-  return { sheetMasuk: sheetMasuk, sheetKeluar: sheetKeluar, sheetDskt: sheetDskt };
+  return { sheetMasuk: sheetMasuk, sheetKeluar: sheetKeluar, sheetDskt: sheetKirimDskt, sheetPembangunan: sheetKirimPembangunan };
 }
 
 function doPost(e) {
   try {
-    var sheets = setupSheets();
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
     var payload = JSON.parse(e.postData.contents);
     if (payload.action === "sync_all") {
-      var pemasukanList = payload.data.pemasukan || [];
-      var pengeluaranList = payload.data.pengeluaran || [];
-      var kirimDsktList = payload.data.kirimDskt || [];
-
+      var sheets = setupSheets();
+      
       if (sheets.sheetMasuk.getLastRow() > 1) {
         sheets.sheetMasuk.getRange(2, 1, sheets.sheetMasuk.getLastRow() - 1, 14).clearContent();
       }
-      if (pemasukanList.length > 0) {
-        var rowsMasuk = pemasukanList.map(function(item) {
+      if (payload.data.pemasukan && payload.data.pemasukan.length > 0) {
+        var rowsMasuk = payload.data.pemasukan.map(function(item) {
           var psp = Number(item.persepuluhan) || 0;
           var pt = Number(item.persembahanTerpadu) || 0;
           var pk = Number(item.persembahanKhusus) || 0;
@@ -122,8 +132,8 @@ function doPost(e) {
       if (sheets.sheetKeluar.getLastRow() > 1) {
         sheets.sheetKeluar.getRange(2, 1, sheets.sheetKeluar.getLastRow() - 1, 7).clearContent();
       }
-      if (pengeluaranList.length > 0) {
-        var rowsKeluar = pengeluaranList.map(function(item) {
+      if (payload.data.pengeluaran && payload.data.pengeluaran.length > 0) {
+        var rowsKeluar = payload.data.pengeluaran.map(function(item) {
           return [
             item.id || "", item.date || "", item.departmentName || "", item.description || "",
             Number(item.amount) || 0, item.voucherNo || "", item.isBuildingFund ? "Ya (Pembangunan)" : "Kas Jemaat"
@@ -132,14 +142,30 @@ function doPost(e) {
         sheets.sheetKeluar.getRange(2, 1, rowsKeluar.length, 7).setValues(rowsKeluar);
       }
 
-      if (sheets.sheetDskt.getLastRow() > 1) {
-        sheets.sheetDskt.getRange(2, 1, sheets.sheetDskt.getLastRow() - 1, 5).clearContent();
+      if (payload.data.kirimDskt) {
+        var sheetKirimDskt = ss.getSheetByName("Sheet Kirim DSKT");
+        if (sheetKirimDskt) {
+          sheetKirimDskt.getRange(2, 1, sheetKirimDskt.getMaxRows(), sheetKirimDskt.getMaxColumns()).clearContent();
+          payload.data.kirimDskt.forEach(function(item) {
+            sheetKirimDskt.appendRow([
+              item.id || "", item.date || "", Number(item.amount) || 0, 
+              item.bankName || "", item.referenceNo || "", item.notes || ""
+            ]);
+          });
+        }
       }
-      if (kirimDsktList.length > 0) {
-        var rowsDskt = kirimDsktList.map(function(item) {
-          return [item.id || "", item.date || "", Number(item.amount) || 0, item.referenceNo || "", item.notes || ""];
-        });
-        sheets.sheetDskt.getRange(2, 1, rowsDskt.length, 5).setValues(rowsDskt);
+      
+      if (payload.data.kirimPembangunan) {
+        var sheetKirimPemb = ss.getSheetByName("Sheet Kirim Pembangunan");
+        if (sheetKirimPemb) {
+          sheetKirimPemb.getRange(2, 1, sheetKirimPemb.getMaxRows(), sheetKirimPemb.getMaxColumns()).clearContent();
+          payload.data.kirimPembangunan.forEach(function(item) {
+            sheetKirimPemb.appendRow([
+              item.id || "", item.date || "", Number(item.amount) || 0, 
+              item.bankName || "", item.referenceNo || "", item.notes || ""
+            ]);
+          });
+        }
       }
 
       return ContentService.createTextOutput(JSON.stringify({ status: "success" })).setMimeType(ContentService.MimeType.JSON);

@@ -174,70 +174,7 @@
   }
 
   function renderRumusArusKasBanner(summary) {
-    const saldoAwal = summary.saldoAwalTotal || 0;
-    const uangMasuk = summary.totalUangMasuk || 0;
-    const dikirimDsktPembangunan = summary.uangDikirimDsktDanPembangunan || ((summary.totalUangDikirimDskt || 0) + (summary.totalPengeluaranPembangunan || 0));
-    const pengeluaran = summary.pengeluaranOperasional || (summary.totalPengeluaranGereja || 0);
-    const sisaSaldo = summary.sisaSaldoGereja || (summary.sisaSaldoTotal || 0);
-
-    return `
-      <div class="formula-banner" style="border: 1px solid rgba(212, 175, 55, 0.45); background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, var(--surface-subtle) 100%);">
-        <div class="formula-title" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; border-bottom: 1px solid rgba(212, 175, 55, 0.2); padding-bottom: 14px; margin-bottom: 16px;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="background: rgba(212, 175, 55, 0.2); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-              <i data-lucide="calculator" style="color: hsl(var(--accent-gold)); width: 22px; height: 22px;"></i>
-            </div>
-            <div>
-              <span style="font-size: 1.08rem; font-weight: 800; color: hsl(var(--accent-gold)); display: block;">
-                RUMUS ARUS KAS BENDAHARA GEREJA ADVENT (GMAHK)
-              </span>
-              <span style="font-size: 0.8rem; font-weight: 600; color: hsl(var(--text-secondary)); display: block; margin-top: 2px;">
-                Saldo Awal + Uang Masuk - Uang Dikirim Ke DSKT & Pembangunan - Pengeluaran = Sisa Saldo Gereja
-              </span>
-            </div>
-          </div>
-          <span style="font-size: 0.74rem; font-weight: 800; background: rgba(212, 175, 55, 0.18); color: hsl(var(--accent-gold)); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(212, 175, 55, 0.4); text-transform: uppercase; letter-spacing: 0.04em;">
-            Formula Resmi
-          </span>
-        </div>
-
-        <div class="formula-flow" style="margin-bottom: 18px; gap: 10px;">
-          <div class="flow-box" style="border-radius: 12px;">
-            <div class="flow-label">Saldo Awal</div>
-            <div class="flow-number">${formatRupiah(saldoAwal)}</div>
-            <div style="font-size: 0.68rem; color: hsl(var(--text-muted)); margin-top: 2px;">(Kas Awal Bulan)</div>
-          </div>
-          <div class="flow-operator">+</div>
-          <div class="flow-box" style="border-radius: 12px; background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.35);">
-            <div class="flow-label" style="color: hsl(var(--success));">Uang Masuk</div>
-            <div class="flow-number" style="color: hsl(var(--success));">${formatRupiah(uangMasuk)}</div>
-            <div style="font-size: 0.68rem; color: hsl(var(--text-muted)); margin-top: 2px;">(Penerimaan Jemaat)</div>
-          </div>
-          <div class="flow-operator">-</div>
-          <div class="flow-box" style="border-radius: 12px; background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.35);">
-            <div class="flow-label" style="color: hsl(var(--warning));">Dikirim DSKT & Pembangunan</div>
-            <div class="flow-number" style="color: hsl(var(--warning));">${formatRupiah(dikirimDsktPembangunan)}</div>
-            <div style="font-size: 0.68rem; color: hsl(var(--text-muted)); margin-top: 2px;">(DSKT: Rp ${formatRupiah(summary.totalUangDikirimDskt || 0)} + Pemb: Rp ${formatRupiah(summary.totalPengeluaranPembangunan || 0)})</div>
-          </div>
-          <div class="flow-operator">-</div>
-          <div class="flow-box" style="border-radius: 12px; background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.35);">
-            <div class="flow-label" style="color: hsl(var(--danger));">Pengeluaran</div>
-            <div class="flow-number" style="color: hsl(var(--danger));">${formatRupiah(pengeluaran)}</div>
-            <div style="font-size: 0.68rem; color: hsl(var(--text-muted)); margin-top: 2px;">(Operasional Departemen)</div>
-          </div>
-          <div class="flow-operator">=</div>
-          <div class="flow-box result" style="border-radius: 12px; background: linear-gradient(135deg, rgba(212, 175, 55, 0.22) 0%, rgba(15, 23, 42, 0.9) 100%); border: 1.5px solid hsl(var(--accent-gold));">
-            <div class="flow-label" style="color: hsl(var(--accent-gold)); font-weight: 800;">Sisa Saldo Gereja</div>
-            <div class="flow-number" style="color: hsl(var(--text-primary)); font-size: 1.25rem; font-weight: 900;">${formatRupiah(sisaSaldo)}</div>
-            <div style="font-size: 0.68rem; color: hsl(var(--accent-gold)); margin-top: 2px; font-weight: 700;">(Arus Kas Bersih)</div>
-          </div>
-        </div>
-
-        <div style="background: rgba(0, 0, 0, 0.25); border-left: 3.5px solid hsl(var(--accent-gold)); padding: 12px 16px; border-radius: 10px; font-size: 0.83rem; color: hsl(var(--text-secondary)); line-height: 1.45;">
-          <strong style="color: hsl(var(--text-primary));">Aturan Wajib Perbendaharaan:</strong> Karena dana <strong style="color: hsl(var(--warning));">Pembangunan</strong> dan <strong style="color: hsl(var(--warning));">DSKT</strong> setiap akhir bulannya merupakan kewajiban yang harus dikirim dan dikeluarkan dari Kas Gereja, maka dalam perhitungan rumusan arus kas di atas dipisahkan dari pengeluaran operasional rutin agar posisi <strong style="color: hsl(var(--accent-gold));">Sisa Saldo Gereja</strong> akurat dan siap dipertanggungjawabkan.
-        </div>
-      </div>
-    `;
+    return "";
   }
 
   function generateReceiptNo(dateStr, state) {
@@ -414,7 +351,8 @@
         referenceNo: "TRX-BNI-982173",
         notes: "Setoran Persepuluhan & 50% Pers. Terpadu Sabat 1 & 2"
       }
-    ]
+    ],
+    kirimPembangunan: []
   };
 
   let appState = null;
@@ -429,6 +367,7 @@
         appState.pemasukan = appState.pemasukan || INITIAL_STATE.pemasukan;
         appState.pengeluaran = appState.pengeluaran || INITIAL_STATE.pengeluaran;
         appState.kirimDskt = appState.kirimDskt || INITIAL_STATE.kirimDskt;
+        appState.kirimPembangunan = appState.kirimPembangunan || INITIAL_STATE.kirimPembangunan;
         if (appState.settings.churchName === "Gereja Advent Jemaat Pusat" || appState.settings.churchName === "Jemaat Pusat") {
           appState.settings.churchName = "Jemaat Teratai Batam";
           saveState();
@@ -557,6 +496,24 @@
 
   function deleteKirimDskt(id) {
     appState.kirimDskt = appState.kirimDskt.filter(item => item.id !== id);
+    saveState();
+  }
+
+  function addKirimPembangunan(entry) {
+    const newEntry = {
+      id: entry.id || "TRP-" + Date.now(),
+      date: entry.date || new Date().toISOString().split('T')[0],
+      amount: Number(entry.amount) || 0,
+      referenceNo: entry.referenceNo || "-",
+      notes: entry.notes || ""
+    };
+    appState.kirimPembangunan.unshift(newEntry);
+    saveState();
+    return newEntry;
+  }
+
+  function deleteKirimPembangunan(id) {
+    appState.kirimPembangunan = appState.kirimPembangunan.filter(item => item.id !== id);
     saveState();
   }
 
@@ -715,8 +672,6 @@ function doGet(e) {
   function renderDashboard(container, state, navigateTo) {
     const summary = calculateFinancialSummary(state);
     container.innerHTML = `
-      ${renderRumusArusKasBanner(summary)}
-
       <div class="stats-grid">
         <div class="stat-card" style="--stat-glow: rgba(34, 197, 94, 0.2); --icon-bg: rgba(34, 197, 94, 0.15); --icon-color: hsl(var(--success));">
           <div class="stat-header">
@@ -774,7 +729,8 @@ function doGet(e) {
               <button class="btn btn-primary" id="btn-goto-masuk" style="width: 100%; justify-content: center; padding: 14px;"><i data-lucide="plus-circle"></i><span>Catat Masuk</span></button>
               <button class="btn btn-gold" id="btn-goto-keluar" style="width: 100%; justify-content: center; padding: 14px;"><i data-lucide="minus-circle"></i><span>Catat Keluar</span></button>
             </div>
-            <button class="btn btn-secondary" id="btn-goto-dskt" style="width: 100%; justify-content: center; padding: 12px; border-color: rgba(239, 68, 68, 0.4); color: hsl(var(--danger));"><i data-lucide="send"></i><span>Setor Uang ke Kas DSKT (Konferens)</span></button>
+            <button class="btn btn-secondary" id="btn-goto-dskt" style="width: 100%; justify-content: center; padding: 12px; border-color: rgba(239, 68, 68, 0.4); color: hsl(var(--danger)); margin-bottom: 12px;"><i data-lucide="send"></i><span>Setor Uang ke Kas DSKT (Konferens/Daerah)</span></button>
+            <button class="btn btn-secondary" id="btn-goto-pembangunan" style="width: 100%; justify-content: center; padding: 12px; border-color: rgba(59, 130, 246, 0.4); color: #3b82f6;"><i data-lucide="building"></i><span>Setor Uang ke Kas Pembangunan</span></button>
           </div>
           <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; color: hsl(var(--text-muted));">
             <span>Google Sheets Sync Status:</span>
@@ -834,6 +790,7 @@ function doGet(e) {
     container.querySelector('#btn-goto-masuk')?.addEventListener('click', () => navigateTo('pemasukan'));
     container.querySelector('#btn-goto-keluar')?.addEventListener('click', () => navigateTo('pengeluaran'));
     container.querySelector('#btn-goto-dskt')?.addEventListener('click', () => navigateTo('kirim-dskt'));
+    container.querySelector('#btn-goto-pembangunan')?.addEventListener('click', () => navigateTo('kirim-pembangunan'));
     container.querySelector('#btn-goto-laporan')?.addEventListener('click', () => navigateTo('laporan'));
 
     setTimeout(() => {
@@ -1774,6 +1731,108 @@ function doGet(e) {
           deleteKirimDskt(id);
           showToast("Bukti pengiriman berhasil dihapus.", "success");
           renderKirimDskt(container, getState());
+        }
+      });
+    });
+  }
+
+  function renderKirimPembangunan(container, state) {
+    const summary = calculateFinancialSummary(state);
+    const kirimList = state.kirimPembangunan || [];
+    const today = new Date().toISOString().split('T')[0];
+
+    const akumulasiMasuk = summary.saldoAwalPembangunan + summary.totalMasukPembangunan;
+
+    container.innerHTML = `
+      <!-- Tombol Kembali / Back Line Icon -->
+      <div style="margin-bottom: 16px;">
+        <button type="button" class="btn btn-secondary" id="btn-back-dashboard-pemb" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--surface-subtle); color: hsl(var(--text-primary)); cursor: pointer;">
+          <i data-lucide="arrow-left" style="width: 18px; height: 18px; color: hsl(var(--accent-gold));"></i>
+          <span>Kembali ke Dashboard</span>
+        </button>
+      </div>
+
+      <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(15, 23, 42, 0.95)); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 28px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px;">
+        <div>
+          <span class="badge badge-pembangunan" style="margin-bottom: 8px;">Manajemen Dana Pembangunan</span>
+          <h3 style="font-size: 1.5rem; font-weight: 800; color: hsl(var(--text-primary));">Status Setoran Kas Pembangunan</h3>
+          <p style="color: hsl(var(--text-secondary)); font-size: 0.9rem; max-width: 600px; margin-top: 4px;">Pencatatan khusus untuk penyetoran/pengiriman dana pembangunan ke bank/institusi terkait agar tidak tercampur dengan operasional rutin gereja.</p>
+        </div>
+        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+          <div style="background: var(--flow-box-bg); padding: 14px 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: right;"><div style="font-size: 0.78rem; color: hsl(var(--text-muted)); font-weight: 600;">AKUMULASI MASUK</div><div style="font-size: 1.3rem; font-weight: 800; color: hsl(var(--text-primary));">${formatRupiah(akumulasiMasuk)}</div></div>
+          <div style="background: var(--flow-box-bg); padding: 14px 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: right;"><div style="font-size: 0.78rem; color: hsl(var(--text-muted)); font-weight: 600;">TERPAKAI (PENGELUARAN)</div><div style="font-size: 1.3rem; font-weight: 800; color: hsl(var(--warning));">${formatRupiah(summary.totalPengeluaranPembangunan)}</div></div>
+          <div style="background: var(--flow-box-bg); padding: 14px 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: right;"><div style="font-size: 0.78rem; color: hsl(var(--text-muted)); font-weight: 600;">SUDAH DISETOR</div><div style="font-size: 1.3rem; font-weight: 800; color: #3b82f6;">${formatRupiah(summary.totalKirimPembangunan)}</div></div>
+          <div style="background: rgba(59, 130, 246, 0.15); padding: 14px 20px; border-radius: var(--radius-md); border: 1px solid rgba(59, 130, 246,0.5); text-align: right;"><div style="font-size: 0.78rem; color: #3b82f6; font-weight: 700;">SISA SALDO PEMBANGUNAN</div><div style="font-size: 1.4rem; font-weight: 800; color: hsl(var(--text-primary));">${formatRupiah(summary.saldoKasPembangunan)}</div></div>
+        </div>
+      </div>
+
+      <div class="view-split-grid">
+        <div class="glass-card">
+          <h3 style="font-size: 1.2rem; font-weight: 700; color: #3b82f6; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;"><i data-lucide="building" style="display: inline; vertical-align: -3px; margin-right: 6px;"></i>Catat Setoran / Pengiriman Kas Pembangunan</h3>
+          <form id="form-pembangunan">
+            <div class="form-grid">
+              <div class="form-group"><label class="form-label">Tanggal Setor / Transfer</label><input type="date" class="form-control" id="trp-date" value="${today}" required /></div>
+              <div class="form-group"><label class="form-label">No. Referensi / Bukti Transfer</label><input type="text" class="form-control" id="trp-ref" placeholder="Cth: TRX-BCA-5511" required /></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nominal Setoran Pembangunan (Rp)</label>
+              <input type="number" class="form-control" id="trp-amount" value="${Math.max(0, Math.round(summary.saldoKasPembangunan))}" min="1000" step="1000" required style="font-size: 1.2rem; font-weight: 800; color: #3b82f6;" />
+              <span style="font-size: 0.78rem; color: hsl(var(--text-muted)); margin-top: 4px;">*Otomatis terisi total sisa saldo saat ini, namun bisa disesuaikan jika setoran sebagian.</span>
+            </div>
+            <div class="form-group"><label class="form-label">Catatan / Keterangan Setoran</label><textarea class="form-control" id="trp-notes" rows="3" placeholder="Cth: Penyetoran dana pembangunan gereja ke rekening panitia pembangunan" required></textarea></div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px; padding: 14px; font-size: 1rem; justify-content: center; background: linear-gradient(135deg, #3b82f6, #2563eb);"><i data-lucide="check-circle"></i><span>Simpan Bukti Setoran Pembangunan</span></button>
+          </form>
+        </div>
+
+        <div class="glass-card">
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 16px;">Riwayat Setoran Pembangunan</h3>
+          <div class="table-responsive" style="max-height: 550px; overflow-y: auto;">
+            <table class="data-table">
+              <thead><tr><th>Tanggal & Ref</th><th>Keterangan</th><th>Jumlah Disetor</th><th>Aksi</th></tr></thead>
+              <tbody>
+                ${kirimList.map(item => `
+                  <tr>
+                    <td style="width: 28%;"><div style="font-weight: 700;">${formatDateIndo(item.date)}</div><div style="font-size: 0.78rem; color: hsl(var(--text-secondary));">Ref: ${item.referenceNo}</div></td>
+                    <td><div style="font-size: 0.88rem; color: hsl(var(--text-primary));">${item.notes}</div></td>
+                    <td style="font-weight: 800; color: #3b82f6; width: 25%;">${formatRupiah(item.amount)}</td>
+                    <td style="text-align: center; width: 60px;"><button class="icon-btn btn-del-pembangunan" data-id="${item.id}" title="Hapus Bukti Setoran" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button></td>
+                  </tr>
+                `).join('')}
+                ${kirimList.length === 0 ? `<tr><td colspan="4" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada catatan setoran pembangunan.</td></tr>` : ''}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    `;
+
+    if (window.lucide) window.lucide.createIcons();
+
+    container.querySelector('#btn-back-dashboard-pemb')?.addEventListener('click', () => {
+      if (typeof navigateTo === 'function') navigateTo('dashboard');
+      else if (window.BendaharaApp?.navigateTo) window.BendaharaApp.navigateTo('dashboard');
+    });
+
+    container.querySelector('#form-pembangunan')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const entry = {
+        date: container.querySelector('#trp-date').value,
+        referenceNo: container.querySelector('#trp-ref').value,
+        amount: container.querySelector('#trp-amount').value,
+        notes: container.querySelector('#trp-notes').value
+      };
+      addKirimPembangunan(entry);
+      showToast("Bukti setoran dana pembangunan berhasil disimpan!", "success");
+      renderKirimPembangunan(container, getState());
+    });
+
+    container.querySelectorAll('.btn-del-pembangunan').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        if (confirm("Apakah Anda yakin ingin menghapus catatan setoran pembangunan ini?")) {
+          deleteKirimPembangunan(id);
+          showToast("Bukti setoran pembangunan berhasil dihapus.", "success");
+          renderKirimPembangunan(container, getState());
         }
       });
     });
@@ -3374,6 +3433,10 @@ function doGet(e) {
       case 'kirim-dskt':
         updatePageTitle('Setoran / Pengiriman Dana ke DSKT (Konferens/Daerah)');
         renderKirimDskt(container, state, showToast);
+        break;
+      case 'kirim-pembangunan':
+        updatePageTitle('Setoran Kas Pembangunan');
+        renderKirimPembangunan(container, state);
         break;
       case 'laporan':
         updatePageTitle('Pusat Laporan Jemaat');

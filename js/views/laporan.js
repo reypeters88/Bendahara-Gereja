@@ -9,6 +9,7 @@ export function renderLaporan(container, state, showToast, activeTab = null, tra
   const pemasukanList = state.pemasukan || [];
   const pengeluaranList = state.pengeluaran || [];
   const kirimList = state.kirimDskt || [];
+  const kirimPembList = state.kirimPembangunan || [];
 
   const yearsSet = new Set([
     ...pemasukanList.map(i => { const d = new Date(i.date); return !isNaN(d.getTime()) ? d.getFullYear() : null; }),
@@ -1118,11 +1119,22 @@ export function renderLaporan(container, state, showToast, activeTab = null, tra
         "ID Transaksi": i.id,
         "Tanggal Kirim": i.date,
         "Jumlah Dikirim ke DSKT": i.amount,
-        "No. Referensi": i.referenceNo,
+        "No. Referensi / Bank": i.referenceNo,
         "Catatan": i.notes
       }));
       const wsDskt = window.XLSX.utils.json_to_sheet(rowsDskt);
       window.XLSX.utils.book_append_sheet(wb, wsDskt, "Sheet Kirim DSKT");
+
+      // 4. Sheet Kirim Pembangunan
+      const rowsPemb = kirimPembList.map(i => ({
+        "ID Transaksi": i.id,
+        "Tanggal Kirim": i.date,
+        "Jumlah Dikirim": i.amount,
+        "No. Referensi / Bank": i.referenceNo,
+        "Catatan": i.notes
+      }));
+      const wsPemb = window.XLSX.utils.json_to_sheet(rowsPemb);
+      window.XLSX.utils.book_append_sheet(wb, wsPemb, "Sheet Kirim Pembangunan");
 
       window.XLSX.writeFile(wb, `Laporan_Bendahara_GMAHK_${new Date().toISOString().slice(0, 10)}.xlsx`);
       showToast("Laporan berhasil diekspor menjadi file Excel (.xlsx) dengan pemisahan sheet!", "success");

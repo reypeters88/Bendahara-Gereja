@@ -9,9 +9,6 @@ export function renderDashboard(container, state, navigateTo) {
   const summary = calculateFinancialSummary(state);
 
   container.innerHTML = `
-    <!-- Cash Flow Formula Banner -->
-    ${renderRumusArusKasBanner(summary)}
-
     <!-- Financial Cards Grid -->
     <div class="stats-grid">
       <div class="stat-card" style="--stat-glow: rgba(34, 197, 94, 0.2); --icon-bg: rgba(34, 197, 94, 0.15); --icon-color: hsl(var(--success));">
@@ -93,9 +90,13 @@ export function renderDashboard(container, state, navigateTo) {
             </button>
           </div>
 
-          <button class="btn btn-secondary" id="btn-goto-dskt" style="width: 100%; justify-content: center; padding: 12px; border-color: rgba(239, 68, 68, 0.4); color: hsl(var(--danger));">
+          <button class="btn btn-secondary" id="btn-goto-dskt" style="width: 100%; justify-content: center; padding: 12px; border-color: rgba(239, 68, 68, 0.4); color: hsl(var(--danger)); margin-bottom: 12px;">
             <i data-lucide="send"></i>
             <span>Setor Uang ke Kas DSKT (Konferens/Daerah)</span>
+          </button>
+          <button class="btn btn-secondary" id="btn-goto-pembangunan" style="width: 100%; justify-content: center; padding: 12px; border-color: rgba(59, 130, 246, 0.4); color: #3b82f6;">
+            <i data-lucide="building"></i>
+            <span>Setor Uang ke Kas Pembangunan</span>
           </button>
         </div>
 
@@ -159,6 +160,7 @@ export function renderDashboard(container, state, navigateTo) {
   container.querySelector('#btn-goto-masuk')?.addEventListener('click', () => navigateTo('pemasukan'));
   container.querySelector('#btn-goto-keluar')?.addEventListener('click', () => navigateTo('pengeluaran'));
   container.querySelector('#btn-goto-dskt')?.addEventListener('click', () => navigateTo('kirim-dskt'));
+  container.querySelector('#btn-goto-pembangunan')?.addEventListener('click', () => navigateTo('kirim-pembangunan'));
   container.querySelector('#btn-goto-laporan')?.addEventListener('click', () => navigateTo('laporan'));
 
   // Render Chart.js

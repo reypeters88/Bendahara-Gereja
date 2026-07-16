@@ -120,7 +120,8 @@ const INITIAL_STATE = {
       referenceNo: "TRX-BNI-982173",
       notes: "Setoran Persepuluhan & 50% Pers. Terpadu Sabat 1 & 2"
     }
-  ]
+  ],
+  kirimPembangunan: []
 };
 
 let appState = null;
@@ -136,6 +137,7 @@ export function loadState() {
       appState.pemasukan = appState.pemasukan || INITIAL_STATE.pemasukan;
       appState.pengeluaran = appState.pengeluaran || INITIAL_STATE.pengeluaran;
       appState.kirimDskt = appState.kirimDskt || INITIAL_STATE.kirimDskt;
+      appState.kirimPembangunan = appState.kirimPembangunan || INITIAL_STATE.kirimPembangunan;
       if (appState.settings.churchName === "Gereja Advent Jemaat Pusat" || appState.settings.churchName === "Jemaat Pusat") {
         appState.settings.churchName = "Jemaat Teratai Batam";
         saveState();
@@ -320,6 +322,24 @@ export function addKirimDskt(entry) {
 
 export function deleteKirimDskt(id) {
   appState.kirimDskt = appState.kirimDskt.filter(item => item.id !== id);
+  saveState();
+}
+
+export function addKirimPembangunan(entry) {
+  const newEntry = {
+    id: entry.id || "TRP-" + Date.now(),
+    date: entry.date || new Date().toISOString().split('T')[0],
+    amount: Number(entry.amount) || 0,
+    referenceNo: entry.referenceNo || "-",
+    notes: entry.notes || ""
+  };
+  appState.kirimPembangunan.unshift(newEntry);
+  saveState();
+  return newEntry;
+}
+
+export function deleteKirimPembangunan(id) {
+  appState.kirimPembangunan = appState.kirimPembangunan.filter(item => item.id !== id);
   saveState();
 }
 
