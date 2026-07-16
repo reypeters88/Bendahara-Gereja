@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>Bendahara Gereja Advent (GMAHK) - Aplikasi Arus Kas & Sync Google Sheets</title>
+  <meta name="description" content="Aplikasi WebApp Bendahara Gereja Masehi Advent Hari Ketujuh dengan alokasi persentase otomatis (Persepuluhan 100% DSKT, Persembahan Terpadu 50/50, Khusus, Pembangunan) & backup Google Sheets terpisah." />
+  <meta name="theme-color" content="#1e3a8a" />
+  <link rel="icon" type="image/png" href="gmahk.png" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Bendahara GMAHK" />
+  <link rel="apple-touch-icon" href="gmahk.png" />
+  
+  <!-- CSS Premium Styling -->
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- CDN Pustaka Ringan -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div id="app-container">
+    <!-- Trigger Zone untuk Autohide Sidebar di tepi kiri layar -->
+    <div class="sidebar-trigger-zone" title="Arahkan kursor ke tepi kiri layar untuk membuka menu"></div>
+    <!-- Desktop & Tablet Sidebar Navigation (Autohide) -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo" style="padding: 2px; overflow: hidden;">
+          <img src="gmahk.png" alt="Logo GMAHK" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-md);" />
+        </div>
+        <div class="brand-text">
+          <h1>BENDAHARA JEMAAT</h1>
+          <span>GMAHK / ADVENT</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a href="#" class="nav-item active" data-view="dashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Dashboard & Arus Kas</span>
+        </a>
+        <a href="#" class="nav-item" data-view="jurnal">
+          <i data-lucide="book-open"></i>
+          <span>Pencatatan Jurnal</span>
+        </a>
+        <a href="#" class="nav-item" data-view="kirim-dskt">
+          <i data-lucide="send"></i>
+          <span>Setor / Kirim DSKT</span>
+        </a>
+        <a href="#" class="nav-item" data-view="laporan">
+          <i data-lucide="file-spreadsheet"></i>
+          <span>Laporan</span>
+        </a>
+        <a href="#" class="nav-item" data-view="persentase">
+          <i data-lucide="pie-chart"></i>
+          <span>Persentase</span>
+        </a>
+        <a href="#" class="nav-item" data-view="pengaturan">
+          <i data-lucide="settings"></i>
+          <span>Pengaturan & Google Sync</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="church-info-badge">
+          <i data-lucide="shield-check"></i>
+          <div style="font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis;">
+            <div style="font-weight: 700; color: hsl(var(--text-primary)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="sidebar-church-name">Jemaat Teratai Batam</div>
+            <div style="color: hsl(var(--text-muted)); font-size: 0.72rem;">Sistem Perbendaharaan v1.0</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Sticky Bar -->
+      <header class="topbar">
+        <div class="page-title-area">
+          <button class="icon-btn" id="btn-mobile-menu" style="display: inline-flex; margin-right: 14px;" title="Buka/Tutup Menu Sidebar (Autohide)" aria-label="Menu">
+            <i data-lucide="menu"></i>
+          </button>
+          <h2 id="topbar-page-title">Dashboard & Arus Kas</h2>
+        </div>
+
+        <div class="topbar-actions">
+          <div id="sync-status-badge" class="sync-badge pending">
+            <i data-lucide="cloud-off" style="width: 14px; height: 14px;"></i>
+            <span>Offline / Lokal</span>
+          </div>
+          
+          <button class="btn btn-sm btn-gold" id="btn-open-install-modal" style="padding: 6px 12px; font-size: 0.78rem; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="smartphone" style="width: 15px; height: 15px;"></i>
+            <span>Install Aplikasi</span>
+          </button>
+
+          <button class="icon-btn" id="btn-theme-toggle" title="Ganti Mode Gelap / Terang">
+            <i data-lucide="sun"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Dynamic View Container -->
+      <div id="view-container" class="content-area">
+        <!-- Konten Halaman akan dimuat otomatis oleh JavaScript -->
+      </div>
+    </main>
+  </div>
+
+  <!-- Mobile & Tablet Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a href="#" class="bottom-nav-item active" data-view="dashboard">
+      <i data-lucide="layout-dashboard"></i>
+      <span>Dashboard</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-view="jurnal">
+      <i data-lucide="book-open"></i>
+      <span>Jurnal</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-view="kirim-dskt">
+      <i data-lucide="send"></i>
+      <span>DSKT</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-view="laporan">
+      <i data-lucide="file-spreadsheet"></i>
+      <span>Laporan</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-view="persentase">
+      <i data-lucide="pie-chart"></i>
+      <span>Persen</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-view="pengaturan">
+      <i data-lucide="settings"></i>
+      <span>Atur</span>
+    </a>
+  </nav>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- CSS untuk Hamburger Button (Selalu aktif karena Sidebar Autohide) -->
+  <style>
+    #btn-mobile-menu {
+      display: inline-flex !important;
+    }
+  </style>
+
+  <!-- Modal Panduan & Install Aplikasi Android / Tablet -->
+  <div class="modal-backdrop" id="modal-install-android">
+    <div class="modal-content" style="max-width: 580px;">
+      <div class="modal-header" style="background: linear-gradient(135deg, hsl(var(--accent-gold)), hsl(35, 95%, 40%)); color: black;">
+        <div>
+          <h4 style="font-size: 1.18rem; font-weight: 800;"><i data-lucide="smartphone" style="margin-right:6px;"></i> Install Aplikasi di HP Android & Tablet</h4>
+          <div style="font-size: 0.8rem; opacity: 0.9;">Buka secara Fullscreen layaknya Aplikasi Resmi di layar utama</div>
+        </div>
+        <button class="icon-btn" id="btn-close-install-modal" style="background: rgba(0,0,0,0.15); color: black;"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 20px; font-size: 0.9rem; line-height: 1.6; max-height: 70vh; overflow-y: auto; color: hsl(var(--text-primary));">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <img src="gmahk.png" alt="Ikon GMAHK" style="width: 72px; height: 72px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); margin-bottom: 10px;" />
+          <h5 style="font-size: 1.1rem; font-weight: 800; color: hsl(var(--text-primary)); margin: 0;">Bendahara Gereja Advent (GMAHK)</h5>
+          <span style="font-size: 0.8rem; color: hsl(var(--text-muted));">Sistem Arus Kas & POS Kuitansi Digital</span>
+        </div>
+
+        <div style="background: rgba(212, 175, 55, 0.15); border: 1px solid hsl(var(--accent-gold)); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px;">
+          <h6 style="font-weight: 800; color: hsl(var(--accent-gold)); font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="zap" style="width: 18px; height: 18px;"></i> Cara 1: Install Langsung (1-Klik via Browser HP)
+          </h6>
+          <p style="font-size: 0.85rem; margin-bottom: 12px; color: hsl(var(--text-primary));">
+            Aplikasi ini didukung teknologi <b>Progressive Web App (PWA)</b>. Klik tombol di bawah untuk memasang aplikasi langsung ke layar utama HP Android atau Tablet Anda:
+          </p>
+          <button type="button" class="btn btn-gold" id="btn-native-install-trigger" style="width: 100%; font-weight: 800; justify-content: center; padding: 12px; margin-bottom: 8px;">
+            <i data-lucide="download"></i> Pasang / Tambahkan ke Layar Utama Sekarang
+          </button>
+          <div id="install-instruction-text" style="font-size: 0.82rem; color: hsl(var(--text-secondary)); background: rgba(0,0,0,0.25); padding: 10px; border-radius: 6px;">
+            <b>💡 Panduan Manual Chrome / Edge di HP Android:</b><br/>
+            1. Ketuk ikon <b>3 titik</b> di pojok kanan atas browser.<br/>
+            2. Pilih menu <b>"Install aplikasi" (Install app)</b> atau <b>"Tambahkan ke layar utama" (Add to Home screen)</b>.<br/>
+            3. Ikon GMAHK akan muncul di HP Anda dan bisa dibuka offline tanpa mengetik alamat web lagi!
+          </div>
+        </div>
+
+        <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md);">
+          <h6 style="font-weight: 800; color: hsl(var(--accent-blue)); font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="package" style="width: 18px; height: 18px;"></i> Cara 2: Membuat File Standalone (.APK / .AAB)
+          </h6>
+          <p style="font-size: 0.85rem; margin-bottom: 10px; color: hsl(var(--text-secondary));">
+            Jika Anda ingin membagikan aplikasi ini sebagai file <code>BendaharaGMAHK.apk</code> yang bisa diinstall langsung (misal dikirim lewat WhatsApp):
+          </p>
+          <ol style="padding-left: 20px; font-size: 0.82rem; color: hsl(var(--text-secondary)); margin: 0;">
+            <li style="margin-bottom: 6px;">Unggah folder aplikasi ini ke situs hosting atau GitHub Pages gratis.</li>
+            <li style="margin-bottom: 6px;">Buka alat resmi Microsoft gratis: <a href="https://www.pwabuilder.com" target="_blank" style="color: hsl(var(--accent-gold)); font-weight: 700;">PWABuilder.com</a></li>
+            <li style="margin-bottom: 6px;">Masukkan link web aplikasi Anda, lalu klik <b>Start</b>.</li>
+            <li>Klik tombol <b>Package for Android</b> ➔ File <b>.APK</b> siap didownload dalam beberapa detik!</li>
+          </ol>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-close-install-modal-2" style="width: 100%;">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS Aplikasi Utama (Universal Bundle Tanpa Pembatasan CORS) -->
+  <script src="js/app.js"></script>
+</body>
+</html>
