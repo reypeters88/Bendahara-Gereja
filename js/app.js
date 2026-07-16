@@ -82,6 +82,7 @@
     const pemasukanList = state.pemasukan || [];
     const pengeluaranList = state.pengeluaran || [];
     const kirimDsktList = state.kirimDskt || [];
+    const kirimPembangunanList = state.kirimPembangunan || [];
 
     let totalUangMasuk = 0;
     let totalMasukGereja = 0;
@@ -115,12 +116,17 @@
       totalUangDikirimDskt += (Number(item.amount) || 0);
     });
 
-    const sisaSaldoTotal = saldoAwalTotal + totalUangMasuk - totalUangDikirimDskt - totalPengeluaran;
+    let totalKirimPembangunan = 0;
+    kirimPembangunanList.forEach(item => {
+      totalKirimPembangunan += (Number(item.amount) || 0);
+    });
+
+    const sisaSaldoTotal = saldoAwalTotal + totalUangMasuk - totalUangDikirimDskt - totalKirimPembangunan - totalPengeluaran;
     const saldoKasGereja = saldoAwalGereja + totalMasukGereja - totalPengeluaranGereja;
-    const saldoKasPembangunan = saldoAwalPembangunan + totalMasukPembangunan - totalPengeluaranPembangunan;
+    const saldoKasPembangunan = saldoAwalPembangunan + totalMasukPembangunan - totalPengeluaranPembangunan - totalKirimPembangunan;
     const kewajibanDsktBelumDisetor = saldoAwalDskt + totalMasukDskt - totalUangDikirimDskt;
 
-    const uangDikirimDsktDanPembangunan = totalUangDikirimDskt + totalPengeluaranPembangunan;
+    const uangDikirimDsktDanPembangunan = totalUangDikirimDskt + totalKirimPembangunan + totalPengeluaranPembangunan;
     const pengeluaranOperasional = totalPengeluaranGereja;
     const sisaSaldoGereja = sisaSaldoTotal;
 
@@ -137,6 +143,7 @@
       totalPengeluaranGereja,
       totalPengeluaranPembangunan,
       totalUangDikirimDskt,
+      totalKirimPembangunan,
       sisaSaldoTotal,
       saldoKasGereja,
       saldoKasPembangunan,
