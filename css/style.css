@@ -1069,7 +1069,8 @@ select.form-control option {
 
 /* Styling saat Mode Thermal aktif di layar preview */
 body.thermal-print-mode #receipt-print-area {
-  max-width: 340px !important;
+  max-width: 58mm !important; /* Simulate standard 58mm POS size */
+  margin: 0 auto !important;
   font-family: 'Courier New', Courier, monospace !important;
   background: #fff !important;
   color: #000 !important;
@@ -1168,16 +1169,17 @@ body.thermal-print-mode #receipt-body * {
 
   /* Khusus Mode Thermal Kasir (58mm / 80mm Roll Paper) */
   body.printing-receipt.thermal-print-mode @page {
-    size: 80mm auto;
-    margin: 2mm 0mm;
+    margin: 0; /* Let the printer driver handle the size */
   }
   body.printing-receipt.thermal-print-mode #receipt-print-area {
-    width: 76mm !important;
-    max-width: 76mm !important;
-    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 2mm !important;
     color: #000 !important;
     background: #fff !important;
     font-family: 'Courier New', Courier, monospace !important;
+    box-sizing: border-box !important;
   }
   body.printing-receipt.thermal-print-mode #receipt-body {
     padding: 4px !important;

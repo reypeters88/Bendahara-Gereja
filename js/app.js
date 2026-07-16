@@ -154,6 +154,29 @@
     };
   }
 
+  function angkaTerbilang(angka) {
+    const bilangan = [
+      "", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas"
+    ];
+    if (angka === 0 || !angka) return "Nol rupiah";
+    function terbilang(n) {
+      if (n < 12) return bilangan[n];
+      if (n < 20) return bilangan[n - 10] + " belas";
+      if (n < 100) return bilangan[Math.floor(n / 10)] + " puluh " + bilangan[n % 10];
+      if (n < 200) return "seratus " + terbilang(n - 100);
+      if (n < 1000) return bilangan[Math.floor(n / 100)] + " ratus " + terbilang(n % 100);
+      if (n < 2000) return "seribu " + terbilang(n - 1000);
+      if (n < 1000000) return terbilang(Math.floor(n / 1000)) + " ribu " + terbilang(n % 1000);
+      if (n < 1000000000) return terbilang(Math.floor(n / 1000000)) + " juta " + terbilang(n % 1000000);
+      if (n < 1000000000000) return terbilang(Math.floor(n / 1000000000)) + " milyar " + terbilang(n % 1000000000);
+      if (n < 1000000000000000) return terbilang(Math.floor(n / 1000000000000)) + " trilyun " + terbilang(n % 1000000000000);
+      return "";
+    }
+    let result = terbilang(Math.abs(Math.round(Number(angka)))).trim().replace(/\s+/g, ' ');
+    result = result.charAt(0).toUpperCase() + result.slice(1);
+    return result + " rupiah";
+  }
+
   function formatRupiah(amount) {
     const val = Math.round(Number(amount) || 0);
     return new Intl.NumberFormat('id-ID', {
@@ -591,6 +614,32 @@
     }
   }
 
+  async function pullFromGoogleSheets(url) {
+    if (!url) return { success: false, message: "URL Webhook Google Sheets belum dikonfigurasi di menu Pengaturan." };
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'pull_all' })
+      });
+      const text = await response.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        return { success: false, message: "Gagal membaca respons JSON dari Google Sheets. Pastikan URL Webhook benar dan versi code.gs sudah diperbarui." };
+      }
+      
+      if (data && data.status === "success" && data.data) {
+        return { success: true, message: data.message, data: data.data };
+      } else {
+        return { success: false, message: data.message || "Terjadi kesalahan saat menarik data." };
+      }
+    } catch (err) {
+      return { success: false, message: `Terjadi kesalahan koneksi saat menarik data: ${err.message}` };
+    }
+  }
+
   const GOOGLE_SCRIPT_TEMPLATE_CODE = `function setupSheets() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheetMasuk = ss.getSheetByName("Sheet Pemasukan");
@@ -660,7 +709,42 @@ function doPost(e) {
         });
         sheets.sheetDskt.getRange(2, 1, rowsDskt.length, 5).setValues(rowsDskt);
       }
-      return ContentService.createTextOutput(JSON.stringify({ status: "success" })).setMimeType(ContentService.MimeType.JSON);
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Sinkronisasi berhasil disimpan ke Google Sheets!" })).setMimeType(ContentService.MimeType.JSON);
+    } else if (action === "pull_all") {
+      var dataPemasukan = [];
+      var dataPengeluaran = [];
+      var dataKirimDskt = [];
+      if (sheets.sheetMasuk.getLastRow() > 1) {
+        var rows = sheets.sheetMasuk.getRange(2, 1, sheets.sheetMasuk.getLastRow() - 1, 14).getValues();
+        for (var i = 0; i < rows.length; i++) {
+          if (!rows[i][0]) continue;
+          dataPemasukan.push({
+            id: String(rows[i][0]), date: String(rows[i][1]), sabbathName: String(rows[i][2]), memberName: String(rows[i][3]),
+            persepuluhan: Number(rows[i][4]) || 0, persembahanTerpadu: Number(rows[i][5]) || 0,
+            persembahanKhusus: Number(rows[i][8]) || 0, persembahanPembangunan: Number(rows[i][9]) || 0,
+            lainLain: Number(rows[i][10]) || 0, receiptNo: String(rows[i][12]), notes: String(rows[i][13])
+          });
+        }
+      }
+      if (sheets.sheetKeluar.getLastRow() > 1) {
+        var rows = sheets.sheetKeluar.getRange(2, 1, sheets.sheetKeluar.getLastRow() - 1, 7).getValues();
+        for (var i = 0; i < rows.length; i++) {
+          if (!rows[i][0]) continue;
+          var isBuilding = String(rows[i][6]).toLowerCase().indexOf('pembangunan') !== -1;
+          dataPengeluaran.push({
+            id: String(rows[i][0]), date: String(rows[i][1]), departmentName: String(rows[i][2]), departmentId: 1,
+            description: String(rows[i][3]), amount: Number(rows[i][4]) || 0, voucherNo: String(rows[i][5]), isBuildingFund: isBuilding
+          });
+        }
+      }
+      if (sheets.sheetDskt.getLastRow() > 1) {
+        var rows = sheets.sheetDskt.getRange(2, 1, sheets.sheetDskt.getLastRow() - 1, 5).getValues();
+        for (var i = 0; i < rows.length; i++) {
+          if (!rows[i][0]) continue;
+          dataKirimDskt.push({ id: String(rows[i][0]), date: String(rows[i][1]), amount: Number(rows[i][2]) || 0, referenceNo: String(rows[i][3]), notes: String(rows[i][4]) });
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", data: { pemasukan: dataPemasukan, pengeluaran: dataPengeluaran, kirimDskt: dataKirimDskt } })).setMimeType(ContentService.MimeType.JSON);
     }
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() })).setMimeType(ContentService.MimeType.JSON);
@@ -1455,36 +1539,36 @@ function doGet(e) {
       const isThermal = document.body.classList.contains('thermal-print-mode');
       container.querySelector('#receipt-body').innerHTML = `
         <div style="text-align: center; border-bottom: 2px dashed ${isThermal ? '#000' : 'var(--border-color)'}; padding-bottom: 14px; margin-bottom: 14px;" class="thermal-dash-line">
-          <div style="font-size: 0.82rem; color: ${isThermal ? '#000' : 'hsl(var(--text-muted))'}; font-weight: 600;">TANDA TERIMA PERSEMBAHAN RESMI</div>
-          <h3 style="font-size: 1.35rem; color: ${isThermal ? '#000' : 'hsl(var(--accent-gold))'}; margin-top: 4px; font-weight: 800;">No. ${item.receiptNo}</h3>
-          <div style="font-size: 0.88rem; color: ${isThermal ? '#000' : 'hsl(var(--text-primary))'};">Tanggal: <strong>${formatDateIndo(item.date)}</strong></div>
+          <div style="font-size: 0.82rem; color: ${isThermal ? '#000' : 'hsl(var(--text-muted))'}; font-weight: 600;">TANDA TERIMA PERSEMBAHAN</div>
+          <h3 style="font-size: 1.25rem; color: ${isThermal ? '#000' : 'hsl(var(--accent-gold))'}; margin-top: 4px; font-weight: 800; word-break: break-all;">No. ${item.receiptNo}</h3>
+          <div style="font-size: 0.88rem; color: ${isThermal ? '#000' : 'hsl(var(--text-primary))'};">Tgl: <strong>${formatDateIndo(item.date)}</strong></div>
         </div>
         <div style="margin-bottom: 14px;">
           <div style="font-size: 0.8rem; color: ${isThermal ? '#000' : 'hsl(var(--text-muted))'};">DITERIMA DARI:</div>
-          <div style="font-size: 1.1rem; font-weight: 700; color: ${isThermal ? '#000' : 'hsl(var(--text-primary))'};">${item.memberName}</div>
+          <div style="font-size: 1.05rem; font-weight: 700; color: ${isThermal ? '#000' : 'hsl(var(--text-primary))'}; line-height: 1.3;">${item.memberName}</div>
         </div>
         <div style="background: ${isThermal ? 'transparent' : 'var(--surface-subtle)'}; padding: ${isThermal ? '6px 0' : '14px'}; border-radius: var(--radius-sm); margin-bottom: 14px; border-top: ${isThermal ? '1px dashed #000' : 'none'}; border-bottom: ${isThermal ? '1px dashed #000' : 'none'};" class="thermal-dash-line">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.88rem;">
-            <span>1. Persepuluhan (DSKT):</span> <strong style="color: ${isThermal ? '#000' : 'hsl(var(--danger))'};">${formatRupiah(item.persepuluhan)}</strong>
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 6px; font-size: 0.88rem;">
+            <span style="flex: 1; min-width: 120px;">1. Persepuluhan:</span> <strong style="color: ${isThermal ? '#000' : 'hsl(var(--danger))'}; text-align: right;">${formatRupiah(item.persepuluhan)}</strong>
           </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.88rem;">
-            <span>2. Pers. Terpadu:</span> <strong>${formatRupiah(item.persembahanTerpadu)}</strong>
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 6px; font-size: 0.88rem;">
+            <span style="flex: 1; min-width: 120px;">2. Pers. Terpadu:</span> <strong style="text-align: right;">${formatRupiah(item.persembahanTerpadu)}</strong>
           </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.88rem;">
-            <span>3. Pers. Khusus (Grj):</span> <strong style="color: ${isThermal ? '#000' : 'hsl(var(--success))'};">${formatRupiah(item.persembahanKhusus)}</strong>
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 6px; font-size: 0.88rem;">
+            <span style="flex: 1; min-width: 120px;">3. Khusus (Grj):</span> <strong style="color: ${isThermal ? '#000' : 'hsl(var(--success))'}; text-align: right;">${formatRupiah(item.persembahanKhusus)}</strong>
           </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.88rem;">
-            <span>4. Pers. Pembangunan:</span> <strong style="color: ${isThermal ? '#000' : 'hsl(var(--accent-blue))'};">${formatRupiah(item.persembahanPembangunan)}</strong>
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 6px; font-size: 0.88rem;">
+            <span style="flex: 1; min-width: 120px;">4. Pembangunan:</span> <strong style="color: ${isThermal ? '#000' : 'hsl(var(--accent-blue))'}; text-align: right;">${formatRupiah(item.persembahanPembangunan)}</strong>
           </div>
           ${Number(item.lainLain) > 0 ? `
-          <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.88rem;">
-            <span>5. Lain-lain:</span> <strong>${formatRupiah(item.lainLain)}</strong>
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 6px; font-size: 0.88rem;">
+            <span style="flex: 1; min-width: 120px;">5. Lain-lain:</span> <strong style="text-align: right;">${formatRupiah(item.lainLain)}</strong>
           </div>` : ''}
-          <div style="display: flex; justify-content: space-between; border-top: 1px solid ${isThermal ? '#000' : 'var(--border-color)'}; padding-top: 8px; margin-top: 8px; font-size: 1.1rem; font-weight: 800; color: ${isThermal ? '#000' : 'hsl(var(--accent-gold))'};">
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; border-top: 1px solid ${isThermal ? '#000' : 'var(--border-color)'}; padding-top: 8px; margin-top: 8px; font-size: 1.05rem; font-weight: 800; color: ${isThermal ? '#000' : 'hsl(var(--accent-gold))'};">
             <span>TOTAL:</span> <span>${formatRupiah(calc.total)}</span>
           </div>
         </div>
-        <div style="font-size: 0.78rem; text-align: center; color: ${isThermal ? '#000' : 'hsl(var(--text-muted))'}; font-style: italic;">
+        <div style="font-size: 0.75rem; text-align: center; color: ${isThermal ? '#000' : 'hsl(var(--text-muted))'}; font-style: italic; line-height: 1.4;">
           "Bawalah seluruh persembahan persepuluhan itu ke dalam rumah perbendaharaan..." (Maleakhi 3:10)
         </div>
       `;
@@ -2299,6 +2383,17 @@ function doGet(e) {
               </div>
               <i data-lucide="chevron-right" style="width: 20px; height: 20px; opacity: 0.6; flex-shrink: 0;"></i>
             </button>
+
+            <button type="button" class="btn ${activeTab === 'dskt' ? 'btn-primary' : 'btn-secondary'}" id="tab-btn-dskt" style="width: 100%; justify-content: flex-start; align-items: center; padding: 16px 20px; border-radius: 14px; transition: all 0.2s ease; text-align: left; gap: 16px;">
+              <div style="background: ${activeTab === 'dskt' ? 'rgba(255,255,255,0.2)' : 'rgba(139, 92, 246, 0.15)'}; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i data-lucide="file-check-2" style="width: 24px; height: 24px; color: ${activeTab === 'dskt' ? '#ffffff' : '#8b5cf6'};"></i>
+              </div>
+              <div style="overflow: hidden; flex: 1;">
+                <div style="font-weight: 800; font-size: 1.05rem; line-height: 1.2;">5. Laporan Ke DSKT</div>
+                <div style="font-size: 0.82rem; opacity: 0.88; margin-top: 3px;">Form Resmi Lembaran Jemaat, Tembusan Konferens, & Tanda Tangan</div>
+              </div>
+              <i data-lucide="chevron-right" style="width: 20px; height: 20px; opacity: 0.6; flex-shrink: 0;"></i>
+            </button>
           </div>
         </div>
       ` : ''}
@@ -2915,6 +3010,243 @@ function doGet(e) {
         </div>
       ` : ''}
       ${activeTab === 'transmital' ? renderTransmitalContent(state, transYear, transMonth, transType) : ''}
+
+      ${activeTab === 'dskt' ? (() => {
+        const dYear = transYear ? Number(transYear) : new Date().getFullYear();
+        const dMonthStr = transMonth || String(new Date().getMonth() + 1).padStart(2, '0');
+        const dMonthNum = Number(dMonthStr);
+        const pList = (state.pemasukan || []).filter(item => {
+          if (!item.date) return false;
+          const d = new Date(item.date);
+          return d.getFullYear() === dYear && (d.getMonth() + 1) === dMonthNum;
+        });
+        let unitPerpuluhan = 0, totalPerpuluhan = 0;
+        let unitTerpadu = 0, totalTerpadu = 0;
+        let unitKhusus = 0, totalKhusus = 0;
+        let unitPembangunan = 0, totalPembangunan = 0;
+        let unitLain = 0, totalLain = 0;
+        pList.forEach(item => {
+          const p = Number(item.persepuluhan) || 0;
+          const t = Number(item.persembahanTerpadu) || 0;
+          const k = Number(item.persembahanKhusus) || 0;
+          const b = Number(item.persembahanPembangunan) || 0;
+          const l = Number(item.lainLain) || 0;
+          if (p > 0) { unitPerpuluhan++; totalPerpuluhan += p; }
+          if (t > 0) { unitTerpadu++; totalTerpadu += t; }
+          if (k > 0) { unitKhusus++; totalKhusus += k; }
+          if (b > 0) { unitPembangunan++; totalPembangunan += b; }
+          if (l > 0) { unitLain++; totalLain += l; }
+        });
+        const terpaduKonf = totalTerpadu * 0.5;
+        const terpaduJemaat = totalTerpadu * 0.5;
+        const totalAll = totalPerpuluhan + totalTerpadu + totalKhusus + totalPembangunan + totalLain;
+        const totalKonf = totalPerpuluhan + terpaduKonf;
+        const totalJemaat = terpaduJemaat + totalKhusus;
+        
+        const availableYears = [new Date().getFullYear()];
+        (state.pemasukan || []).forEach(item => {
+          if (item.date) {
+            const y = new Date(item.date).getFullYear();
+            if (!availableYears.includes(y)) availableYears.push(y);
+          }
+        });
+        availableYears.sort((a, b) => b - a);
+        
+        const jemaatName = state.settings?.churchName || "JEMAAT TERATAI BATAM";
+        const ketuaName = state.settings?.ketuaJemaat || "Gerhard Panjaitan";
+        const gembalaName = state.settings?.gembalaJemaat || "Pdt. Edisyaputra Ginting";
+        const bendaharaName = state.settings?.treasurerName || "Bendahara Jemaat";
+        const lastDay = new Date(dYear, dMonthNum, 0);
+        
+        return `
+          <div class="glass-card print-hidden" style="margin-bottom: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;">
+            <div>
+              <h4 style="font-size: 1.15rem; font-weight: 800; color: hsl(var(--text-primary));">5. Laporan Penerimaan DSKT</h4>
+              <p style="font-size: 0.82rem; color: hsl(var(--text-secondary)); margin: 0;">Pilih bulan laporan untuk mencetak form resmi pengiriman DSKT.</p>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+              <select class="form-control" id="dskt-month" style="width: 140px; padding: 10px 16px;">
+                ${Array.from({length: 12}, (_, i) => {
+                  const mStr = String(i + 1).padStart(2, '0');
+                  const mName = new Date(2000, i, 1).toLocaleString('id-ID', {month: 'long'});
+                  return "<option value='" + mStr + "' " + (mStr === dMonthStr ? "selected" : "") + ">" + mName + "</option>";
+                }).join('')}
+              </select>
+              <select class="form-control" id="dskt-year" style="width: 100px; padding: 10px 16px;">
+                ${availableYears.map(y => "<option value='" + y + "' " + (y === dYear ? "selected" : "") + ">" + y + "</option>").join('')}
+              </select>
+              <button class="btn btn-primary" id="btn-print-dskt" style="padding: 10px 18px; background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                <i data-lucide="printer"></i>
+                <span>Cetak Laporan DSKT</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="printable-dskt-report" style="background: #ffffff; color: #000000; padding: 40px; font-family: 'Times New Roman', Times, serif; max-width: 1000px; margin: 0 auto; overflow-x: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border-radius: 4px;">
+            <style>
+              #printable-dskt-report table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
+              #printable-dskt-report th, #printable-dskt-report td { border: 1px solid #000; padding: 6px 8px; }
+              #printable-dskt-report th { text-align: center; font-weight: bold; }
+              #printable-dskt-report .right { text-align: right; }
+              #printable-dskt-report .center { text-align: center; }
+              #printable-dskt-report .bold { font-weight: bold; }
+              #printable-dskt-report .no-border { border: none !important; }
+              #printable-dskt-report .no-border td { border: none !important; }
+              @media print {
+                body * { visibility: hidden; }
+                #printable-dskt-report, #printable-dskt-report * { visibility: visible; }
+                #printable-dskt-report { position: absolute; left: 0; top: 0; width: 100%; padding: 0; margin: 0; border: none; box-shadow: none; border-radius: 0; }
+                .print-hidden { display: none !important; }
+              }
+            </style>
+            
+            <div style="text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 20px; text-transform: uppercase;">
+              <div>GMAHK ${jemaatName}</div>
+              <div>LAPORAN PENERIMAAN</div>
+              <div>${lastDay.toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</div>
+            </div>
+            
+            <div style="font-weight: bold; text-decoration: underline; margin-bottom: 4px; font-size: 14px; text-transform: uppercase;">PENJELASAN</div>
+            
+            <table>
+              <thead>
+                <tr>
+                  <th rowspan="2">Keterangan</th>
+                  <th rowspan="2">Jumlah<br>(Rp)</th>
+                  <th rowspan="2">Ke<br>Konf/Daerah<br>(Rp)</th>
+                  <th rowspan="2">Ke Kas Jemaat<br>${jemaatName}<br>(Rp)</th>
+                  <th>Pembangunan<br>${jemaatName}</th>
+                  <th>Project<br>${jemaatName}</th>
+                  <th rowspan="2">Lain-lain<br>(Rp)</th>
+                </tr>
+                <tr>
+                  <th>(Rp)</th>
+                  <th>(Rp)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>TTL Perpuluhan <span style="float: right;">${unitPerpuluhan} Unit Pemberi</span></td>
+                  <td class="right">${formatRupiah(totalPerpuluhan).replace('Rp', '').trim()}</td>
+                  <td class="right">${formatRupiah(totalPerpuluhan).replace('Rp', '').trim()}</td>
+                  <td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                  <td>TTL Pers Terpadu <span style="float: right;">${unitTerpadu} Unit Pemberi</span></td>
+                  <td class="right">${formatRupiah(totalTerpadu).replace('Rp', '').trim()}</td>
+                  <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                  <td>&nbsp;&nbsp;&nbsp;&nbsp;- Konf./Daerah 50%</td>
+                  <td></td>
+                  <td class="right">${formatRupiah(terpaduKonf).replace('Rp', '').trim()}</td>
+                  <td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                  <td>&nbsp;&nbsp;&nbsp;&nbsp;- Jemaat 50%</td>
+                  <td></td><td></td>
+                  <td class="right">${formatRupiah(terpaduJemaat).replace('Rp', '').trim()}</td>
+                  <td></td><td></td><td></td>
+                </tr>
+                <tr>
+                  <td class="bold">Persembahan AWR & Radio /Daerah</td>
+                  <td class="right">-</td><td class="right">-</td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                  <td>TTL Pers Khusus Jemaat <span style="float: right;">${unitKhusus} Unit Pemberi</span></td>
+                  <td class="right">${formatRupiah(totalKhusus).replace('Rp', '').trim()}</td>
+                  <td></td>
+                  <td class="right">${formatRupiah(totalKhusus).replace('Rp', '').trim()}</td>
+                  <td></td><td></td><td></td>
+                </tr>
+                <tr>
+                  <td>TTL Pers. Khusus Pembangunan <span style="float: right;">${unitPembangunan} Unit Pemberi</span></td>
+                  <td class="right">${formatRupiah(totalPembangunan).replace('Rp', '').trim()}</td>
+                  <td></td><td></td>
+                  <td class="right">${formatRupiah(totalPembangunan).replace('Rp', '').trim()}</td>
+                  <td></td><td></td>
+                </tr>
+                <tr>
+                  <td>TTL Pers. Project Gereja <span style="float: right;">0 Unit Pemberi</span></td>
+                  <td class="right">-</td><td></td><td></td><td></td><td class="right">-</td><td></td>
+                </tr>
+                <tr>
+                  <td>TTL Pers. Lain-lain <span style="float: right;">${unitLain} Unit Pemberi</span></td>
+                  <td class="right">${formatRupiah(totalLain).replace('Rp', '').trim()}</td>
+                  <td></td><td></td><td></td><td></td>
+                  <td class="right">${formatRupiah(totalLain).replace('Rp', '').trim()}</td>
+                </tr>
+                <tr class="bold" style="border-top: 2px solid #000; border-bottom: 2px solid #000;">
+                  <td class="center">Total Keseluruhan Rp.</td>
+                  <td class="right">${formatRupiah(totalAll).replace('Rp', '').trim()}</td>
+                  <td class="right">${formatRupiah(totalKonf).replace('Rp', '').trim()}</td>
+                  <td class="right">${formatRupiah(totalJemaat).replace('Rp', '').trim()}</td>
+                  <td class="right">${formatRupiah(totalPembangunan).replace('Rp', '').trim()}</td>
+                  <td class="right">-</td>
+                  <td class="right">${formatRupiah(totalLain).replace('Rp', '').trim()}</td>
+                </tr>
+              </tbody>
+            </table>
+            
+            <div style="font-weight: bold; text-decoration: underline; margin-bottom: 4px; font-size: 14px; text-transform: uppercase;">IKHTISAR</div>
+            
+            <table>
+              <tbody>
+                <tr>
+                  <td>Jumlah yang dikirim ke Konferens/Daerah (Perpuluhan 100% + 50% dari Total Pers. Terpadu)</td>
+                  <td class="right bold" style="width: 150px;">${formatRupiah(totalKonf).replace('Rp', '').trim()}</td>
+                </tr>
+                <tr>
+                  <td>Jumlah Dana untuk Kas Gereja (Pers. Khusus Jemaat 100% + 50% dari TTL Pers. Terpadu)</td>
+                  <td class="right bold">${formatRupiah(totalJemaat).replace('Rp', '').trim()}</td>
+                </tr>
+                <tr>
+                  <td>Jumlah Dana untuk Pembangunan Gereja</td>
+                  <td class="right bold">${formatRupiah(totalPembangunan).replace('Rp', '').trim()}</td>
+                </tr>
+                <tr>
+                  <td>Jumlah Dana untuk Project</td>
+                  <td class="right bold">-</td>
+                </tr>
+                <tr>
+                  <td>Jumlah Dana Lain-lain</td>
+                  <td class="right bold">${formatRupiah(totalLain).replace('Rp', '').trim()}</td>
+                </tr>
+                <tr style="border-top: 2px solid #000; border-bottom: 2px solid #000;">
+                  <td class="bold">TOTAL KESELURUHAN</td>
+                  <td class="right bold">${formatRupiah(totalAll).replace('Rp', '').trim()}</td>
+                </tr>
+              </tbody>
+            </table>
+            
+            <div style="margin-top: 10px; font-size: 14px; display: flex; gap: 8px;">
+              <div style="white-space: nowrap;">Terbilang <span style="margin-left: 20px;"></span> </div>
+              <div class="bold" style="font-style: italic;">${angkaTerbilang(totalAll)}</div>
+            </div>
+            
+            <table class="no-border" style="margin-top: 40px;">
+              <tr>
+                <td class="center" style="width: 33%;">
+                  <div>Dibuat Oleh :</div>
+                  <div style="margin-top: 80px; font-weight: bold; text-decoration: underline;">${bendaharaName}</div>
+                  <div>Bendahara Jemaat</div>
+                </td>
+                <td class="center" style="width: 33%;">
+                  <div>Diperiksa,</div>
+                  <div style="margin-top: 80px; font-weight: bold; text-decoration: underline;">${ketuaName}</div>
+                  <div>Ketua Jemaat</div>
+                </td>
+                <td class="center" style="width: 33%;">
+                  <div>Disetujui</div>
+                  <div style="margin-top: 80px; font-weight: bold; text-decoration: underline;">${gembalaName}</div>
+                  <div>Gembala Jemaat</div>
+                </td>
+              </tr>
+            </table>
+            
+          </div>
+        `;
+      })() : ''}
     `;
 
     if (window.lucide) window.lucide.createIcons();
@@ -2931,6 +3263,7 @@ function doGet(e) {
     container.querySelector('#tab-btn-keuangan')?.addEventListener('click', () => renderLaporan(container, state, showToast, 'keuangan', transYear, transMonth, transType, keuanganMode, keuanganYear, keuanganQuarter));
     container.querySelector('#tab-btn-persentase')?.addEventListener('click', () => renderLaporan(container, state, showToast, 'persentase', transYear, transMonth, transType, keuanganMode, keuanganYear, keuanganQuarter));
     container.querySelector('#tab-btn-transmital')?.addEventListener('click', () => renderLaporan(container, state, showToast, 'transmital', transYear, transMonth, transType, keuanganMode, keuanganYear, keuanganQuarter));
+    container.querySelector('#tab-btn-dskt')?.addEventListener('click', () => renderLaporan(container, state, showToast, 'dskt', transYear, transMonth, transType, keuanganMode, keuanganYear, keuanganQuarter));
 
     if (activeTab === 'keuangan') {
       container.querySelector('#btn-mode-std')?.addEventListener('click', () => {
@@ -3048,6 +3381,18 @@ function doGet(e) {
         if (showToast) showToast("Gagal mengekspor ke Excel: " + err.message, "danger");
       }
     });
+
+    if (activeTab === 'dskt') {
+      container.querySelector('#dskt-month')?.addEventListener('change', (e) => {
+        renderLaporan(container, state, showToast, 'dskt', transYear, e.target.value, transType, keuanganMode, keuanganYear, keuanganQuarter);
+      });
+      container.querySelector('#dskt-year')?.addEventListener('change', (e) => {
+        renderLaporan(container, state, showToast, 'dskt', e.target.value, transMonth, transType, keuanganMode, keuanganYear, keuanganQuarter);
+      });
+      container.querySelector('#btn-print-dskt')?.addEventListener('click', () => {
+        window.print();
+      });
+    }
   }
 
   function renderPersentase(container, state, showToast) {
@@ -3227,6 +3572,8 @@ function doGet(e) {
             <div class="form-group"><label class="form-label">Nama Gereja / Jemaat</label><input type="text" class="form-control" id="st-church" value="${settings.churchName || ''}" placeholder="Cth: Jemaat Teratai Batam" required /></div>
             <div class="form-group"><label class="form-label">Nama Daerah / Konferens (DSKT)</label><input type="text" class="form-control" id="st-district" value="${settings.districtName || ''}" placeholder="Cth: DSKT - Daerah Sumatera Kawasan Tengah" required /></div>
             <div class="form-group"><label class="form-label">Nama Bendahara Jemaat</label><input type="text" class="form-control" id="st-treasurer" value="${settings.treasurerName || ''}" placeholder="Cth: Bpk. R. Situmorang" /></div>
+            <div class="form-group"><label class="form-label">Nama Ketua Jemaat</label><input type="text" class="form-control" id="st-ketua" value="${settings.ketuaJemaat || ''}" placeholder="Cth: Bpk. Gerhard Panjaitan" /></div>
+            <div class="form-group"><label class="form-label">Nama Gembala Jemaat / Pendeta</label><input type="text" class="form-control" id="st-gembala" value="${settings.gembalaJemaat || ''}" placeholder="Cth: Pdt. Edisyaputra Ginting" /></div>
             <div style="border-top: 1px dashed var(--border-color); margin: 20px 0; padding-top: 16px;">
               <h4 style="font-size: 0.95rem; font-weight: 700; color: hsl(var(--text-secondary)); margin-bottom: 14px;">Posisi Saldo Awal Kas (Sebelum Transaksi Periode Ini)</h4>
               <div class="form-grid">
@@ -3249,9 +3596,12 @@ function doGet(e) {
             </div>
             <p style="font-size: 0.78rem; color: hsl(var(--text-muted)); margin-top: 6px;">Masukkan URL Web App dari file code.gs yang telah Anda pasang di Google Apps Script.</p>
           </div>
-          <div style="display: flex; gap: 12px; margin-bottom: 24px;">
-            <button type="button" class="btn btn-gold" id="btn-sync-now" style="flex: 1; justify-content: center; padding: 14px;"><i data-lucide="refresh-cw"></i><span>Sinkronkan ke Google Sheets Sekarang</span></button>
-            <button type="button" class="btn btn-secondary" id="btn-copy-template" style="padding: 14px 18px;" title="Salin Skrip Google Apps Script"><i data-lucide="copy"></i><span>Salin code.gs (1-Klik)</span></button>
+          <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+            <button type="button" class="btn btn-gold" id="btn-sync-now" style="flex: 1; justify-content: center; padding: 14px;"><i data-lucide="upload-cloud"></i><span>Kirim / Sync Data ke Sheets</span></button>
+            <button type="button" class="btn btn-primary" id="btn-pull-now" style="flex: 1; justify-content: center; padding: 14px; background: linear-gradient(135deg, hsl(160, 84%, 30%), hsl(var(--accent-blue))); border: none; color: white;"><i data-lucide="download-cloud"></i><span>Tarik Data dari Sheets</span></button>
+          </div>
+          <div style="margin-bottom: 24px; display: flex; justify-content: center;">
+            <button type="button" class="btn btn-secondary" id="btn-copy-template" style="padding: 10px 18px;" title="Salin Skrip Google Apps Script"><i data-lucide="copy"></i><span>Salin code.gs (1-Klik)</span></button>
           </div>
           <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px;">
             <h4 style="font-size: 0.9rem; font-weight: 700; color: hsl(var(--accent-gold)); margin-bottom: 8px;">Cara Memasang Backup ke Google Sheets (3 Langkah Mudah):</h4>
@@ -3286,6 +3636,8 @@ function doGet(e) {
         churchName: container.querySelector('#st-church').value,
         districtName: container.querySelector('#st-district').value,
         treasurerName: container.querySelector('#st-treasurer').value,
+        ketuaJemaat: container.querySelector('#st-ketua').value,
+        gembalaJemaat: container.querySelector('#st-gembala').value,
         saldoAwalGereja: Number(container.querySelector('#st-saldo-grj').value) || 0,
         saldoAwalPembangunan: Number(container.querySelector('#st-saldo-pbg').value) || 0,
         saldoAwalDskt: Number(container.querySelector('#st-saldo-dskt').value) || 0,
@@ -3312,6 +3664,27 @@ function doGet(e) {
       const res = await syncToGoogleSheets(url, state);
       if (res.success) { showToast(res.message, "success"); }
       else { showToast(res.message, "danger"); }
+    });
+
+    container.querySelector('#btn-pull-now')?.addEventListener('click', async () => {
+      const url = container.querySelector('#st-webhook').value.trim() || state.settings.webhookUrl;
+      if (!url) { showToast("URL Webhook belum diisi di atas.", "warning"); return; }
+      updateSettings({ webhookUrl: url });
+      
+      if (!confirm("Peringatan: Data di aplikasi ini akan DITIMPA sepenuhnya dengan data dari Google Sheets!\\nPastikan Sheet berisi data yang valid.\\nLanjutkan?")) return;
+      
+      showToast("Menarik data dari Google Sheets...", "info");
+      const res = await pullFromGoogleSheets(url);
+      if (res.success && res.data) {
+        state.pemasukan = res.data.pemasukan || [];
+        state.pengeluaran = res.data.pengeluaran || [];
+        state.kirimDskt = res.data.kirimDskt || [];
+        localStorage.setItem('gmahk_bendahara_state_v1', JSON.stringify(state));
+        showToast("Data berhasil ditarik dan diperbarui! Memuat ulang...", "success");
+        setTimeout(() => window.location.reload(), 1500);
+      } else { 
+        showToast(res.message, "danger"); 
+      }
     });
 
     container.querySelector('#btn-copy-template')?.addEventListener('click', () => {

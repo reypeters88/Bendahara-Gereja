@@ -41,6 +41,16 @@ export function renderPengaturan(container, state, showToast) {
             <input type="text" class="form-control" id="st-treasurer" value="${settings.treasurerName || ''}" placeholder="Cth: Bpk. R. Situmorang" />
           </div>
 
+          <div class="form-group">
+            <label class="form-label">Nama Ketua Jemaat</label>
+            <input type="text" class="form-control" id="st-ketua" value="${settings.ketuaJemaat || ''}" placeholder="Cth: Bpk. Gerhard Panjaitan" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nama Gembala Jemaat / Pendeta</label>
+            <input type="text" class="form-control" id="st-gembala" value="${settings.gembalaJemaat || ''}" placeholder="Cth: Pdt. Edisyaputra Ginting" />
+          </div>
+
           <div style="border-top: 1px dashed var(--border-color); margin: 20px 0; padding-top: 16px;">
             <h4 style="font-size: 0.95rem; font-weight: 700; color: hsl(var(--text-secondary)); margin-bottom: 14px;">
               Posisi Saldo Awal Kas (Sebelum Transaksi Periode Ini)
@@ -180,6 +190,8 @@ export function renderPengaturan(container, state, showToast) {
       churchName: container.querySelector('#st-church').value,
       districtName: container.querySelector('#st-district').value,
       treasurerName: container.querySelector('#st-treasurer').value,
+      ketuaJemaat: container.querySelector('#st-ketua').value,
+      gembalaJemaat: container.querySelector('#st-gembala').value,
       saldoAwalGereja: Number(container.querySelector('#st-saldo-grj').value) || 0,
       saldoAwalPembangunan: Number(container.querySelector('#st-saldo-pbg').value) || 0,
       saldoAwalDskt: Number(container.querySelector('#st-saldo-dskt').value) || 0,

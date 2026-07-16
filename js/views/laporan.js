@@ -2,7 +2,7 @@
  * Tampilan & Hub Pusat Laporan Keuangan GMAHK
  * Pilihan Sub-Menu: 1. Laporan & Expor Excel, 2. Laporan Keuangan, 3. Laporan Persentase
  */
-import { calculateFinancialSummary, calculateIncomeBreakdown, formatRupiah, formatAngka, formatDateIndo } from '../calculations.js';
+import { calculateFinancialSummary, calculateIncomeBreakdown, formatRupiah, formatAngka, formatDateIndo, angkaTerbilang } from '../calculations.js';
 
 export function renderLaporan(container, state, showToast, activeTab = null, transYear = null, transMonth = null, transType = null, keuanganMode = 'standard', keuanganYear = null, keuanganQuarter = null) {
   const summary = calculateFinancialSummary(state);
@@ -265,6 +265,17 @@ export function renderLaporan(container, state, showToast, activeTab = null, tra
             <div style="overflow: hidden; flex: 1;">
               <div style="font-weight: 800; font-size: 1.05rem; line-height: 1.2;">4. Laporan Transmital</div>
               <div style="font-size: 0.82rem; opacity: 0.88; margin-top: 3px;">Rekap Bulanan YTD, Jumlah Unit Pemberi DSKT, & Grafik Batang Kontributif</div>
+            </div>
+            <i data-lucide="chevron-right" style="width: 20px; height: 20px; opacity: 0.6; flex-shrink: 0;"></i>
+          </button>
+
+          <button type="button" class="btn ${activeTab === 'dskt' ? 'btn-primary' : 'btn-secondary'}" id="tab-btn-dskt" style="width: 100%; justify-content: flex-start; align-items: center; padding: 16px 20px; border-radius: 14px; transition: all 0.2s ease; text-align: left; gap: 16px;">
+            <div style="background: ${activeTab === 'dskt' ? 'rgba(255,255,255,0.2)' : 'rgba(139, 92, 246, 0.15)'}; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i data-lucide="file-check-2" style="width: 24px; height: 24px; color: ${activeTab === 'dskt' ? '#ffffff' : '#8b5cf6'};"></i>
+            </div>
+            <div style="overflow: hidden; flex: 1;">
+              <div style="font-weight: 800; font-size: 1.05rem; line-height: 1.2;">5. Laporan Penerimaan DSKT</div>
+              <div style="font-size: 0.82rem; opacity: 0.88; margin-top: 3px;">Form Resmi Lembaran Jemaat, Tembusan Konferens, & Tanda Tangan</div>
             </div>
             <i data-lucide="chevron-right" style="width: 20px; height: 20px; opacity: 0.6; flex-shrink: 0;"></i>
           </button>
@@ -1024,6 +1035,242 @@ export function renderLaporan(container, state, showToast, activeTab = null, tra
         </div>
       </div>
     ` : ''}
+
+    ${activeTab === 'dskt' ? (() => {
+      const dYear = transYear ? Number(transYear) : new Date().getFullYear();
+      const dMonthStr = transMonth || String(new Date().getMonth() + 1).padStart(2, '0');
+      const dMonthNum = Number(dMonthStr);
+      
+      const pList = (state.pemasukan || []).filter(item => {
+        if (!item.date) return false;
+        const d = new Date(item.date);
+        return d.getFullYear() === dYear && (d.getMonth() + 1) === dMonthNum;
+      });
+      
+      let unitPerpuluhan = 0, totalPerpuluhan = 0;
+      let unitTerpadu = 0, totalTerpadu = 0;
+      let unitKhusus = 0, totalKhusus = 0;
+      let unitPembangunan = 0, totalPembangunan = 0;
+      let unitLain = 0, totalLain = 0;
+      
+      pList.forEach(item => {
+        const p = Number(item.persepuluhan) || 0;
+        const t = Number(item.persembahanTerpadu) || 0;
+        const k = Number(item.persembahanKhusus) || 0;
+        const b = Number(item.persembahanPembangunan) || 0;
+        const l = Number(item.lainLain) || 0;
+        
+        if (p > 0) { unitPerpuluhan++; totalPerpuluhan += p; }
+        if (t > 0) { unitTerpadu++; totalTerpadu += t; }
+        if (k > 0) { unitKhusus++; totalKhusus += k; }
+        if (b > 0) { unitPembangunan++; totalPembangunan += b; }
+        if (l > 0) { unitLain++; totalLain += l; }
+      });
+      
+      const terpaduKonf = totalTerpadu * 0.5;
+      const terpaduJemaat = totalTerpadu * 0.5;
+      
+      const totalAll = totalPerpuluhan + totalTerpadu + totalKhusus + totalPembangunan + totalLain;
+      const totalKonf = totalPerpuluhan + terpaduKonf;
+      const totalJemaat = terpaduJemaat + totalKhusus;
+      
+      const jemaatName = state.settings?.churchName || "JEMAAT TERATAI BATAM";
+      const ketuaName = state.settings?.ketuaJemaat || "Gerhard Panjaitan";
+      const gembalaName = state.settings?.gembalaJemaat || "Pdt. Edisyaputra ginting";
+      const bendaharaName = state.settings?.bendaharaName || "Reynold Pandiangan";
+      
+      const lastDay = new Date(dYear, dMonthNum, 0);
+      const dateStr = formatDateIndo(lastDay);
+      
+      return \`
+        <div class="glass-card print-hidden" style="margin-bottom: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;">
+          <div>
+            <h4 style="font-size: 1.15rem; font-weight: 800; color: hsl(var(--text-primary));">5. Laporan Penerimaan DSKT</h4>
+            <p style="font-size: 0.82rem; color: hsl(var(--text-secondary)); margin: 0;">Pilih bulan laporan untuk mencetak form resmi pengiriman DSKT.</p>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <select class="form-control" id="dskt-month" style="width: 140px; padding: 10px 16px;">
+              \${Array.from({length: 12}, (_, i) => {
+                const mStr = String(i + 1).padStart(2, '0');
+                const mName = new Date(2000, i, 1).toLocaleString('id-ID', {month: 'long'});
+                return \\\`<option value="\${mStr}" \${mStr === dMonthStr ? 'selected' : ''}>\${mName}</option>\\\`;
+              }).join('')}
+            </select>
+            <select class="form-control" id="dskt-year" style="width: 100px; padding: 10px 16px;">
+              \${availableYears.map(y => \\\`<option value="\${y}" \${y === dYear ? 'selected' : ''}>\${y}</option>\\\`).join('')}
+            </select>
+            <button class="btn btn-primary" id="btn-print-dskt" style="padding: 10px 18px; background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+              <i data-lucide="printer"></i>
+              <span>Cetak Laporan DSKT</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="printable-dskt-report" style="background: #ffffff; color: #000000; padding: 40px; font-family: 'Times New Roman', Times, serif; max-width: 1000px; margin: 0 auto; overflow-x: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border-radius: 4px;">
+          <style>
+            #printable-dskt-report table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
+            #printable-dskt-report th, #printable-dskt-report td { border: 1px solid #000; padding: 6px 8px; }
+            #printable-dskt-report th { text-align: center; font-weight: bold; }
+            #printable-dskt-report .right { text-align: right; }
+            #printable-dskt-report .center { text-align: center; }
+            #printable-dskt-report .bold { font-weight: bold; }
+            #printable-dskt-report .no-border { border: none !important; }
+            #printable-dskt-report .no-border td { border: none !important; }
+            @media print {
+              body * { visibility: hidden; }
+              #printable-dskt-report, #printable-dskt-report * { visibility: visible; }
+              #printable-dskt-report { position: absolute; left: 0; top: 0; width: 100%; padding: 0; margin: 0; border: none; box-shadow: none; border-radius: 0; }
+              .print-hidden { display: none !important; }
+            }
+          </style>
+          
+          <div style="text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 20px; text-transform: uppercase;">
+            <div>GMAHK \${jemaatName}</div>
+            <div>LAPORAN PENERIMAAN</div>
+            <div>\${dateStr}</div>
+          </div>
+          
+          <div style="font-weight: bold; text-decoration: underline; margin-bottom: 4px; font-size: 14px; text-transform: uppercase;">PENJELASAN</div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th rowspan="2">Keterangan</th>
+                <th rowspan="2">Jumlah<br>(Rp)</th>
+                <th rowspan="2">Ke<br>Konf/Daerah<br>(Rp)</th>
+                <th rowspan="2">Ke Kas Jemaat<br>\${jemaatName}<br>(Rp)</th>
+                <th>Pembangunan<br>\${jemaatName}</th>
+                <th>Project<br>\${jemaatName}</th>
+                <th rowspan="2">Lain-lain<br>(Rp)</th>
+              </tr>
+              <tr>
+                <th>(Rp)</th>
+                <th>(Rp)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>TTL Perpuluhan <span style="float: right;">\${unitPerpuluhan} Unit Pemberi</span></td>
+                <td class="right">\${formatAngka(totalPerpuluhan)}</td>
+                <td class="right">\${formatAngka(totalPerpuluhan)}</td>
+                <td></td><td></td><td></td><td></td>
+              </tr>
+              <tr>
+                <td>TTL Pers Terpadu <span style="float: right;">\${unitTerpadu} Unit Pemberi</span></td>
+                <td class="right">\${formatAngka(totalTerpadu)}</td>
+                <td></td><td></td><td></td><td></td><td></td>
+              </tr>
+              <tr>
+                <td>&nbsp;&nbsp;&nbsp;&nbsp;- Konf./Daerah 50%</td>
+                <td></td>
+                <td class="right">\${formatAngka(terpaduKonf)}</td>
+                <td></td><td></td><td></td><td></td>
+              </tr>
+              <tr>
+                <td>&nbsp;&nbsp;&nbsp;&nbsp;- Jemaat 50%</td>
+                <td></td><td></td>
+                <td class="right">\${formatAngka(terpaduJemaat)}</td>
+                <td></td><td></td><td></td>
+              </tr>
+              <tr>
+                <td class="bold">Persembahan AWR & Radio /Daerah</td>
+                <td class="right">-</td><td class="right">-</td><td></td><td></td><td></td><td></td>
+              </tr>
+              <tr>
+                <td>TTL Pers Khusus Jemaat <span style="float: right;">\${unitKhusus} Unit Pemberi</span></td>
+                <td class="right">\${formatAngka(totalKhusus)}</td>
+                <td></td>
+                <td class="right">\${formatAngka(totalKhusus)}</td>
+                <td></td><td></td><td></td>
+              </tr>
+              <tr>
+                <td>TTL Pers. Khusus Pembangunan <span style="float: right;">\${unitPembangunan} Unit Pemberi</span></td>
+                <td class="right">\${formatAngka(totalPembangunan)}</td>
+                <td></td><td></td>
+                <td class="right">\${formatAngka(totalPembangunan)}</td>
+                <td></td><td></td>
+              </tr>
+              <tr>
+                <td>TTL Pers. Project Gereja <span style="float: right;">0 Unit Pemberi</span></td>
+                <td class="right">-</td><td></td><td></td><td></td><td class="right">-</td><td></td>
+              </tr>
+              <tr>
+                <td>TTL Pers. Lain-lain <span style="float: right;">\${unitLain} Unit Pemberi</span></td>
+                <td class="right">\${formatAngka(totalLain)}</td>
+                <td></td><td></td><td></td><td></td>
+                <td class="right">\${formatAngka(totalLain)}</td>
+              </tr>
+              <tr class="bold" style="border-top: 2px solid #000; border-bottom: 2px solid #000;">
+                <td class="center">Total Keseluruhan Rp.</td>
+                <td class="right">\${formatAngka(totalAll)}</td>
+                <td class="right">\${formatAngka(totalKonf)}</td>
+                <td class="right">\${formatAngka(totalJemaat)}</td>
+                <td class="right">\${formatAngka(totalPembangunan)}</td>
+                <td class="right">-</td>
+                <td class="right">\${formatAngka(totalLain)}</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div style="font-weight: bold; text-decoration: underline; margin-bottom: 4px; font-size: 14px; text-transform: uppercase;">IKHTISAR</div>
+          
+          <table>
+            <tbody>
+              <tr>
+                <td>Jumlah yang dikirim ke Konferens/Daerah (Perpuluhan 100% + 50% dari Total Pers. Terpadu)</td>
+                <td class="right bold" style="width: 150px;">\${formatAngka(totalKonf)}</td>
+              </tr>
+              <tr>
+                <td>Jumlah Dana untuk Kas Gereja (Pers. Khusus Jemaat 100% + 50% dari TTL Pers. Terpadu)</td>
+                <td class="right bold">\${formatAngka(totalJemaat)}</td>
+              </tr>
+              <tr>
+                <td>Jumlah Dana untuk Pembangunan Gereja</td>
+                <td class="right bold">\${formatAngka(totalPembangunan)}</td>
+              </tr>
+              <tr>
+                <td>Jumlah Dana untuk Project</td>
+                <td class="right bold">-</td>
+              </tr>
+              <tr>
+                <td>Jumlah Dana Lain-lain</td>
+                <td class="right bold">\${formatAngka(totalLain)}</td>
+              </tr>
+              <tr style="border-top: 2px solid #000; border-bottom: 2px solid #000;">
+                <td class="bold">TOTAL KESELURUHAN</td>
+                <td class="right bold">\${formatAngka(totalAll)}</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div style="margin-top: 10px; font-size: 14px; display: flex; gap: 8px;">
+            <div style="white-space: nowrap;">Terbilang <span style="margin-left: 20px;"></span> </div>
+            <div class="bold" style="font-style: italic;">\${angkaTerbilang(totalAll)}</div>
+          </div>
+          
+          <table class="no-border" style="margin-top: 40px;">
+            <tr>
+              <td class="center" style="width: 33%;">
+                <div>Dibuat Oleh :</div>
+                <div style="margin-top: 80px; font-weight: bold; text-decoration: underline;">\${bendaharaName}</div>
+                <div>Bendahara Jemaat</div>
+              </td>
+              <td class="center" style="width: 33%;">
+                <div>Diperiksa,</div>
+                <div style="margin-top: 80px; font-weight: bold; text-decoration: underline;">\${ketuaName}</div>
+                <div>Ketua Jemaat</div>
+              </td>
+              <td class="center" style="width: 33%;">
+                <div>Disetujui</div>
+                <div style="margin-top: 80px; font-weight: bold; text-decoration: underline;">\${gembalaName}</div>
+                <div>Gembala Jemaat</div>
+              </td>
+            </tr>
+          </table>
+          
+        </div>
+      \`;
+    })() : ''}
   `;
 
   if (window.lucide) window.lucide.createIcons();
@@ -1048,6 +1295,9 @@ export function renderLaporan(container, state, showToast, activeTab = null, tra
   });
   container.querySelector('#tab-btn-transmital')?.addEventListener('click', () => {
     renderLaporan(container, state, showToast, 'transmital', transYear, transMonth, transType, keuanganMode, keuanganYear, keuanganQuarter);
+  });
+  container.querySelector('#tab-btn-dskt')?.addEventListener('click', () => {
+    renderLaporan(container, state, showToast, 'dskt', transYear, transMonth, transType, keuanganMode, keuanganYear, keuanganQuarter);
   });
 
   if (activeTab === 'keuangan') {
