@@ -8,6 +8,14 @@ export function renderPengaturan(container, state, showToast) {
   const settings = state.settings || {};
 
   container.innerHTML = `
+    <!-- Tombol Kembali / Back Line Icon -->
+    <div style="margin-bottom: 16px;">
+      <button type="button" class="btn btn-secondary" id="btn-back-dashboard-pengaturan" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--surface-subtle); color: hsl(var(--text-primary)); cursor: pointer;">
+        <i data-lucide="arrow-left" style="width: 18px; height: 18px; color: hsl(var(--accent-gold));"></i>
+        <span>Kembali ke Dashboard</span>
+      </button>
+    </div>
+
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 24px;">
       
       <!-- Pengaturan Identitas Gereja & Saldo Awal -->
@@ -20,7 +28,7 @@ export function renderPengaturan(container, state, showToast) {
         <form id="form-settings">
           <div class="form-group">
             <label class="form-label">Nama Gereja / Jemaat</label>
-            <input type="text" class="form-control" id="st-church" value="${settings.churchName || ''}" placeholder="Cth: Gereja Advent Jemaat Pusat" required />
+            <input type="text" class="form-control" id="st-church" value="${settings.churchName || ''}" placeholder="Cth: Jemaat Teratai Batam" required />
           </div>
 
           <div class="form-group">
@@ -159,6 +167,11 @@ export function renderPengaturan(container, state, showToast) {
   `;
 
   if (window.lucide) window.lucide.createIcons();
+
+  container.querySelector('#btn-back-dashboard-pengaturan')?.addEventListener('click', () => {
+    if (typeof navigateTo === 'function') navigateTo('dashboard');
+    else if (window.BendaharaApp?.navigateTo) window.BendaharaApp.navigateTo('dashboard');
+  });
 
   // Save settings
   container.querySelector('#form-settings')?.addEventListener('submit', (e) => {

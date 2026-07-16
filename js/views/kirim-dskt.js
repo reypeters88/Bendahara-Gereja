@@ -11,6 +11,14 @@ export function renderKirimDskt(container, state, showToast) {
   const today = new Date().toISOString().split('T')[0];
 
   container.innerHTML = `
+    <!-- Tombol Kembali / Back Line Icon -->
+    <div style="margin-bottom: 16px;">
+      <button type="button" class="btn btn-secondary" id="btn-back-dashboard-dskt" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--surface-subtle); color: hsl(var(--text-primary)); cursor: pointer;">
+        <i data-lucide="arrow-left" style="width: 18px; height: 18px; color: hsl(var(--accent-gold));"></i>
+        <span>Kembali ke Dashboard</span>
+      </button>
+    </div>
+
     <!-- DSKT Summary Banner -->
     <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(15, 23, 42, 0.95)); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 28px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px;">
       <div>
@@ -122,6 +130,11 @@ export function renderKirimDskt(container, state, showToast) {
   `;
 
   if (window.lucide) window.lucide.createIcons();
+
+  container.querySelector('#btn-back-dashboard-dskt')?.addEventListener('click', () => {
+    if (typeof navigateTo === 'function') navigateTo('dashboard');
+    else if (window.BendaharaApp?.navigateTo) window.BendaharaApp.navigateTo('dashboard');
+  });
 
   container.querySelector('#form-dskt')?.addEventListener('submit', (e) => {
     e.preventDefault();

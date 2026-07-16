@@ -1,7 +1,7 @@
 /**
  * Tampilan Dashboard Utama
  */
-import { calculateFinancialSummary, formatRupiah, formatDateIndo } from '../calculations.js';
+import { calculateFinancialSummary, renderRumusArusKasBanner, formatRupiah, formatDateIndo } from '../calculations.js';
 
 let chartInstance = null;
 
@@ -10,38 +10,7 @@ export function renderDashboard(container, state, navigateTo) {
 
   container.innerHTML = `
     <!-- Cash Flow Formula Banner -->
-    <div class="formula-banner">
-      <div class="formula-title">
-        <i data-lucide="calculator"></i>
-        <span>Rumus Arus Kas Bendahara Gereja Advent (Real-time Calculation)</span>
-      </div>
-      <div class="formula-flow">
-        <div class="flow-box">
-          <div class="flow-label">Saldo Awal (Total)</div>
-          <div class="flow-number">${formatRupiah(summary.saldoAwalTotal)}</div>
-        </div>
-        <div class="flow-operator">+</div>
-        <div class="flow-box">
-          <div class="flow-label">Uang Masuk</div>
-          <div class="flow-number" style="color: hsl(var(--success));">${formatRupiah(summary.totalUangMasuk)}</div>
-        </div>
-        <div class="flow-operator">-</div>
-        <div class="flow-box">
-          <div class="flow-label">Uang Dikirim DSKT</div>
-          <div class="flow-number" style="color: hsl(var(--warning));">${formatRupiah(summary.totalUangDikirimDskt)}</div>
-        </div>
-        <div class="flow-operator">-</div>
-        <div class="flow-box">
-          <div class="flow-label">Pengeluaran</div>
-          <div class="flow-number" style="color: hsl(var(--danger));">${formatRupiah(summary.totalPengeluaran)}</div>
-        </div>
-        <div class="flow-operator">=</div>
-        <div class="flow-box result">
-          <div class="flow-label" style="color: #4ade80;">Sisa Saldo Kas Keseluruhan</div>
-          <div class="flow-number" style="color: #ffffff; font-size: 1.3rem;">${formatRupiah(summary.sisaSaldoTotal)}</div>
-        </div>
-      </div>
-    </div>
+    ${renderRumusArusKasBanner(summary)}
 
     <!-- Financial Cards Grid -->
     <div class="stats-grid">

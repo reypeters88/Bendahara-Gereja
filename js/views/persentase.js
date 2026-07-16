@@ -50,6 +50,14 @@ export function renderPersentase(container, state, showToast) {
   const rasioKepatuhanDskt = ((summary.totalUangDikirimDskt / totalKewajibanDskt) * 100).toFixed(1);
 
   container.innerHTML = `
+    <!-- Tombol Kembali / Back Line Icon -->
+    <div style="margin-bottom: 16px;">
+      <button type="button" class="btn btn-secondary" id="btn-back-dashboard-persentase" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--surface-subtle); color: hsl(var(--text-primary)); cursor: pointer;">
+        <i data-lucide="arrow-left" style="width: 18px; height: 18px; color: hsl(var(--accent-gold));"></i>
+        <span>Kembali ke Dashboard</span>
+      </button>
+    </div>
+
     <!-- Header Card -->
     <div class="glass-card" style="margin-bottom: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;">
       <div>
@@ -363,6 +371,11 @@ export function renderPersentase(container, state, showToast) {
   `;
 
   if (window.lucide) window.lucide.createIcons();
+
+  container.querySelector('#btn-back-dashboard-persentase')?.addEventListener('click', () => {
+    if (typeof navigateTo === 'function') navigateTo('dashboard');
+    else if (window.BendaharaApp?.navigateTo) window.BendaharaApp.navigateTo('dashboard');
+  });
 
   container.querySelector('#btn-refresh-persentase')?.addEventListener('click', () => {
     renderPersentase(container, state, showToast);

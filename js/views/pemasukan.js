@@ -230,7 +230,7 @@ export function renderPemasukan(container, state, showToast) {
         <div class="modal-header" id="receipt-header-bar" style="background: linear-gradient(135deg, hsl(var(--accent-blue)), hsl(221, 83%, 45%)); color: white;">
           <div>
             <h4 style="font-size: 1.2rem; font-weight: 800;">KUITANSI PERSEMBAHAN GMAHK</h4>
-            <div style="font-size: 0.8rem; opacity: 0.9;">${state.settings.churchName || 'Gereja Advent Jemaat Pusat'}</div>
+            <div style="font-size: 0.8rem; opacity: 0.9;">${state.settings.churchName || 'Jemaat Teratai Batam'}</div>
           </div>
           <button class="icon-btn" id="btn-close-receipt" style="background: rgba(255,255,255,0.2); color: white;"><i data-lucide="x"></i></button>
         </div>

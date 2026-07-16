@@ -9,7 +9,7 @@ const LISTENERS = [];
 
 const INITIAL_STATE = {
   settings: {
-    churchName: "Gereja Advent Jemaat Pusat",
+    churchName: "Jemaat Teratai Batam",
     districtName: "DSKT - Daerah Sumatera Kawasan Tengah / Konferens",
     treasurerName: "Bendahara Jemaat",
     saldoAwalGereja: 15000000,
@@ -136,6 +136,10 @@ export function loadState() {
       appState.pemasukan = appState.pemasukan || INITIAL_STATE.pemasukan;
       appState.pengeluaran = appState.pengeluaran || INITIAL_STATE.pengeluaran;
       appState.kirimDskt = appState.kirimDskt || INITIAL_STATE.kirimDskt;
+      if (appState.settings.churchName === "Gereja Advent Jemaat Pusat" || appState.settings.churchName === "Jemaat Pusat") {
+        appState.settings.churchName = "Jemaat Teratai Batam";
+        saveState();
+      }
     } else {
       appState = JSON.parse(JSON.stringify(INITIAL_STATE));
       saveState();

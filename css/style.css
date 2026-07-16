@@ -1117,6 +1117,14 @@ body.thermal-print-mode #receipt-body * {
     background: white !important;
     color: black !important;
   }
+  #printable-financial-sheet {
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    background: white !important;
+    width: 100% !important;
+  }
   #print-area-transmital * {
     color: black !important;
   }
