@@ -237,7 +237,7 @@
 
   function generateVoucherNo(dateStr, state) {
     const d = dateStr ? new Date(dateStr) : new Date();
-    if (isNaN(d.getTime())) return "VCH-010126-001";
+    if (isNaN(d.getTime())) return "TRT-OUT-010126-001";
     const dd = String(d.getDate()).padStart(2, '0');
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const yy = String(d.getFullYear()).slice(-2);
@@ -259,7 +259,7 @@
     });
 
     const nextSeq = highestSeq + 1;
-    return `VCH-${dd}${mm}${yy}-${String(nextSeq).padStart(3, '0')}`;
+    return `TRT-OUT-${dd}${mm}${yy}-${String(nextSeq).padStart(3, '0')}`;
   }
 
   // ============================================================================
@@ -1025,9 +1025,20 @@ function doGet(e) {
   // 5. VIEW DEFINITIONS
   // ============================================================================
   let chartInstance = null;
+  let expenseChartInstance = null;
+  let dashboardFilterMonth = 'ALL';
+  let dashboardFilterYear = 'ALL';
 
   function renderDashboard(container, state, navigateTo) {
     const summary = calculateFinancialSummary(state);
+    const pemasukanList = state.pemasukan || [];
+    const pengeluaranList = state.pengeluaran || [];
+    
+    const yearSet = new Set();
+    pemasukanList.forEach(i => { if(i.date) yearSet.add(i.date.slice(0, 4)) });
+    pengeluaranList.forEach(i => { if(i.date) yearSet.add(i.date.slice(0, 4)) });
+    const availableYears = Array.from(yearSet).sort().reverse();
+
     container.innerHTML = `
       <div class="stats-grid">
         <div class="stat-card" style="--stat-glow: rgba(34, 197, 94, 0.2); --icon-bg: rgba(34, 197, 94, 0.15); --icon-color: hsl(var(--success));">
@@ -1067,31 +1078,58 @@ function doGet(e) {
         </div>
       </div>
 
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 28px;">
+        <button class="btn btn-primary" id="btn-goto-masuk" style="justify-content: center; padding: 14px; background: linear-gradient(135deg, hsl(142, 70%, 40%), hsl(var(--success))); border: none;"><i data-lucide="plus-circle"></i><span>Catat Masuk</span></button>
+        <button class="btn btn-gold" id="btn-goto-keluar" style="justify-content: center; padding: 14px;"><i data-lucide="minus-circle"></i><span>Catat Keluar</span></button>
+        <button class="btn btn-secondary" id="btn-goto-dskt" style="justify-content: center; padding: 14px; border-color: rgba(239, 68, 68, 0.4); color: hsl(var(--danger)); background: rgba(239,68,68,0.1);"><i data-lucide="send"></i><span>Setor DSKT</span></button>
+        <button class="btn btn-secondary" id="btn-goto-pembangunan" style="justify-content: center; padding: 14px; border-color: rgba(59, 130, 246, 0.4); color: #3b82f6; background: rgba(59,130,246,0.1);"><i data-lucide="building"></i><span>Setor Pembangunan</span></button>
+      </div>
+
+      <div style="background: var(--surface-subtle); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); margin-bottom: 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <i data-lucide="filter" style="color: hsl(var(--accent-blue));"></i>
+        <div style="flex: 1; min-width: 200px;">
+          <h4 style="margin: 0; font-size: 0.95rem; font-weight: 700;">Filter Periode Grafik</h4>
+          <p style="margin: 0; font-size: 0.8rem; color: hsl(var(--text-secondary));">Pilih bulan dan tahun untuk grafik.</p>
+        </div>
+        <select id="filter-month" class="form-control" style="width: auto; font-weight: 600;">
+          <option value="ALL" ${dashboardFilterMonth === 'ALL' ? 'selected' : ''}>Semua Bulan</option>
+          <option value="01" ${dashboardFilterMonth === '01' ? 'selected' : ''}>Januari</option>
+          <option value="02" ${dashboardFilterMonth === '02' ? 'selected' : ''}>Februari</option>
+          <option value="03" ${dashboardFilterMonth === '03' ? 'selected' : ''}>Maret</option>
+          <option value="04" ${dashboardFilterMonth === '04' ? 'selected' : ''}>April</option>
+          <option value="05" ${dashboardFilterMonth === '05' ? 'selected' : ''}>Mei</option>
+          <option value="06" ${dashboardFilterMonth === '06' ? 'selected' : ''}>Juni</option>
+          <option value="07" ${dashboardFilterMonth === '07' ? 'selected' : ''}>Juli</option>
+          <option value="08" ${dashboardFilterMonth === '08' ? 'selected' : ''}>Agustus</option>
+          <option value="09" ${dashboardFilterMonth === '09' ? 'selected' : ''}>September</option>
+          <option value="10" ${dashboardFilterMonth === '10' ? 'selected' : ''}>Oktober</option>
+          <option value="11" ${dashboardFilterMonth === '11' ? 'selected' : ''}>November</option>
+          <option value="12" ${dashboardFilterMonth === '12' ? 'selected' : ''}>Desember</option>
+        </select>
+        <select id="filter-year" class="form-control" style="width: auto; font-weight: 600;">
+          <option value="ALL" ${dashboardFilterYear === 'ALL' ? 'selected' : ''}>Semua Tahun</option>
+          ${availableYears.map(y => `<option value="${y}" ${dashboardFilterYear === y ? 'selected' : ''}>${y}</option>`).join('')}
+        </select>
+      </div>
+
       <div class="view-split-grid" style="margin-bottom: 28px;">
         <div class="glass-card">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
             <h3 style="font-size: 1.1rem; font-weight: 700;">Komposisi Alokasi Uang Masuk</h3>
-            <span class="badge badge-gereja">Real-time Split</span>
+            <span class="badge badge-gereja">Uang Masuk</span>
           </div>
           <div style="position: relative; height: 260px; display: flex; align-items: center; justify-content: center;">
             <canvas id="dashboardChart"></canvas>
           </div>
         </div>
 
-        <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
-          <div>
-            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;">Aksi Cepat Bendahara</h3>
-            <p style="color: hsl(var(--text-secondary)); font-size: 0.9rem; margin-bottom: 24px;">Kelola transaksi Sabat ini, catat pengeluaran departemen, atau setor titipan DSKT dengan satu sentuhan.</p>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px;">
-              <button class="btn btn-primary" id="btn-goto-masuk" style="width: 100%; justify-content: center; padding: 14px;"><i data-lucide="plus-circle"></i><span>Catat Masuk</span></button>
-              <button class="btn btn-gold" id="btn-goto-keluar" style="width: 100%; justify-content: center; padding: 14px;"><i data-lucide="minus-circle"></i><span>Catat Keluar</span></button>
-            </div>
-            <button class="btn btn-secondary" id="btn-goto-dskt" style="width: 100%; justify-content: center; padding: 12px; border-color: rgba(239, 68, 68, 0.4); color: hsl(var(--danger)); margin-bottom: 12px;"><i data-lucide="send"></i><span>Setor Uang ke Kas DSKT (Konferens/Daerah)</span></button>
-            <button class="btn btn-secondary" id="btn-goto-pembangunan" style="width: 100%; justify-content: center; padding: 12px; border-color: rgba(59, 130, 246, 0.4); color: #3b82f6;"><i data-lucide="building"></i><span>Setor Uang ke Kas Pembangunan</span></button>
+        <div class="glass-card">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+            <h3 style="font-size: 1.1rem; font-weight: 700;">Top 5 Pengeluaran Departemen</h3>
+            <span class="badge badge-dskt">Uang Keluar</span>
           </div>
-          <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; color: hsl(var(--text-muted));">
-            <span>Google Sheets Sync Status:</span>
-            <span style="color: ${state.settings.webhookUrl ? 'hsl(var(--success))' : 'hsl(var(--warning))'}; font-weight: 600;">${state.settings.webhookUrl ? 'Tersambung' : 'Belum Webhook'}</span>
+          <div style="position: relative; height: 260px; display: flex; align-items: center; justify-content: center;">
+            <canvas id="expenseChart"></canvas>
           </div>
         </div>
       </div>
@@ -1150,7 +1188,33 @@ function doGet(e) {
     container.querySelector('#btn-goto-pembangunan')?.addEventListener('click', () => navigateTo('kirim-pembangunan'));
     container.querySelector('#btn-goto-laporan')?.addEventListener('click', () => navigateTo('laporan'));
 
-    setTimeout(() => {
+    function drawDashboardCharts() {
+      const isMatch = (dateStr) => {
+         if (!dateStr) return false;
+         const y = dateStr.slice(0, 4);
+         const m = dateStr.slice(5, 7);
+         if (dashboardFilterYear !== 'ALL' && y !== dashboardFilterYear) return false;
+         if (dashboardFilterMonth !== 'ALL' && m !== dashboardFilterMonth) return false;
+         return true;
+      };
+      
+      const filteredPemasukan = state.pemasukan.filter(i => isMatch(i.date));
+      const filteredPengeluaran = state.pengeluaran.filter(i => isMatch(i.date));
+
+      // Hitung summary khusus untuk chart pemasukan
+      const chartSummary = {
+        totalMasukDskt: 0,
+        totalMasukGereja: 0,
+        totalMasukPembangunan: 0
+      };
+      
+      filteredPemasukan.forEach(item => {
+        const calc = calculateIncomeBreakdown(item);
+        chartSummary.totalMasukDskt += calc.persepuluhan + (calc.persembahanTerpadu * 0.5);
+        chartSummary.totalMasukGereja += (calc.persembahanTerpadu * 0.5) + calc.persembahanKhusus;
+        chartSummary.totalMasukPembangunan += calc.persembahanPembangunan;
+      });
+
       const canvas = document.getElementById('dashboardChart');
       if (canvas && window.Chart) {
         if (chartInstance) chartInstance.destroy();
@@ -1160,7 +1224,7 @@ function doGet(e) {
           data: {
             labels: ['Masuk Kas DSKT (100% Psp + 50% Tpd)', 'Masuk Kas Gereja (50% Tpd + Khs + DLL)', 'Masuk Kas Pembangunan (100%)'],
             datasets: [{
-              data: [summary.totalMasukDskt || 1, summary.totalMasukGereja || 1, summary.totalMasukPembangunan || 1],
+              data: [chartSummary.totalMasukDskt || 1, chartSummary.totalMasukGereja || 1, chartSummary.totalMasukPembangunan || 1],
               backgroundColor: ['#ef4444', '#22c55e', '#3b82f6'],
               borderWidth: 2,
               borderColor: '#0f172a'
@@ -1179,6 +1243,71 @@ function doGet(e) {
           }
         });
       }
+
+      const canvasExp = document.getElementById('expenseChart');
+      if (canvasExp && window.Chart) {
+        if (expenseChartInstance) expenseChartInstance.destroy();
+        const ctxExp = canvasExp.getContext('2d');
+        
+        const deptTotals = {};
+        filteredPengeluaran.forEach(item => {
+           deptTotals[item.departmentName] = (deptTotals[item.departmentName] || 0) + Number(item.amount);
+        });
+        
+        const sortedDepts = Object.entries(deptTotals).sort((a,b) => b[1] - a[1]);
+        const top5 = sortedDepts.slice(0, 5);
+        const others = sortedDepts.slice(5).reduce((sum, curr) => sum + curr[1], 0);
+        
+        const labels = top5.map(d => d[0]);
+        const data = top5.map(d => d[1]);
+        if (others > 0) {
+           labels.push('Lain-lain');
+           data.push(others);
+        }
+        
+        if (labels.length === 0) {
+           labels.push('Belum ada data');
+           data.push(1);
+        }
+
+        expenseChartInstance = new window.Chart(ctxExp, {
+          type: 'doughnut',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: data,
+              backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#14b8a6', '#64748b'],
+              borderWidth: 2,
+              borderColor: '#0f172a'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { color: '#e2e8f0', font: { size: 11, family: 'Plus Jakarta Sans' }, padding: 14, usePointStyle: true }
+              }
+            },
+            cutout: '65%'
+          }
+        });
+      }
+    }
+
+    container.querySelector('#filter-month')?.addEventListener('change', (e) => {
+      dashboardFilterMonth = e.target.value;
+      drawDashboardCharts();
+    });
+    
+    container.querySelector('#filter-year')?.addEventListener('change', (e) => {
+      dashboardFilterYear = e.target.value;
+      drawDashboardCharts();
+    });
+
+    setTimeout(() => {
+      drawDashboardCharts();
     }, 100);
   }
 
@@ -2002,19 +2131,32 @@ function doGet(e) {
               <div class="form-group"><label class="form-label">Tanggal Pengeluaran</label><input type="date" class="form-control" id="ex-date" value="${today}" required /></div>
               <div class="form-group"><label class="form-label">Nomor Voucher / Bukti Kuitansi</label><input type="text" class="form-control" id="ex-voucher" value="${voucherVal}" required style="font-weight: 700; color: hsl(var(--accent-gold));" /></div>
             </div>
-            <div class="form-group">
-              <label class="form-label">Pilih Kategori Departemen / Pos Pengeluaran (30 Resmi)</label>
-              <select class="form-control" id="ex-dept" required style="font-weight: 600;">
-                ${EXPENDITURE_DEPARTMENTS.map(d => `<option value="${d.id}">${d.id}. ${d.name} (${d.category})</option>`).join('')}
-              </select>
+            
+            <div id="pengeluaran-items-container">
+              <!-- Item 1 (Default) -->
+              <div class="pengeluaran-item" style="border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; margin-bottom: 16px; position: relative; background: var(--surface-subtle);">
+                ${isEdit ? '' : `<button type="button" class="btn-remove-item" style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: hsl(var(--danger)); cursor: pointer; display: none;"><i data-lucide="x-circle"></i></button>`}
+                
+                <div class="form-group">
+                  <label class="form-label">Pilih Kategori Departemen / Pos Pengeluaran (30 Resmi)</label>
+                  <select class="form-control ex-dept" required style="font-weight: 600;">
+                    ${EXPENDITURE_DEPARTMENTS.map(d => `<option value="${d.id}" ${isEdit && editItem.departmentId === d.id ? 'selected' : ''}>${d.id}. ${d.name} (${d.category})</option>`).join('')}
+                  </select>
+                </div>
+                <div class="form-group"><label class="form-label">Nominal Pengeluaran (Rp)</label><input type="number" class="form-control ex-amount" value="${amountVal}" placeholder="0" min="0" required style="font-size: 1.15rem; font-weight: 700; color: hsl(var(--danger));" /></div>
+                <div class="form-group"><label class="form-label">Keterangan / Uraian Pengeluaran</label><textarea class="form-control ex-desc" rows="3" placeholder="Cth: Pembelian bahan makanan & perlawatan anggota sakit di RS Teratai" required>${descVal}</textarea></div>
+                <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; background: rgba(59,130,246,0.08); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(59,130,246,0.2);">
+                  <input type="checkbox" class="ex-building" ${isBuildingStr} style="width: 18px; height: 18px; cursor: pointer;" />
+                  <label style="font-size: 0.88rem; cursor: pointer; color: hsl(var(--text-primary)); font-weight: 600;">Ambil dari Kas Pembangunan (Centang jika pengeluaran khusus konstruksi/proyek fisik jemaat)</label>
+                </div>
+              </div>
             </div>
-            <div class="form-group"><label class="form-label">Nominal Pengeluaran (Rp)</label><input type="number" class="form-control" id="ex-amount" value="${amountVal}" placeholder="0" min="1000" required style="font-size: 1.15rem; font-weight: 700; color: hsl(var(--danger));" /></div>
-            <div class="form-group"><label class="form-label">Keterangan / Uraian Pengeluaran</label><textarea class="form-control" id="ex-desc" rows="3" placeholder="Cth: Pembelian bahan makanan & perlawatan anggota sakit di RS Teratai" required>${descVal}</textarea></div>
-            <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; background: rgba(59,130,246,0.08); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(59,130,246,0.2);">
-              <input type="checkbox" id="ex-building" ${isBuildingStr} style="width: 18px; height: 18px; cursor: pointer;" />
-              <label for="ex-building" style="font-size: 0.88rem; cursor: pointer; color: hsl(var(--text-primary)); font-weight: 600;">Ambil dari Kas Pembangunan (Centang jika pengeluaran khusus konstruksi/proyek fisik jemaat)</label>
-            </div>
-            <button type="submit" class="btn btn-danger" style="width: 100%; margin-top: 20px; padding: 14px; font-size: 1rem; justify-content: center;"><i data-lucide="save"></i><span>${isEdit ? 'Perbarui Pengeluaran' : 'Simpan Pengeluaran'}</span></button>
+            
+            ${isEdit ? '' : `
+            <button type="button" class="btn btn-secondary" id="btn-add-item" style="width: 100%; justify-content: center; border: 1px dashed var(--border-color); margin-bottom: 20px; color: hsl(var(--text-primary));"><i data-lucide="plus"></i><span>Tambah Baris Pengeluaran Lainnya (1 Voucher yang Sama)</span></button>
+            `}
+            
+            <button type="submit" class="btn btn-danger" style="width: 100%; padding: 14px; font-size: 1rem; justify-content: center;"><i data-lucide="save"></i><span>${isEdit ? 'Perbarui Pengeluaran' : 'Simpan Semua Pengeluaran'}</span></button>
           </form>
         </div>
 
@@ -2060,28 +2202,91 @@ function doGet(e) {
       });
     }
 
+    // --- Dynamic Row Logic ---
+    const btnAddItem = container.querySelector('#btn-add-item');
+    const itemsContainer = container.querySelector('#pengeluaran-items-container');
+    
+    if (btnAddItem && itemsContainer) {
+      btnAddItem.addEventListener('click', () => {
+        const itemHtml = `
+          <div class="pengeluaran-item" style="border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; margin-bottom: 16px; position: relative; background: var(--surface-subtle); animation: slideInUp 0.3s ease;">
+            <button type="button" class="btn-remove-item" style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: hsl(var(--danger)); cursor: pointer;"><i data-lucide="x-circle"></i></button>
+            <div class="form-group">
+              <label class="form-label">Pilih Kategori Departemen / Pos Pengeluaran (30 Resmi)</label>
+              <select class="form-control ex-dept" required style="font-weight: 600;">
+                ${EXPENDITURE_DEPARTMENTS.map(d => `<option value="${d.id}">${d.id}. ${d.name} (${d.category})</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Nominal Pengeluaran (Rp)</label><input type="number" class="form-control ex-amount" placeholder="0" min="0" required style="font-size: 1.15rem; font-weight: 700; color: hsl(var(--danger));" /></div>
+            <div class="form-group"><label class="form-label">Keterangan / Uraian Pengeluaran</label><textarea class="form-control ex-desc" rows="3" placeholder="Cth: Pembelian tambahan" required></textarea></div>
+            <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; background: rgba(59,130,246,0.08); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(59,130,246,0.2);">
+              <input type="checkbox" class="ex-building" style="width: 18px; height: 18px; cursor: pointer;" />
+              <label style="font-size: 0.88rem; cursor: pointer; color: hsl(var(--text-primary)); font-weight: 600;">Ambil dari Kas Pembangunan</label>
+            </div>
+          </div>
+        `;
+        itemsContainer.insertAdjacentHTML('beforeend', itemHtml);
+        if (window.lucide) window.lucide.createIcons();
+        updateRemoveButtons();
+      });
+
+      itemsContainer.addEventListener('click', (e) => {
+        const removeBtn = e.target.closest('.btn-remove-item');
+        if (removeBtn) {
+          const item = removeBtn.closest('.pengeluaran-item');
+          if (itemsContainer.querySelectorAll('.pengeluaran-item').length > 1) {
+            item.remove();
+            updateRemoveButtons();
+          }
+        }
+      });
+
+      function updateRemoveButtons() {
+        const items = itemsContainer.querySelectorAll('.pengeluaran-item');
+        items.forEach(item => {
+          const btn = item.querySelector('.btn-remove-item');
+          if (btn) btn.style.display = items.length > 1 ? 'block' : 'none';
+        });
+      }
+    }
+
     container.querySelector('#form-pengeluaran')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const deptSelect = container.querySelector('#ex-dept');
-      const deptId = deptSelect.value;
-      const deptName = deptSelect.options[deptSelect.selectedIndex].text.replace(/^\d+\.\s*/, '').split(' (')[0];
-      const entry = {
-        date: container.querySelector('#ex-date').value,
-        voucherNo: container.querySelector('#ex-voucher').value || generateVoucherNo(container.querySelector('#ex-date').value, state),
-        departmentId: Number(deptId),
-        departmentName: deptName,
-        amount: container.querySelector('#ex-amount').value,
-        description: container.querySelector('#ex-desc').value,
-        isBuildingFund: container.querySelector('#ex-building').checked
-      };
+      
+      const dateVal = container.querySelector('#ex-date').value;
+      const voucherVal = container.querySelector('#ex-voucher').value || generateVoucherNo(dateVal, state);
+      
+      const items = container.querySelectorAll('.pengeluaran-item');
+      let savedCount = 0;
+      
+      items.forEach(itemEl => {
+        const deptSelect = itemEl.querySelector('.ex-dept');
+        const deptId = deptSelect.value;
+        const deptName = deptSelect.options[deptSelect.selectedIndex].text.replace(/^\d+\.\s*/, '').split(' (')[0];
+        
+        const entry = {
+          date: dateVal,
+          voucherNo: voucherVal,
+          departmentId: Number(deptId),
+          departmentName: deptName,
+          amount: itemEl.querySelector('.ex-amount').value,
+          description: itemEl.querySelector('.ex-desc').value,
+          isBuildingFund: itemEl.querySelector('.ex-building').checked
+        };
+        
+        if (isEdit) {
+          updatePengeluaran(window.editTransactionId, entry);
+          window.editTransactionId = null; // reset
+        } else {
+          addPengeluaran(entry);
+          savedCount++;
+        }
+      });
       
       if (isEdit) {
-        updatePengeluaran(window.editTransactionId, entry);
-        window.editTransactionId = null; // reset
-        showToast(`Pengeluaran untuk "${entry.departmentName}" berhasil diperbarui!`, "success");
+        showToast("Pengeluaran berhasil diperbarui!", "success");
       } else {
-        addPengeluaran(entry);
-        showToast(`Pengeluaran untuk "${entry.departmentName}" berhasil disimpan!`, "success");
+        showToast(`${savedCount} baris pengeluaran (Voucher ${voucherVal}) berhasil disimpan!`, "success");
       }
       
       renderPengeluaran(container, getState());
@@ -2089,9 +2294,8 @@ function doGet(e) {
 
     container.querySelectorAll('.btn-del-keluar').forEach(btn => {
       btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
         if (confirm("Apakah Anda yakin ingin menghapus catatan pengeluaran ini?")) {
-          deletePengeluaran(id);
+          deletePengeluaran(btn.getAttribute('data-id'));
           showToast("Pengeluaran berhasil dihapus.", "success");
           renderPengeluaran(container, getState());
         }
@@ -2100,17 +2304,10 @@ function doGet(e) {
 
     container.querySelectorAll('.btn-edit-keluar').forEach(btn => {
       btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
-        window.editTransactionId = id;
-        if (typeof navigateTo === 'function') navigateTo('pengeluaran');
-        else if (window.BendaharaApp?.navigateTo) window.BendaharaApp.navigateTo('pengeluaran');
+        window.editTransactionId = btn.getAttribute('data-id');
+        if (window.BendaharaApp?.navigateTo) window.BendaharaApp.navigateTo('pengeluaran');
       });
     });
-
-    if (isEdit && editItem) {
-      const deptSelect = container.querySelector('#ex-dept');
-      if (deptSelect) deptSelect.value = editItem.departmentId;
-    }
   }
 
   function renderKirimDskt(container, state) {
@@ -4083,7 +4280,6 @@ function doGet(e) {
               <label class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.85rem; cursor: pointer; margin: 0; background: linear-gradient(135deg, hsl(340, 80%, 40%), hsl(var(--danger))); border: none; color: white;"><i data-lucide="upload"></i><span>Unggah Excel Pengeluaran</span><input type="file" id="input-import-csv-pengeluaran" accept=".xlsx, .xls" style="display: none;" /></label>
             </div>
           </div>
-          <div style="margin-top: 24px; text-align: center;"><button type="button" class="btn btn-danger" id="btn-reset-all" style="padding: 8px 16px; font-size: 0.8rem; background: transparent; border-color: rgba(239,68,68,0.4);"><i data-lucide="alert-triangle"></i><span>Reset / Bersihkan Seluruh Data Jemaat</span></button></div>
         </div>
       </div>
     `;
@@ -4262,14 +4458,6 @@ function doGet(e) {
       const file = e.target.files[0];
       if (file) processExcelFile(file, false);
       e.target.value = "";
-    });
-
-    container.querySelector('#btn-reset-all')?.addEventListener('click', () => {
-      if (confirm("PERINGATAN KRITIS: Seluruh data pemasukan dan pengeluaran akan dihapus dan dikembalikan ke saldo 0. Apakah Anda yakin?")) {
-        clearAllData();
-        showToast("Seluruh data telah dibersihkan.", "success");
-        renderPengaturan(container, getState());
-      }
     });
   }
 

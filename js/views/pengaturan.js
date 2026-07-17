@@ -139,13 +139,6 @@ export function renderPengaturan(container, state, showToast) {
             </label>
           </div>
         </div>
-
-        <div style="margin-top: 24px; text-align: center;">
-          <button type="button" class="btn btn-danger" id="btn-reset-all" style="padding: 8px 16px; font-size: 0.8rem; background: transparent; border-color: rgba(239,68,68,0.4);">
-            <i data-lucide="alert-triangle"></i>
-            <span>Reset / Bersihkan Seluruh Data Jemaat</span>
-          </button>
-        </div>
       </div>
 
       <!-- Install Aplikasi HP & Tablet Android -->
@@ -278,14 +271,5 @@ export function renderPengaturan(container, state, showToast) {
   // Open Install Android Modal
   container.querySelector('#btn-settings-open-install')?.addEventListener('click', () => {
     document.getElementById('modal-install-android')?.classList.add('active');
-  });
-
-  // Reset All
-  container.querySelector('#btn-reset-all')?.addEventListener('click', () => {
-    if (confirm("PERINGATAN KRITIS: Seluruh data pemasukan dan pengeluaran akan dihapus dan dikembalikan ke saldo 0. Apakah Anda yakin?")) {
-      clearAllData();
-      showToast("Seluruh data telah dibersihkan.", "success");
-      renderPengaturan(container, state, showToast);
-    }
   });
 }
