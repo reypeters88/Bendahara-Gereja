@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gmahk-bendahara-v5.8';
+const CACHE_NAME = 'gmahk-bendahara-v6.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
