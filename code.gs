@@ -198,6 +198,58 @@ function doPost(e) {
 }
 
 function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Webhook API Bendahara GMAHK Aktif & Siap Menerima Data!" }))
-    .setMimeType(ContentService.MimeType.JSON);
+  try {
+    var action = e.parameter.action;
+    if (action === "pull_all") {
+      var sheets = setupSheets();
+      var dataPemasukan = [];
+      var dataPengeluaran = [];
+      var dataKirimDskt = [];
+      
+      if (sheets.sheetMasuk.getLastRow() > 1) {
+        var rows = sheets.sheetMasuk.getRange(2, 1, sheets.sheetMasuk.getLastRow() - 1, 14).getValues();
+        for (var i = 0; i < rows.length; i++) {
+          if (!rows[i][0]) continue;
+          dataPemasukan.push({
+            id: String(rows[i][0]), date: String(rows[i][1]), sabbathName: String(rows[i][2]), memberName: String(rows[i][3]),
+            persepuluhan: Number(rows[i][4]) || 0, persembahanTerpadu: Number(rows[i][5]) || 0,
+            persembahanKhusus: Number(rows[i][8]) || 0, persembahanPembangunan: Number(rows[i][9]) || 0,
+            lainLain: Number(rows[i][10]) || 0, receiptNo: String(rows[i][12]), notes: String(rows[i][13])
+          });
+        }
+      }
+      
+      if (sheets.sheetKeluar.getLastRow() > 1) {
+        var rows = sheets.sheetKeluar.getRange(2, 1, sheets.sheetKeluar.getLastRow() - 1, 7).getValues();
+        for (var i = 0; i < rows.length; i++) {
+          if (!rows[i][0]) continue;
+          var isBuilding = String(rows[i][6]).toLowerCase().indexOf('pembangunan') !== -1;
+          dataPengeluaran.push({
+            id: String(rows[i][0]), date: String(rows[i][1]), departmentName: String(rows[i][2]), departmentId: 1,
+            description: String(rows[i][3]), amount: Number(rows[i][4]) || 0, voucherNo: String(rows[i][5]), isBuildingFund: isBuilding
+          });
+        }
+      }
+      
+      if (sheets.sheetDskt.getLastRow() > 1) {
+        var rows = sheets.sheetDskt.getRange(2, 1, sheets.sheetDskt.getLastRow() - 1, 5).getValues();
+        for (var i = 0; i < rows.length; i++) {
+          if (!rows[i][0]) continue;
+          dataKirimDskt.push({ id: String(rows[i][0]), date: String(rows[i][1]), amount: Number(rows[i][2]) || 0, referenceNo: String(rows[i][3]), notes: String(rows[i][4]) });
+        }
+      }
+      
+      return ContentService.createTextOutput(JSON.stringify({ 
+        status: "success", 
+        message: "Data berhasil ditarik dari Google Sheets!",
+        data: { pemasukan: dataPemasukan, pengeluaran: dataPengeluaran, kirimDskt: dataKirimDskt }
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Webhook API Bendahara GMAHK Aktif & Siap Menerima Data!" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
