@@ -504,6 +504,16 @@
     saveState();
   }
 
+  function updatePemasukan(id, entry) {
+    const index = appState.pemasukan.findIndex(item => item.id === id);
+    if (index !== -1) {
+      appState.pemasukan[index] = { ...appState.pemasukan[index], ...entry };
+      saveState();
+      return appState.pemasukan[index];
+    }
+    return null;
+  }
+
   function addPengeluaran(entry) {
     const newEntry = {
       id: entry.id || "EX-" + Date.now(),
@@ -525,6 +535,16 @@
     saveState();
   }
 
+  function updatePengeluaran(id, entry) {
+    const index = appState.pengeluaran.findIndex(item => item.id === id);
+    if (index !== -1) {
+      appState.pengeluaran[index] = { ...appState.pengeluaran[index], ...entry };
+      saveState();
+      return appState.pengeluaran[index];
+    }
+    return null;
+  }
+
   function addKirimDskt(entry) {
     const newEntry = {
       id: entry.id || "TR-" + Date.now(),
@@ -543,6 +563,16 @@
     saveState();
   }
 
+  function updateKirimDskt(id, entry) {
+    const index = appState.kirimDskt.findIndex(item => item.id === id);
+    if (index !== -1) {
+      appState.kirimDskt[index] = { ...appState.kirimDskt[index], ...entry };
+      saveState();
+      return appState.kirimDskt[index];
+    }
+    return null;
+  }
+
   function addKirimPembangunan(entry) {
     const newEntry = {
       id: entry.id || "TRP-" + Date.now(),
@@ -559,6 +589,16 @@
   function deleteKirimPembangunan(id) {
     appState.kirimPembangunan = appState.kirimPembangunan.filter(item => item.id !== id);
     saveState();
+  }
+
+  function updateKirimPembangunan(id, entry) {
+    const index = appState.kirimPembangunan.findIndex(item => item.id === id);
+    if (index !== -1) {
+      appState.kirimPembangunan[index] = { ...appState.kirimPembangunan[index], ...entry };
+      saveState();
+      return appState.kirimPembangunan[index];
+    }
+    return null;
   }
 
   function subscribe(listener) {
@@ -614,7 +654,8 @@
           data: {
             pemasukan: stateData.pemasukan || [],
             pengeluaran: stateData.pengeluaran || [],
-            kirimDskt: stateData.kirimDskt || []
+            kirimDskt: stateData.kirimDskt || [],
+            kirimPembangunan: stateData.kirimPembangunan || []
           }
         })
       });
@@ -732,8 +773,19 @@ function setupSheets() {
     sheetDskt.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#d97706").setFontColor("#ffffff");
     sheetDskt.setFrozenRows(1);
   }
+
+  // 4. Siapkan Sheet Pembangunan
+  var sheetPembangunan = ss.getSheetByName("Sheet Pembangunan");
+  if (!sheetPembangunan) {
+    sheetPembangunan = ss.insertSheet("Sheet Pembangunan");
+    sheetPembangunan.appendRow([
+      "ID Transaksi", "Tanggal Kirim", "Jumlah Disetor", "No. Referensi / Bank", "Catatan"
+    ]);
+    sheetPembangunan.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#059669").setFontColor("#ffffff");
+    sheetPembangunan.setFrozenRows(1);
+  }
   
-  return { sheetMasuk: sheetMasuk, sheetKeluar: sheetKeluar, sheetDskt: sheetDskt };
+  return { sheetMasuk: sheetMasuk, sheetKeluar: sheetKeluar, sheetDskt: sheetDskt, sheetPembangunan: sheetPembangunan };
 }
 
 function doPost(e) {
@@ -747,6 +799,7 @@ function doPost(e) {
       var pemasukanList = payload.data.pemasukan || [];
       var pengeluaranList = payload.data.pengeluaran || [];
       var kirimDsktList = payload.data.kirimDskt || [];
+      var kirimPembangunanList = payload.data.kirimPembangunan || [];
 
       // Bersihkan data lama setelah baris header dan masukkan data baru
       if (sheets.sheetMasuk.getLastRow() > 1) {
@@ -795,12 +848,25 @@ function doPost(e) {
         sheets.sheetDskt.getRange(2, 1, rowsDskt.length, 5).setValues(rowsDskt);
       }
 
+      if (sheets.sheetPembangunan.getLastRow() > 1) {
+        sheets.sheetPembangunan.getRange(2, 1, sheets.sheetPembangunan.getLastRow() - 1, 5).clearContent();
+      }
+      if (kirimPembangunanList.length > 0) {
+        var rowsPb = kirimPembangunanList.map(function(item) {
+          return [
+            item.id || "", item.date || "", Number(item.amount) || 0, item.referenceNo || "", item.notes || ""
+          ];
+        });
+        sheets.sheetPembangunan.getRange(2, 1, rowsPb.length, 5).setValues(rowsPb);
+      }
+
       return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Sinkronisasi berhasil disimpan ke Google Sheets!" }))
         .setMimeType(ContentService.MimeType.JSON);
     } else if (action === "pull_all") {
       var dataPemasukan = [];
       var dataPengeluaran = [];
       var dataKirimDskt = [];
+      var dataKirimPembangunan = [];
       
       if (sheets.sheetMasuk.getLastRow() > 1) {
         var rows = sheets.sheetMasuk.getRange(2, 1, sheets.sheetMasuk.getLastRow() - 1, 14).getValues();
@@ -854,13 +920,28 @@ function doPost(e) {
         }
       }
       
+      if (sheets.sheetPembangunan.getLastRow() > 1) {
+        var rows = sheets.sheetPembangunan.getRange(2, 1, sheets.sheetPembangunan.getLastRow() - 1, 5).getValues();
+        for (var i = 0; i < rows.length; i++) {
+          if (!rows[i][0]) continue;
+          dataKirimPembangunan.push({
+            id: String(rows[i][0]),
+            date: String(rows[i][1]),
+            amount: Number(rows[i][2]) || 0,
+            referenceNo: String(rows[i][3]),
+            notes: String(rows[i][4])
+          });
+        }
+      }
+      
       return ContentService.createTextOutput(JSON.stringify({ 
         status: "success", 
         message: "Data berhasil ditarik dari Google Sheets!",
         data: {
           pemasukan: dataPemasukan,
           pengeluaran: dataPengeluaran,
-          kirimDskt: dataKirimDskt
+          kirimDskt: dataKirimDskt,
+          kirimPembangunan: dataKirimPembangunan
         }
       })).setMimeType(ContentService.MimeType.JSON);
     }
@@ -881,6 +962,7 @@ function doGet(e) {
       var dataPemasukan = [];
       var dataPengeluaran = [];
       var dataKirimDskt = [];
+      var dataKirimPembangunan = [];
       
       if (sheets.sheetMasuk.getLastRow() > 1) {
         var rows = sheets.sheetMasuk.getRange(2, 1, sheets.sheetMasuk.getLastRow() - 1, 14).getValues();
@@ -915,10 +997,18 @@ function doGet(e) {
         }
       }
       
+      if (sheets.sheetPembangunan.getLastRow() > 1) {
+        var rows = sheets.sheetPembangunan.getRange(2, 1, sheets.sheetPembangunan.getLastRow() - 1, 5).getValues();
+        for (var i = 0; i < rows.length; i++) {
+          if (!rows[i][0]) continue;
+          dataKirimPembangunan.push({ id: String(rows[i][0]), date: String(rows[i][1]), amount: Number(rows[i][2]) || 0, referenceNo: String(rows[i][3]), notes: String(rows[i][4]) });
+        }
+      }
+      
       return ContentService.createTextOutput(JSON.stringify({ 
         status: "success", 
         message: "Data berhasil ditarik dari Google Sheets!",
-        data: { pemasukan: dataPemasukan, pengeluaran: dataPengeluaran, kirimDskt: dataKirimDskt }
+        data: { pemasukan: dataPemasukan, pengeluaran: dataPengeluaran, kirimDskt: dataKirimDskt, kirimPembangunan: dataKirimPembangunan }
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
@@ -1241,6 +1331,7 @@ function doGet(e) {
                     </td>
                     <td style="vertical-align: middle; text-align: center; width: 80px;">
                       <button class="icon-btn btn-print-kw" data-id="${item.id}" title="Cetak Kuitansi" style="margin-bottom: 10px; color: hsl(var(--accent-blue)); width: 40px; height: 40px;"><i data-lucide="printer"></i></button>
+                      <button class="icon-btn btn-edit-masuk-tab" data-id="${item.id}" title="Edit Transaksi" style="margin-bottom: 10px; color: hsl(var(--accent-gold)); width: 40px; height: 40px;"><i data-lucide="edit"></i></button>
                       <button class="icon-btn btn-del-masuk-tab" data-id="${item.id}" title="Hapus Transaksi" style="color: hsl(var(--danger)); width: 40px; height: 40px;"><i data-lucide="trash-2"></i></button>
                     </td>
                   </tr>
@@ -1282,11 +1373,36 @@ function doGet(e) {
         }
       });
     });
+
+    container.querySelectorAll('.btn-edit-masuk-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        window.editTransactionId = id;
+        if (typeof navigateTo === 'function') navigateTo('pemasukan');
+        else if (window.BendaharaApp?.navigateTo) window.BendaharaApp.navigateTo('pemasukan');
+      });
+    });
   }
 
   function renderPemasukan(container, state) {
     const members = state.members || [];
-    const today = new Date().toISOString().split('T')[0];
+    
+    let isEdit = false;
+    let editItem = null;
+    if (window.editTransactionId) {
+      editItem = state.pemasukan.find(i => i.id === window.editTransactionId);
+      if (editItem) isEdit = true;
+    }
+    
+    const today = isEdit && editItem.date ? editItem.date : new Date().toISOString().split('T')[0];
+    const receiptVal = isEdit ? editItem.receiptNo : generateReceiptNo(today, state);
+    const memberVal = isEdit ? editItem.memberName : "Umum/Anonim";
+    const pspVal = isEdit && editItem.persepuluhan ? editItem.persepuluhan : "";
+    const tpdVal = isEdit && editItem.persembahanTerpadu ? editItem.persembahanTerpadu : "";
+    const khsVal = isEdit && editItem.persembahanKhusus ? editItem.persembahanKhusus : "";
+    const pbgVal = isEdit && editItem.persembahanPembangunan ? editItem.persembahanPembangunan : "";
+    const dllVal = isEdit && editItem.lainLain ? editItem.lainLain : "";
+    const notesVal = isEdit && editItem.notes ? editItem.notes : "";
 
     container.innerHTML = `
       <div style="max-width: 800px; margin: 0 auto;">
@@ -1306,7 +1422,7 @@ function doGet(e) {
               </div>
               <div class="form-group">
                 <label class="form-label">Nomor Kuitansi / Bukti</label>
-                <input type="text" class="form-control" id="in-receipt" value="${generateReceiptNo(today, state)}" required style="font-weight: 700; color: hsl(var(--accent-gold));" />
+                <input type="text" class="form-control" id="in-receipt" value="${receiptVal}" required style="font-weight: 700; color: hsl(var(--accent-gold));" />
               </div>
             </div>
             <div class="form-group" style="position: relative;">
@@ -1314,7 +1430,7 @@ function doGet(e) {
               <div class="autocomplete-wrapper" style="position: relative;">
                 <div style="position: relative; display: flex; align-items: center;">
                   <i data-lucide="search" style="position: absolute; left: 14px; color: hsl(var(--text-muted)); width: 18px; height: 18px; pointer-events: none;"></i>
-                  <input type="text" class="form-control" id="in-member" placeholder="🔍 Ketik awal/tengah/akhir nama atau pilih dari daftar..." value="Umum/Anonim" autocomplete="off" required style="padding-left: 42px; padding-right: 42px; font-weight: 600;" />
+                  <input type="text" class="form-control" id="in-member" placeholder="🔍 Ketik awal/tengah/akhir nama atau pilih dari daftar..." value="${memberVal}" autocomplete="off" required style="padding-left: 42px; padding-right: 42px; font-weight: 600;" />
                   <button type="button" id="btn-toggle-member-list" tabindex="-1" style="position: absolute; right: 6px; background: transparent; border: none; color: hsl(var(--text-muted)); padding: 8px; cursor: pointer; display: flex; align-items: center;">
                     <i data-lucide="chevron-down"></i>
                   </button>
@@ -1326,30 +1442,30 @@ function doGet(e) {
             <div class="form-grid" style="margin-top: 10px;">
               <div class="form-group">
                 <label class="form-label" style="color: hsl(var(--danger)); font-weight: 700;">1. Persepuluhan (100% DSKT)</label>
-                <input type="number" class="form-control calc-trigger" id="in-psp" placeholder="0" min="0" step="1000" />
+                <input type="number" class="form-control calc-trigger" id="in-psp" value="${pspVal}" placeholder="0" min="0" />
               </div>
               <div class="form-group">
                 <label class="form-label" style="color: hsl(var(--success)); font-weight: 700;">2. Pers. Terpadu (50% Grj / 50% DSKT)</label>
-                <input type="number" class="form-control calc-trigger" id="in-tpd" placeholder="0" min="0" step="1000" />
+                <input type="number" class="form-control calc-trigger" id="in-tpd" value="${tpdVal}" placeholder="0" min="0" />
               </div>
             </div>
             <div class="form-grid">
               <div class="form-group">
                 <label class="form-label">3. Pers. Khusus (100% Kas Gereja)</label>
-                <input type="number" class="form-control calc-trigger" id="in-khs" placeholder="0" min="0" step="1000" />
+                <input type="number" class="form-control calc-trigger" id="in-khs" value="${khsVal}" placeholder="0" min="0" />
               </div>
               <div class="form-group">
                 <label class="form-label" style="color: hsl(var(--accent-blue)); font-weight: 700;">4. Pers. Pembangunan (100% Pbg)</label>
-                <input type="number" class="form-control calc-trigger" id="in-pbg" placeholder="0" min="0" step="1000" />
+                <input type="number" class="form-control calc-trigger" id="in-pbg" value="${pbgVal}" placeholder="0" min="0" />
               </div>
             </div>
             <div class="form-group">
               <label class="form-label">5. Lain-lain / Ucapan Syukur (Kas Gereja)</label>
-              <input type="number" class="form-control calc-trigger" id="in-dll" placeholder="0" min="0" step="1000" />
+              <input type="number" class="form-control calc-trigger" id="in-dll" value="${dllVal}" placeholder="0" min="0" />
             </div>
             <div class="form-group">
               <label class="form-label">Catatan Tambahan (Opsional)</label>
-              <input type="text" class="form-control" id="in-notes" placeholder="Cth: Ucapan syukur ulang tahun pernikahan" />
+              <input type="text" class="form-control" id="in-notes" value="${notesVal}" placeholder="Cth: Ucapan syukur ulang tahun pernikahan" />
             </div>
             <div class="allocation-info" id="live-split-box">
               <div class="alloc-item"><span class="alloc-title">Masuk Kas DSKT (100% Psp + 50% Tpd)</span><span class="alloc-val" id="split-dskt" style="color: hsl(var(--danger));">Rp 0</span></div>
@@ -1357,7 +1473,7 @@ function doGet(e) {
               <div class="alloc-item"><span class="alloc-title">Masuk Kas Pembangunan (100% Pbg)</span><span class="alloc-val" id="split-pembangunan" style="color: hsl(var(--accent-blue));">Rp 0</span></div>
               <div class="alloc-item" style="border-left: 1px solid var(--border-color); padding-left: 12px;"><span class="alloc-title">TOTAL PEMASUKAN</span><span class="alloc-val" id="split-total" style="color: hsl(var(--accent-gold)); font-size: 1.15rem;">Rp 0</span></div>
             </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px; padding: 14px; font-size: 1rem;"><i data-lucide="save"></i><span>Simpan Transaksi Pemasukan</span></button>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px; padding: 14px; font-size: 1rem;"><i data-lucide="${isEdit ? 'save' : 'save'}"></i><span>${isEdit ? 'Perbarui Transaksi Pemasukan' : 'Simpan Transaksi Pemasukan'}</span></button>
           </form>
         </div>
       </div>
@@ -1602,8 +1718,16 @@ function doGet(e) {
           addMember({ name: entry.memberName.trim() });
         }
       }
-      addPemasukan(entry);
-      showToast("Transaksi persembahan berhasil disimpan dan dibagi secara otomatis!", "success");
+      
+      if (isEdit) {
+        updatePemasukan(window.editTransactionId, entry);
+        window.editTransactionId = null; // reset
+        showToast("Transaksi persembahan berhasil diperbarui!", "success");
+      } else {
+        addPemasukan(entry);
+        showToast("Transaksi persembahan berhasil disimpan dan dibagi secara otomatis!", "success");
+      }
+      
       renderPemasukan(container, getState());
     });
 
@@ -1855,7 +1979,19 @@ function doGet(e) {
 
   function renderPengeluaran(container, state) {
     const pengeluaranList = state.pengeluaran || [];
-    const today = new Date().toISOString().split('T')[0];
+    
+    let isEdit = false;
+    let editItem = null;
+    if (window.editTransactionId) {
+      editItem = pengeluaranList.find(i => i.id === window.editTransactionId);
+      if (editItem) isEdit = true;
+    }
+
+    const today = isEdit && editItem.date ? editItem.date : new Date().toISOString().split('T')[0];
+    const voucherVal = isEdit ? editItem.voucherNo : generateVoucherNo(today, state);
+    const amountVal = isEdit && editItem.amount ? editItem.amount : "";
+    const descVal = isEdit && editItem.description ? editItem.description : "";
+    const isBuildingStr = isEdit && editItem.isBuildingFund ? "checked" : "";
 
     container.innerHTML = `
       <div class="view-split-grid">
@@ -1864,7 +2000,7 @@ function doGet(e) {
           <form id="form-pengeluaran">
             <div class="form-grid">
               <div class="form-group"><label class="form-label">Tanggal Pengeluaran</label><input type="date" class="form-control" id="ex-date" value="${today}" required /></div>
-              <div class="form-group"><label class="form-label">Nomor Voucher / Bukti Kuitansi</label><input type="text" class="form-control" id="ex-voucher" value="${generateVoucherNo(today, state)}" required style="font-weight: 700; color: hsl(var(--accent-gold));" /></div>
+              <div class="form-group"><label class="form-label">Nomor Voucher / Bukti Kuitansi</label><input type="text" class="form-control" id="ex-voucher" value="${voucherVal}" required style="font-weight: 700; color: hsl(var(--accent-gold));" /></div>
             </div>
             <div class="form-group">
               <label class="form-label">Pilih Kategori Departemen / Pos Pengeluaran (30 Resmi)</label>
@@ -1872,13 +2008,13 @@ function doGet(e) {
                 ${EXPENDITURE_DEPARTMENTS.map(d => `<option value="${d.id}">${d.id}. ${d.name} (${d.category})</option>`).join('')}
               </select>
             </div>
-            <div class="form-group"><label class="form-label">Nominal Pengeluaran (Rp)</label><input type="number" class="form-control" id="ex-amount" placeholder="0" min="1000" step="1000" required style="font-size: 1.15rem; font-weight: 700; color: hsl(var(--danger));" /></div>
-            <div class="form-group"><label class="form-label">Keterangan / Uraian Pengeluaran</label><textarea class="form-control" id="ex-desc" rows="3" placeholder="Cth: Pembelian bahan makanan & perlawatan anggota sakit di RS Teratai" required></textarea></div>
+            <div class="form-group"><label class="form-label">Nominal Pengeluaran (Rp)</label><input type="number" class="form-control" id="ex-amount" value="${amountVal}" placeholder="0" min="1000" required style="font-size: 1.15rem; font-weight: 700; color: hsl(var(--danger));" /></div>
+            <div class="form-group"><label class="form-label">Keterangan / Uraian Pengeluaran</label><textarea class="form-control" id="ex-desc" rows="3" placeholder="Cth: Pembelian bahan makanan & perlawatan anggota sakit di RS Teratai" required>${descVal}</textarea></div>
             <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; background: rgba(59,130,246,0.08); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(59,130,246,0.2);">
-              <input type="checkbox" id="ex-building" style="width: 18px; height: 18px; cursor: pointer;" />
+              <input type="checkbox" id="ex-building" ${isBuildingStr} style="width: 18px; height: 18px; cursor: pointer;" />
               <label for="ex-building" style="font-size: 0.88rem; cursor: pointer; color: hsl(var(--text-primary)); font-weight: 600;">Ambil dari Kas Pembangunan (Centang jika pengeluaran khusus konstruksi/proyek fisik jemaat)</label>
             </div>
-            <button type="submit" class="btn btn-danger" style="width: 100%; margin-top: 20px; padding: 14px; font-size: 1rem; justify-content: center;"><i data-lucide="save"></i><span>Simpan Pengeluaran</span></button>
+            <button type="submit" class="btn btn-danger" style="width: 100%; margin-top: 20px; padding: 14px; font-size: 1rem; justify-content: center;"><i data-lucide="save"></i><span>${isEdit ? 'Perbarui Pengeluaran' : 'Simpan Pengeluaran'}</span></button>
           </form>
         </div>
 
@@ -1900,7 +2036,10 @@ function doGet(e) {
                     </td>
                     <td><div style="font-weight: 700; color: hsl(var(--text-primary));">${item.departmentName}</div><div style="font-size: 0.85rem; color: hsl(var(--text-secondary)); margin-top: 2px;">${item.description}</div></td>
                     <td style="font-weight: 800; color: hsl(var(--danger)); width: 22%;">${formatRupiah(item.amount)}</td>
-                    <td style="text-align: center; width: 60px;"><button class="icon-btn btn-del-keluar" data-id="${item.id}" title="Hapus Pengeluaran" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button></td>
+                    <td style="text-align: center; width: 80px;">
+                      <button class="icon-btn btn-edit-keluar" data-id="${item.id}" title="Edit Pengeluaran" style="margin-bottom: 6px; color: hsl(var(--accent-gold));"><i data-lucide="edit"></i></button>
+                      <button class="icon-btn btn-del-keluar" data-id="${item.id}" title="Hapus Pengeluaran" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button>
+                    </td>
                   </tr>
                 `).join('')}
                 ${pengeluaranList.length === 0 ? `<tr><td colspan="4" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada catatan pengeluaran.</td></tr>` : ''}
@@ -1935,8 +2074,16 @@ function doGet(e) {
         description: container.querySelector('#ex-desc').value,
         isBuildingFund: container.querySelector('#ex-building').checked
       };
-      addPengeluaran(entry);
-      showToast(`Pengeluaran untuk "${entry.departmentName}" berhasil disimpan!`, "success");
+      
+      if (isEdit) {
+        updatePengeluaran(window.editTransactionId, entry);
+        window.editTransactionId = null; // reset
+        showToast(`Pengeluaran untuk "${entry.departmentName}" berhasil diperbarui!`, "success");
+      } else {
+        addPengeluaran(entry);
+        showToast(`Pengeluaran untuk "${entry.departmentName}" berhasil disimpan!`, "success");
+      }
+      
       renderPengeluaran(container, getState());
     });
 
@@ -1950,12 +2097,37 @@ function doGet(e) {
         }
       });
     });
+
+    container.querySelectorAll('.btn-edit-keluar').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        window.editTransactionId = id;
+        if (typeof navigateTo === 'function') navigateTo('pengeluaran');
+        else if (window.BendaharaApp?.navigateTo) window.BendaharaApp.navigateTo('pengeluaran');
+      });
+    });
+
+    if (isEdit && editItem) {
+      const deptSelect = container.querySelector('#ex-dept');
+      if (deptSelect) deptSelect.value = editItem.departmentId;
+    }
   }
 
   function renderKirimDskt(container, state) {
     const summary = calculateFinancialSummary(state);
     const kirimList = state.kirimDskt || [];
-    const today = new Date().toISOString().split('T')[0];
+    
+    let isEdit = false;
+    let editItem = null;
+    if (window.editTransactionId) {
+      editItem = kirimList.find(i => i.id === window.editTransactionId);
+      if (editItem) isEdit = true;
+    }
+
+    const today = isEdit && editItem.date ? editItem.date : new Date().toISOString().split('T')[0];
+    const refVal = isEdit && editItem.referenceNo ? editItem.referenceNo : "";
+    const amountVal = isEdit && editItem.amount ? editItem.amount : Math.max(0, summary.kewajibanDsktBelumDisetor);
+    const notesVal = isEdit && editItem.notes ? editItem.notes : "";
 
     container.innerHTML = `
       <!-- Tombol Kembali / Back Line Icon -->
@@ -1985,15 +2157,15 @@ function doGet(e) {
           <form id="form-dskt">
             <div class="form-grid">
               <div class="form-group"><label class="form-label">Tanggal Setor / Transfer</label><input type="date" class="form-control" id="tr-date" value="${today}" required /></div>
-              <div class="form-group"><label class="form-label">No. Referensi / Bukti Bank</label><input type="text" class="form-control" id="tr-ref" placeholder="Cth: TRX-BNI-8921" required /></div>
+              <div class="form-group"><label class="form-label">No. Referensi / Bukti Bank</label><input type="text" class="form-control" id="tr-ref" value="${refVal}" placeholder="Cth: TRX-BNI-8921" required /></div>
             </div>
             <div class="form-group">
               <label class="form-label">Nominal Setoran ke DSKT (Rp)</label>
-              <input type="number" class="form-control" id="tr-amount" value="${Math.max(0, Math.round(summary.kewajibanDsktBelumDisetor))}" min="1000" step="1000" required style="font-size: 1.2rem; font-weight: 800; color: hsl(var(--warning));" />
+              <input type="number" class="form-control" id="tr-amount" value="${amountVal}" min="0" required style="font-size: 1.2rem; font-weight: 800; color: hsl(var(--warning));" />
               <span style="font-size: 0.78rem; color: hsl(var(--text-muted)); margin-top: 4px;">*Otomatis terisi sisa titipan saat ini, namun bisa disesuaikan jika setoran sebagian.</span>
             </div>
-            <div class="form-group"><label class="form-label">Catatan / Keterangan Setoran</label><textarea class="form-control" id="tr-notes" rows="3" placeholder="Cth: Setoran Persepuluhan dan 50% Pers. Terpadu bulan Juli 2026 via transfer rekening DSKT" required></textarea></div>
-            <button type="submit" class="btn btn-gold" style="width: 100%; margin-top: 16px; padding: 14px; font-size: 1rem; justify-content: center;"><i data-lucide="check-circle"></i><span>Simpan Bukti Pengiriman ke DSKT</span></button>
+            <div class="form-group"><label class="form-label">Catatan / Keterangan Setoran</label><textarea class="form-control" id="tr-notes" rows="3" placeholder="Cth: Setoran Persepuluhan dan 50% Pers. Terpadu bulan Juli 2026 via transfer rekening DSKT" required>${notesVal}</textarea></div>
+            <button type="submit" class="btn btn-gold" style="width: 100%; margin-top: 16px; padding: 14px; font-size: 1rem; justify-content: center;"><i data-lucide="${isEdit ? 'save' : 'check-circle'}"></i><span>${isEdit ? 'Perbarui Bukti Pengiriman' : 'Simpan Bukti Pengiriman ke DSKT'}</span></button>
           </form>
         </div>
 
@@ -2008,7 +2180,10 @@ function doGet(e) {
                     <td style="width: 28%;"><div style="font-weight: 700;">${formatDateIndo(item.date)}</div><div style="font-size: 0.78rem; color: hsl(var(--text-secondary));">Ref: ${item.referenceNo}</div></td>
                     <td><div style="font-size: 0.88rem; color: hsl(var(--text-primary));">${item.notes}</div></td>
                     <td style="font-weight: 800; color: hsl(var(--warning)); width: 25%;">${formatRupiah(item.amount)}</td>
-                    <td style="text-align: center; width: 60px;"><button class="icon-btn btn-del-dskt" data-id="${item.id}" title="Hapus Bukti Setoran" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button></td>
+                    <td style="text-align: center; width: 80px;">
+                      <button class="icon-btn btn-edit-dskt" data-id="${item.id}" title="Edit Setoran" style="margin-bottom: 6px; color: hsl(var(--accent-gold));"><i data-lucide="edit"></i></button>
+                      <button class="icon-btn btn-del-dskt" data-id="${item.id}" title="Hapus Bukti Setoran" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button>
+                    </td>
                   </tr>
                 `).join('')}
                 ${kirimList.length === 0 ? `<tr><td colspan="4" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada catatan setoran ke DSKT.</td></tr>` : ''}
@@ -2034,19 +2209,36 @@ function doGet(e) {
         amount: container.querySelector('#tr-amount').value,
         notes: container.querySelector('#tr-notes').value
       };
-      addKirimDskt(entry);
-      showToast("Bukti pengiriman dana ke DSKT berhasil disimpan!", "success");
+      
+      if (isEdit) {
+        updateKirimDskt(window.editTransactionId, entry);
+        window.editTransactionId = null;
+        showToast("Bukti setoran ke DSKT berhasil diperbarui!", "success");
+      } else {
+        addKirimDskt(entry);
+        showToast("Bukti setoran ke DSKT berhasil disimpan!", "success");
+      }
+      
       renderKirimDskt(container, getState());
     });
 
     container.querySelectorAll('.btn-del-dskt').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.getAttribute('data-id');
-        if (confirm("Apakah Anda yakin ingin menghapus catatan pengiriman DSKT ini?")) {
+        if (confirm("Apakah Anda yakin ingin menghapus catatan pengiriman ke DSKT ini? (Hal ini akan mengembalikan saldo Titipan DSKT)")) {
           deleteKirimDskt(id);
-          showToast("Bukti pengiriman berhasil dihapus.", "success");
+          showToast("Catatan pengiriman berhasil dihapus.", "success");
           renderKirimDskt(container, getState());
         }
+      });
+    });
+
+    container.querySelectorAll('.btn-edit-dskt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        window.editTransactionId = id;
+        if (typeof navigateTo === 'function') navigateTo('kirim-dskt');
+        else if (window.BendaharaApp?.navigateTo) window.BendaharaApp.navigateTo('kirim-dskt');
       });
     });
   }
@@ -2054,7 +2246,18 @@ function doGet(e) {
   function renderKirimPembangunan(container, state) {
     const summary = calculateFinancialSummary(state);
     const kirimList = state.kirimPembangunan || [];
-    const today = new Date().toISOString().split('T')[0];
+    
+    let isEdit = false;
+    let editItem = null;
+    if (window.editTransactionId) {
+      editItem = kirimList.find(i => i.id === window.editTransactionId);
+      if (editItem) isEdit = true;
+    }
+
+    const today = isEdit && editItem.date ? editItem.date : new Date().toISOString().split('T')[0];
+    const refVal = isEdit && editItem.referenceNo ? editItem.referenceNo : "";
+    const amountVal = isEdit && editItem.amount ? editItem.amount : Math.max(0, summary.saldoKasPembangunan);
+    const notesVal = isEdit && editItem.notes ? editItem.notes : "";
 
     const akumulasiMasuk = summary.saldoAwalPembangunan + summary.totalMasukPembangunan;
 
@@ -2087,15 +2290,15 @@ function doGet(e) {
           <form id="form-pembangunan">
             <div class="form-grid">
               <div class="form-group"><label class="form-label">Tanggal Setor / Transfer</label><input type="date" class="form-control" id="trp-date" value="${today}" required /></div>
-              <div class="form-group"><label class="form-label">No. Referensi / Bukti Transfer</label><input type="text" class="form-control" id="trp-ref" placeholder="Cth: TRX-BCA-5511" required /></div>
+              <div class="form-group"><label class="form-label">No. Referensi / Bukti Transfer</label><input type="text" class="form-control" id="trp-ref" value="${refVal}" placeholder="Cth: TRX-BCA-5511" required /></div>
             </div>
             <div class="form-group">
               <label class="form-label">Nominal Setoran Pembangunan (Rp)</label>
-              <input type="number" class="form-control" id="trp-amount" value="${Math.max(0, Math.round(summary.saldoKasPembangunan))}" min="1000" step="1000" required style="font-size: 1.2rem; font-weight: 800; color: #3b82f6;" />
+              <input type="number" class="form-control" id="trp-amount" value="${amountVal}" min="0" required style="font-size: 1.2rem; font-weight: 800; color: #3b82f6;" />
               <span style="font-size: 0.78rem; color: hsl(var(--text-muted)); margin-top: 4px;">*Otomatis terisi total sisa saldo saat ini, namun bisa disesuaikan jika setoran sebagian.</span>
             </div>
-            <div class="form-group"><label class="form-label">Catatan / Keterangan Setoran</label><textarea class="form-control" id="trp-notes" rows="3" placeholder="Cth: Penyetoran dana pembangunan gereja ke rekening panitia pembangunan" required></textarea></div>
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px; padding: 14px; font-size: 1rem; justify-content: center; background: linear-gradient(135deg, #3b82f6, #2563eb);"><i data-lucide="check-circle"></i><span>Simpan Bukti Setoran Pembangunan</span></button>
+            <div class="form-group"><label class="form-label">Catatan / Keterangan Setoran</label><textarea class="form-control" id="trp-notes" rows="3" placeholder="Cth: Penyetoran dana pembangunan gereja ke rekening panitia pembangunan" required>${notesVal}</textarea></div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px; padding: 14px; font-size: 1rem; justify-content: center; background: linear-gradient(135deg, #3b82f6, #2563eb);"><i data-lucide="${isEdit ? 'save' : 'check-circle'}"></i><span>${isEdit ? 'Perbarui Setoran Pembangunan' : 'Simpan Bukti Setoran Pembangunan'}</span></button>
           </form>
         </div>
 
@@ -2110,7 +2313,10 @@ function doGet(e) {
                     <td style="width: 28%;"><div style="font-weight: 700;">${formatDateIndo(item.date)}</div><div style="font-size: 0.78rem; color: hsl(var(--text-secondary));">Ref: ${item.referenceNo}</div></td>
                     <td><div style="font-size: 0.88rem; color: hsl(var(--text-primary));">${item.notes}</div></td>
                     <td style="font-weight: 800; color: #3b82f6; width: 25%;">${formatRupiah(item.amount)}</td>
-                    <td style="text-align: center; width: 60px;"><button class="icon-btn btn-del-pembangunan" data-id="${item.id}" title="Hapus Bukti Setoran" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button></td>
+                    <td style="text-align: center; width: 80px;">
+                      <button class="icon-btn btn-edit-pembangunan" data-id="${item.id}" title="Edit Setoran" style="margin-bottom: 6px; color: hsl(var(--accent-gold));"><i data-lucide="edit"></i></button>
+                      <button class="icon-btn btn-del-pembangunan" data-id="${item.id}" title="Hapus Bukti Setoran" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button>
+                    </td>
                   </tr>
                 `).join('')}
                 ${kirimList.length === 0 ? `<tr><td colspan="4" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada catatan setoran pembangunan.</td></tr>` : ''}
@@ -2136,8 +2342,16 @@ function doGet(e) {
         amount: container.querySelector('#trp-amount').value,
         notes: container.querySelector('#trp-notes').value
       };
-      addKirimPembangunan(entry);
-      showToast("Bukti setoran dana pembangunan berhasil disimpan!", "success");
+      
+      if (isEdit) {
+        updateKirimPembangunan(window.editTransactionId, entry);
+        window.editTransactionId = null;
+        showToast("Bukti setoran pembangunan berhasil diperbarui!", "success");
+      } else {
+        addKirimPembangunan(entry);
+        showToast("Bukti setoran dana pembangunan berhasil disimpan!", "success");
+      }
+      
       renderKirimPembangunan(container, getState());
     });
 
@@ -2149,6 +2363,15 @@ function doGet(e) {
           showToast("Bukti setoran pembangunan berhasil dihapus.", "success");
           renderKirimPembangunan(container, getState());
         }
+      });
+    });
+
+    container.querySelectorAll('.btn-edit-pembangunan').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        window.editTransactionId = id;
+        if (typeof navigateTo === 'function') navigateTo('kirim-pembangunan');
+        else if (window.BendaharaApp?.navigateTo) window.BendaharaApp.navigateTo('kirim-pembangunan');
       });
     });
   }
@@ -3801,10 +4024,10 @@ function doGet(e) {
             <div style="border-top: 1px dashed var(--border-color); margin: 20px 0; padding-top: 16px;">
               <h4 style="font-size: 0.95rem; font-weight: 700; color: hsl(var(--text-secondary)); margin-bottom: 14px;">Posisi Saldo Awal Kas (Sebelum Transaksi Periode Ini)</h4>
               <div class="form-grid">
-                <div class="form-group"><label class="form-label" style="color: hsl(var(--success));">Saldo Awal Kas Gereja (Rp)</label><input type="number" class="form-control" id="st-saldo-grj" value="${Number(settings.saldoAwalGereja) || 0}" step="1000" /></div>
-                <div class="form-group"><label class="form-label" style="color: hsl(var(--accent-blue));">Saldo Awal Kas Pembangunan (Rp)</label><input type="number" class="form-control" id="st-saldo-pbg" value="${Number(settings.saldoAwalPembangunan) || 0}" step="1000" /></div>
+                <div class="form-group"><label class="form-label" style="color: hsl(var(--success));">Saldo Awal Kas Gereja (Rp)</label><input type="number" class="form-control" id="st-saldo-grj" value="${Number(settings.saldoAwalGereja) || 0}" /></div>
+                <div class="form-group"><label class="form-label" style="color: hsl(var(--accent-blue));">Saldo Awal Kas Pembangunan (Rp)</label><input type="number" class="form-control" id="st-saldo-pbg" value="${Number(settings.saldoAwalPembangunan) || 0}" /></div>
               </div>
-              <div class="form-group"><label class="form-label" style="color: hsl(var(--danger));">Saldo Awal Titipan DSKT Belum Disetor (Rp)</label><input type="number" class="form-control" id="st-saldo-dskt" value="${Number(settings.saldoAwalDskt) || 0}" step="1000" /></div>
+              <div class="form-group"><label class="form-label" style="color: hsl(var(--danger));">Saldo Awal Titipan DSKT Belum Disetor (Rp)</label><input type="number" class="form-control" id="st-saldo-dskt" value="${Number(settings.saldoAwalDskt) || 0}" /></div>
             </div>
             <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px;"><i data-lucide="save"></i><span>Simpan Pengaturan Jemaat</span></button>
           </form>
@@ -3922,6 +4145,7 @@ function doGet(e) {
         state.pemasukan = res.data.pemasukan || [];
         state.pengeluaran = res.data.pengeluaran || [];
         state.kirimDskt = res.data.kirimDskt || [];
+        state.kirimPembangunan = res.data.kirimPembangunan || [];
         localStorage.setItem('gmahk_bendahara_state_v1', JSON.stringify(state));
         showToast("Data berhasil ditarik dan diperbarui! Memuat ulang...", "success");
         setTimeout(() => window.location.reload(), 1500);
@@ -4289,6 +4513,7 @@ function doGet(e) {
           if (JSON.stringify(state.pemasukan) !== JSON.stringify(res.data.pemasukan || [])) { state.pemasukan = res.data.pemasukan || []; dataChanged = true; }
           if (JSON.stringify(state.pengeluaran) !== JSON.stringify(res.data.pengeluaran || [])) { state.pengeluaran = res.data.pengeluaran || []; dataChanged = true; }
           if (JSON.stringify(state.kirimDskt) !== JSON.stringify(res.data.kirimDskt || [])) { state.kirimDskt = res.data.kirimDskt || []; dataChanged = true; }
+          if (JSON.stringify(state.kirimPembangunan) !== JSON.stringify(res.data.kirimPembangunan || [])) { state.kirimPembangunan = res.data.kirimPembangunan || []; dataChanged = true; }
           
           if (dataChanged) {
             localStorage.setItem('gmahk_bendahara_state_v1', JSON.stringify(state));
@@ -4346,6 +4571,7 @@ function doGet(e) {
             if (JSON.stringify(state.pemasukan) !== JSON.stringify(res.data.pemasukan || [])) { state.pemasukan = res.data.pemasukan || []; dataChanged = true; }
             if (JSON.stringify(state.pengeluaran) !== JSON.stringify(res.data.pengeluaran || [])) { state.pengeluaran = res.data.pengeluaran || []; dataChanged = true; }
             if (JSON.stringify(state.kirimDskt) !== JSON.stringify(res.data.kirimDskt || [])) { state.kirimDskt = res.data.kirimDskt || []; dataChanged = true; }
+            if (JSON.stringify(state.kirimPembangunan) !== JSON.stringify(res.data.kirimPembangunan || [])) { state.kirimPembangunan = res.data.kirimPembangunan || []; dataChanged = true; }
             
             if (dataChanged) {
               localStorage.setItem('gmahk_bendahara_state_v1', JSON.stringify(state));

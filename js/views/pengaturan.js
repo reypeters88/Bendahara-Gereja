@@ -59,17 +59,17 @@ export function renderPengaturan(container, state, showToast) {
             <div class="form-grid">
               <div class="form-group">
                 <label class="form-label" style="color: hsl(var(--success));">Saldo Awal Kas Gereja (Rp)</label>
-                <input type="number" class="form-control" id="st-saldo-grj" value="${Number(settings.saldoAwalGereja) || 0}" step="1000" />
+                <input type="number" class="form-control" id="st-saldo-grj" value="${Number(settings.saldoAwalGereja) || 0}" />
               </div>
               <div class="form-group">
                 <label class="form-label" style="color: hsl(var(--accent-blue));">Saldo Awal Kas Pembangunan (Rp)</label>
-                <input type="number" class="form-control" id="st-saldo-pbg" value="${Number(settings.saldoAwalPembangunan) || 0}" step="1000" />
+                <input type="number" class="form-control" id="st-saldo-pbg" value="${Number(settings.saldoAwalPembangunan) || 0}" />
               </div>
             </div>
 
             <div class="form-group">
               <label class="form-label" style="color: hsl(var(--danger));">Saldo Awal Titipan DSKT Belum Disetor (Rp)</label>
-              <input type="number" class="form-control" id="st-saldo-dskt" value="${Number(settings.saldoAwalDskt) || 0}" step="1000" />
+              <input type="number" class="form-control" id="st-saldo-dskt" value="${Number(settings.saldoAwalDskt) || 0}" />
             </div>
           </div>
 

@@ -69,7 +69,7 @@ export function renderKirimDskt(container, state, showToast) {
 
           <div class="form-group">
             <label class="form-label">Nominal Setoran ke DSKT (Rp)</label>
-            <input type="number" class="form-control" id="tr-amount" value="${Math.max(0, Math.round(summary.kewajibanDsktBelumDisetor))}" min="1000" step="1000" required style="font-size: 1.2rem; font-weight: 800; color: hsl(var(--warning));" />
+            <input type="number" class="form-control" id="tr-amount" value="${Math.max(0, Math.round(summary.kewajibanDsktBelumDisetor))}" min="1000" required style="font-size: 1.2rem; font-weight: 800; color: hsl(var(--warning));" />
             <span style="font-size: 0.78rem; color: hsl(var(--text-muted)); margin-top: 4px;">
               *Otomatis terisi sisa titipan saat ini, namun bisa disesuaikan jika setoran sebagian.
             </span>

@@ -55,34 +55,34 @@ export function renderPemasukan(container, state, showToast) {
               <label class="form-label" style="color: hsl(var(--danger)); font-weight: 700;">
                 1. Persepuluhan (100% DSKT)
               </label>
-              <input type="number" class="form-control calc-trigger" id="in-psp" placeholder="0" min="0" step="1000" />
+              <input type="number" class="form-control calc-trigger" id="in-psp" placeholder="0" min="0" />
             </div>
 
             <div class="form-group">
               <label class="form-label" style="color: hsl(var(--success)); font-weight: 700;">
                 2. Pers. Terpadu (50% Grj / 50% DSKT)
               </label>
-              <input type="number" class="form-control calc-trigger" id="in-tpd" placeholder="0" min="0" step="1000" />
+              <input type="number" class="form-control calc-trigger" id="in-tpd" placeholder="0" min="0" />
             </div>
           </div>
 
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">3. Pers. Khusus (100% Kas Gereja)</label>
-              <input type="number" class="form-control calc-trigger" id="in-khs" placeholder="0" min="0" step="1000" />
+              <input type="number" class="form-control calc-trigger" id="in-khs" placeholder="0" min="0" />
             </div>
 
             <div class="form-group">
               <label class="form-label" style="color: hsl(var(--accent-blue)); font-weight: 700;">
                 4. Pers. Pembangunan (100% Pbg)
               </label>
-              <input type="number" class="form-control calc-trigger" id="in-pbg" placeholder="0" min="0" step="1000" />
+              <input type="number" class="form-control calc-trigger" id="in-pbg" placeholder="0" min="0" />
             </div>
           </div>
 
           <div class="form-group">
             <label class="form-label">5. Lain-lain / Ucapan Syukur (Kas Gereja)</label>
-            <input type="number" class="form-control calc-trigger" id="in-dll" placeholder="0" min="0" step="1000" />
+            <input type="number" class="form-control calc-trigger" id="in-dll" placeholder="0" min="0" />
           </div>
 
           <div class="form-group">

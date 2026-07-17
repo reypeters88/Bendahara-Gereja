@@ -38,7 +38,7 @@ export function renderPengeluaran(container, state, showToast) {
 
           <div class="form-group">
             <label class="form-label">Nominal Pengeluaran (Rp)</label>
-            <input type="number" class="form-control" id="ex-amount" placeholder="0" min="1000" step="1000" required style="font-size: 1.15rem; font-weight: 700; color: hsl(var(--danger));" />
+            <input type="number" class="form-control" id="ex-amount" placeholder="0" min="1000" required style="font-size: 1.15rem; font-weight: 700; color: hsl(var(--danger));" />
           </div>
 
           <div class="form-group">

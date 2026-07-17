@@ -3,19 +3,6 @@
  * SKRIP BACKUP & SINKRONISASI BENDAHARA GEREJA ADVENT (GMAHK) KE GOOGLE SHEETS
  * File: code.gs (Siap dipasang di Google Apps Script editor Anda)
  * ============================================================================
- * 
- * PANDUAN PEMASANGAN (1 KLIK):
- * 1. Buka Google Sheets baru Anda di Google Drive, beri nama: "Backup Bendahara GMAHK".
- * 2. Klik menu: Ekstensi (Extensions) -> Apps Script.
- * 3. Hapus seluruh kode default di dalam file Kode.gs / code.gs, lalu tempelkan (paste) seluruh kode di bawah ini.
- * 4. Klik ikon Simpan (Save) / Ctrl+S.
- * 5. Klik tombol biru di kanan atas: "Terapkan" (Deploy) -> "Buka penerapan baru" (New deployment).
- * 6. Pilih jenis (Select type): "Aplikasi Web" (Web app).
- * 7. Isi deskripsi: "API Bendahara GMAHK", Jalankan sebagai (Execute as): "Saya" (Me), dan Siapa saja yang memiliki akses (Who has access): "Siapa saja" (Anyone).
- * 8. Klik "Terapkan" (Deploy), beri izin akses (Authorize access) jika diminta.
- * 9. Salin URL Aplikasi Web (Web App URL) yang diawali dengan https://script.google.com/macros/s/...
- * 10. Tempelkan URL tersebut ke dalam menu "Pengaturan & Google Sync" di Aplikasi WebApp Bendahara Gereja Anda.
- * ============================================================================
  */
 
 function setupSheets() {
@@ -56,8 +43,19 @@ function setupSheets() {
     sheetDskt.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#d97706").setFontColor("#ffffff");
     sheetDskt.setFrozenRows(1);
   }
+
+  // 4. Siapkan Sheet Pembangunan
+  var sheetPembangunan = ss.getSheetByName("Sheet Pembangunan");
+  if (!sheetPembangunan) {
+    sheetPembangunan = ss.insertSheet("Sheet Pembangunan");
+    sheetPembangunan.appendRow([
+      "ID Transaksi", "Tanggal Kirim", "Jumlah Disetor", "No. Referensi / Bank", "Catatan"
+    ]);
+    sheetPembangunan.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#059669").setFontColor("#ffffff");
+    sheetPembangunan.setFrozenRows(1);
+  }
   
-  return { sheetMasuk: sheetMasuk, sheetKeluar: sheetKeluar, sheetDskt: sheetDskt };
+  return { sheetMasuk: sheetMasuk, sheetKeluar: sheetKeluar, sheetDskt: sheetDskt, sheetPembangunan: sheetPembangunan };
 }
 
 function doPost(e) {
@@ -67,12 +65,11 @@ function doPost(e) {
     var action = payload.action;
 
     if (action === "sync_all") {
-      // Sinkronisasi penuh semua data dari aplikasi ke Google Sheets
       var pemasukanList = payload.data.pemasukan || [];
       var pengeluaranList = payload.data.pengeluaran || [];
       var kirimDsktList = payload.data.kirimDskt || [];
+      var kirimPembangunanList = payload.data.kirimPembangunan || [];
 
-      // Bersihkan data lama setelah baris header dan masukkan data baru
       if (sheets.sheetMasuk.getLastRow() > 1) {
         sheets.sheetMasuk.getRange(2, 1, sheets.sheetMasuk.getLastRow() - 1, 14).clearContent();
       }
@@ -119,12 +116,25 @@ function doPost(e) {
         sheets.sheetDskt.getRange(2, 1, rowsDskt.length, 5).setValues(rowsDskt);
       }
 
+      if (sheets.sheetPembangunan.getLastRow() > 1) {
+        sheets.sheetPembangunan.getRange(2, 1, sheets.sheetPembangunan.getLastRow() - 1, 5).clearContent();
+      }
+      if (kirimPembangunanList.length > 0) {
+        var rowsPb = kirimPembangunanList.map(function(item) {
+          return [
+            item.id || "", item.date || "", Number(item.amount) || 0, item.referenceNo || "", item.notes || ""
+          ];
+        });
+        sheets.sheetPembangunan.getRange(2, 1, rowsPb.length, 5).setValues(rowsPb);
+      }
+
       return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Sinkronisasi berhasil disimpan ke Google Sheets!" }))
         .setMimeType(ContentService.MimeType.JSON);
     } else if (action === "pull_all") {
       var dataPemasukan = [];
       var dataPengeluaran = [];
       var dataKirimDskt = [];
+      var dataKirimPembangunan = [];
       
       if (sheets.sheetMasuk.getLastRow() > 1) {
         var rows = sheets.sheetMasuk.getRange(2, 1, sheets.sheetMasuk.getLastRow() - 1, 14).getValues();
@@ -155,7 +165,7 @@ function doPost(e) {
             id: String(rows[i][0]),
             date: String(rows[i][1]),
             departmentName: String(rows[i][2]),
-            departmentId: 1, // Default, not highly crucial as Name is used
+            departmentId: 1,
             description: String(rows[i][3]),
             amount: Number(rows[i][4]) || 0,
             voucherNo: String(rows[i][5]),
@@ -178,13 +188,28 @@ function doPost(e) {
         }
       }
       
+      if (sheets.sheetPembangunan.getLastRow() > 1) {
+        var rows = sheets.sheetPembangunan.getRange(2, 1, sheets.sheetPembangunan.getLastRow() - 1, 5).getValues();
+        for (var i = 0; i < rows.length; i++) {
+          if (!rows[i][0]) continue;
+          dataKirimPembangunan.push({
+            id: String(rows[i][0]),
+            date: String(rows[i][1]),
+            amount: Number(rows[i][2]) || 0,
+            referenceNo: String(rows[i][3]),
+            notes: String(rows[i][4])
+          });
+        }
+      }
+      
       return ContentService.createTextOutput(JSON.stringify({ 
         status: "success", 
         message: "Data berhasil ditarik dari Google Sheets!",
         data: {
           pemasukan: dataPemasukan,
           pengeluaran: dataPengeluaran,
-          kirimDskt: dataKirimDskt
+          kirimDskt: dataKirimDskt,
+          kirimPembangunan: dataKirimPembangunan
         }
       })).setMimeType(ContentService.MimeType.JSON);
     }
@@ -205,6 +230,7 @@ function doGet(e) {
       var dataPemasukan = [];
       var dataPengeluaran = [];
       var dataKirimDskt = [];
+      var dataKirimPembangunan = [];
       
       if (sheets.sheetMasuk.getLastRow() > 1) {
         var rows = sheets.sheetMasuk.getRange(2, 1, sheets.sheetMasuk.getLastRow() - 1, 14).getValues();
@@ -239,10 +265,18 @@ function doGet(e) {
         }
       }
       
+      if (sheets.sheetPembangunan.getLastRow() > 1) {
+        var rows = sheets.sheetPembangunan.getRange(2, 1, sheets.sheetPembangunan.getLastRow() - 1, 5).getValues();
+        for (var i = 0; i < rows.length; i++) {
+          if (!rows[i][0]) continue;
+          dataKirimPembangunan.push({ id: String(rows[i][0]), date: String(rows[i][1]), amount: Number(rows[i][2]) || 0, referenceNo: String(rows[i][3]), notes: String(rows[i][4]) });
+        }
+      }
+      
       return ContentService.createTextOutput(JSON.stringify({ 
         status: "success", 
         message: "Data berhasil ditarik dari Google Sheets!",
-        data: { pemasukan: dataPemasukan, pengeluaran: dataPengeluaran, kirimDskt: dataKirimDskt }
+        data: { pemasukan: dataPemasukan, pengeluaran: dataPengeluaran, kirimDskt: dataKirimDskt, kirimPembangunan: dataKirimPembangunan }
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
