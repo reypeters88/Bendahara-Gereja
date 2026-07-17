@@ -971,14 +971,14 @@ function doGet(e) {
             </p>
           </div>
 
-          <!-- 2 Pilihan Menu Sub-Tab -->
+          <!-- 3 Pilihan Menu Sub-Tab -->
           <div style="display: flex; gap: 14px; flex-wrap: wrap; border-top: 1px solid var(--border-color); padding-top: 16px;">
             <button type="button" class="btn ${activeTab === 'pemasukan' ? 'btn-primary' : 'btn-secondary'}" id="tab-btn-masuk-jurnal" style="flex: 1; min-width: 220px; justify-content: flex-start; padding: 14px 18px; border-radius: 12px;">
               <i data-lucide="plus-circle" style="width: 22px; height: 22px; flex-shrink: 0; color: ${activeTab === 'pemasukan' ? '#fff' : 'hsl(var(--success))'};"></i>
               <div style="text-align: left; overflow: hidden;">
                 <div style="font-weight: 800; font-size: 0.98rem; line-height: 1.2;">1. Pencatatan Pemasukan</div>
                 <div style="font-size: 0.76rem; opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">
-                  ${pemasukanList.length} Transaksi | Rp ${formatRupiah(totalMasuk)}
+                  Input Persembahan Baru
                 </div>
               </div>
               <i data-lucide="chevron-right" style="width: 20px; height: 20px; opacity: 0.6; flex-shrink: 0; margin-left: auto;"></i>
@@ -990,6 +990,17 @@ function doGet(e) {
                 <div style="font-weight: 800; font-size: 0.98rem; line-height: 1.2;">2. Pencatatan Pengeluaran</div>
                 <div style="font-size: 0.76rem; opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">
                   ${pengeluaranList.length} Transaksi | Rp ${formatRupiah(totalKeluar)}
+                </div>
+              </div>
+              <i data-lucide="chevron-right" style="width: 20px; height: 20px; opacity: 0.6; flex-shrink: 0; margin-left: auto;"></i>
+            </button>
+
+            <button type="button" class="btn ${activeTab === 'history-masuk' ? 'btn-primary' : 'btn-secondary'}" id="tab-btn-history-masuk" style="flex: 1; min-width: 220px; justify-content: flex-start; padding: 14px 18px; border-radius: 12px;">
+              <i data-lucide="history" style="width: 22px; height: 22px; flex-shrink: 0; color: ${activeTab === 'history-masuk' ? '#fff' : 'hsl(var(--accent-blue))'};"></i>
+              <div style="text-align: left; overflow: hidden;">
+                <div style="font-weight: 800; font-size: 0.98rem; line-height: 1.2;">3. History Pemasukan</div>
+                <div style="font-size: 0.76rem; opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">
+                  ${pemasukanList.length} Transaksi | Cari Kuitansi
                 </div>
               </div>
               <i data-lucide="chevron-right" style="width: 20px; height: 20px; opacity: 0.6; flex-shrink: 0; margin-left: auto;"></i>
@@ -1018,23 +1029,112 @@ function doGet(e) {
     container.querySelector('#tab-btn-keluar-jurnal')?.addEventListener('click', () => {
       renderJurnal(container, state, showToast, 'pengeluaran');
     });
+    container.querySelector('#tab-btn-history-masuk')?.addEventListener('click', () => {
+      renderJurnal(container, state, showToast, 'history-masuk');
+    });
 
     if (activeTab === 'pengeluaran') {
       renderPengeluaran(subContainer, state);
     } else if (activeTab === 'pemasukan') {
       renderPemasukan(subContainer, state);
+    } else if (activeTab === 'history-masuk') {
+      renderHistoryPemasukan(subContainer, state);
     }
 
     if (window.lucide) window.lucide.createIcons();
   }
 
+  function renderHistoryPemasukan(container, state) {
+    const pemasukanList = state.pemasukan || [];
+    container.innerHTML = `
+      <div class="glass-card" style="max-width: 1000px; margin: 0 auto;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <h3 style="font-size: 1.2rem; font-weight: 700; margin: 0;"><i data-lucide="history" style="color: hsl(var(--accent-blue)); margin-right: 8px;"></i> Riwayat Transaksi Pemasukan</h3>
+          <div style="position: relative; max-width: 350px; width: 100%;">
+            <i data-lucide="search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: hsl(var(--text-muted));"></i>
+            <input type="text" id="search-history-pemasukan-tab" class="form-control" placeholder="Cari Nama Pemberi atau No Kuitansi..." style="padding-left: 40px; border-radius: 20px; font-size: 0.9rem; height: 42px; border: 1px solid var(--border-color);" />
+          </div>
+        </div>
+        
+        <div class="table-responsive" style="max-height: 650px; overflow-y: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tanggal & Anggota</th>
+                <th>Rincian Persembahan</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${pemasukanList.map(item => {
+                const calc = calculateIncomeBreakdown(item);
+                return `
+                  <tr class="history-row-tab">
+                    <td style="vertical-align: top; width: 38%;" class="searchable-text-tab">
+                      <div style="font-weight: 700; color: hsl(var(--accent-gold)); font-size: 1.05rem;">${item.memberName}</div>
+                      <div style="font-size: 0.85rem; color: hsl(var(--text-muted)); margin-top: 4px;">${formatDateIndo(item.date)}</div>
+                      <div style="font-size: 0.8rem; color: hsl(var(--text-secondary)); margin-top: 4px;">Kuitansi: <strong>${item.receiptNo}</strong></div>
+                      ${item.notes ? `<div style="font-size: 0.8rem; font-style: italic; color: hsl(var(--text-muted)); margin-top: 4px;">"${item.notes}"</div>` : ''}
+                    </td>
+                    <td style="vertical-align: top;">
+                      <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;"><span>Persepuluhan (DSKT):</span> <strong style="color: hsl(var(--danger));">${formatRupiah(item.persepuluhan)}</strong></div>
+                      <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;"><span>Pers. Terpadu (50/50):</span> <strong>${formatRupiah(item.persembahanTerpadu)}</strong></div>
+                      ${item.persembahanKhusus ? `<div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;"><span>Pers. Khusus (Grj):</span> <strong style="color: hsl(var(--success));">${formatRupiah(item.persembahanKhusus)}</strong></div>` : ''}
+                      ${item.persembahanPembangunan ? `<div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;"><span>Pers. Pembangunan:</span> <strong style="color: hsl(var(--accent-blue));">${formatRupiah(item.persembahanPembangunan)}</strong></div>` : ''}
+                      ${item.lainLain ? `<div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;"><span>Lain-lain:</span> <strong>${formatRupiah(item.lainLain)}</strong></div>` : ''}
+                      <div style="border-top: 1px dashed var(--border-color); margin-top: 8px; padding-top: 6px; display: flex; justify-content: space-between; font-weight: 800; color: hsl(var(--accent-gold)); font-size: 1rem;"><span>Total:</span> <span>${formatRupiah(calc.total)}</span></div>
+                    </td>
+                    <td style="vertical-align: middle; text-align: center; width: 80px;">
+                      <button class="icon-btn btn-print-kw" data-id="${item.id}" title="Cetak Kuitansi" style="margin-bottom: 10px; color: hsl(var(--accent-blue)); width: 40px; height: 40px;"><i data-lucide="printer"></i></button>
+                      <button class="icon-btn btn-del-masuk-tab" data-id="${item.id}" title="Hapus Transaksi" style="color: hsl(var(--danger)); width: 40px; height: 40px;"><i data-lucide="trash-2"></i></button>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+              ${pemasukanList.length === 0 ? `<tr><td colspan="3" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada data riwayat persembahan.</td></tr>` : ''}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    if (window.lucide) window.lucide.createIcons();
+
+    // Search History Logic
+    const searchInput = container.querySelector('#search-history-pemasukan-tab');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        const rows = container.querySelectorAll('.history-row-tab');
+        rows.forEach(row => {
+          const textToSearch = row.querySelector('.searchable-text-tab')?.textContent.toLowerCase() || '';
+          if (textToSearch.includes(val)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+    }
+
+    container.querySelectorAll('.btn-del-masuk-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        if (confirm("Apakah Anda yakin ingin menghapus catatan pemasukan ini?")) {
+          deletePemasukan(id);
+          showToast("Transaksi berhasil dihapus.", "success");
+          renderHistoryPemasukan(container, getState());
+        }
+      });
+    });
+  }
+
   function renderPemasukan(container, state) {
     const members = state.members || [];
-    const pemasukanList = state.pemasukan || [];
     const today = new Date().toISOString().split('T')[0];
 
     container.innerHTML = `
-      <div class="view-split-grid">
+      <div style="max-width: 800px; margin: 0 auto;">
         <div class="glass-card">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
             <h3 style="font-size: 1.2rem; font-weight: 700; color: hsl(var(--accent-gold));">
@@ -1104,47 +1204,6 @@ function doGet(e) {
             </div>
             <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px; padding: 14px; font-size: 1rem;"><i data-lucide="save"></i><span>Simpan Transaksi Pemasukan</span></button>
           </form>
-        </div>
-
-        <div class="glass-card">
-          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 16px;">Riwayat Pemasukan Terakhir</h3>
-          <div class="table-responsive" style="max-height: 650px; overflow-y: auto;">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Tanggal & Anggota</th>
-                  <th>Rincian Persembahan</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${pemasukanList.map(item => {
-                  const calc = calculateIncomeBreakdown(item);
-                  return `
-                    <tr>
-                      <td style="vertical-align: top; width: 38%;">
-                        <div style="font-weight: 700; color: hsl(var(--accent-gold));">${item.memberName}</div>
-                        <div style="font-size: 0.8rem; color: hsl(var(--text-muted));">${formatDateIndo(item.date)}</div>
-                        <div style="font-size: 0.75rem; color: hsl(var(--text-secondary)); margin-top: 4px;">Kuitansi: ${item.receiptNo}</div>
-                      </td>
-                      <td style="vertical-align: top;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 2px;"><span>Persepuluhan (DSKT):</span> <strong style="color: hsl(var(--danger));">${formatRupiah(item.persepuluhan)}</strong></div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 2px;"><span>Pers. Terpadu (50/50):</span> <strong>${formatRupiah(item.persembahanTerpadu)}</strong></div>
-                        ${item.persembahanKhusus ? `<div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 2px;"><span>Pers. Khusus (Grj):</span> <strong style="color: hsl(var(--success));">${formatRupiah(item.persembahanKhusus)}</strong></div>` : ''}
-                        ${item.persembahanPembangunan ? `<div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 2px;"><span>Pers. Pembangunan:</span> <strong style="color: hsl(var(--accent-blue));">${formatRupiah(item.persembahanPembangunan)}</strong></div>` : ''}
-                        <div style="border-top: 1px dashed var(--border-color); margin-top: 6px; padding-top: 4px; display: flex; justify-content: space-between; font-weight: 800; color: hsl(var(--accent-gold));"><span>Total:</span> <span>${formatRupiah(calc.total)}</span></div>
-                      </td>
-                      <td style="vertical-align: middle; text-align: center; width: 70px;">
-                        <button class="icon-btn btn-print-kw" data-id="${item.id}" title="Cetak Kuitansi" style="margin-bottom: 6px; color: hsl(var(--accent-blue));"><i data-lucide="printer"></i></button>
-                        <button class="icon-btn btn-del-masuk" data-id="${item.id}" title="Hapus Transaksi" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button>
-                      </td>
-                    </tr>
-                  `;
-                }).join('')}
-                ${pemasukanList.length === 0 ? `<tr><td colspan="3" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada data persembahan.</td></tr>` : ''}
-              </tbody>
-            </table>
-          </div>
         </div>
       </div>
 
@@ -1391,17 +1450,6 @@ function doGet(e) {
       addPemasukan(entry);
       showToast("Transaksi persembahan berhasil disimpan dan dibagi secara otomatis!", "success");
       renderPemasukan(container, getState());
-    });
-
-    container.querySelectorAll('.btn-del-masuk').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
-        if (confirm("Apakah Anda yakin ingin menghapus catatan pemasukan ini?")) {
-          deletePemasukan(id);
-          showToast("Transaksi berhasil dihapus.", "success");
-          renderPemasukan(container, getState());
-        }
-      });
     });
 
     const modalMember = container.querySelector('#modal-member');
@@ -4067,6 +4115,43 @@ function doGet(e) {
     document.getElementById('btn-open-install-modal')?.addEventListener('click', () => {
       modalInstall?.classList.add('active');
     });
+
+    document.getElementById('btn-refresh-sync')?.addEventListener('click', async () => {
+      if (!state.settings?.webhookUrl) {
+        showToast("Belum ada Webhook URL. Silakan atur di menu Pengaturan.", "warning");
+        return;
+      }
+      showToast("Sedang menarik data terbaru dari server...", "info");
+      const icon = document.querySelector('#btn-refresh-sync i');
+      if (icon) {
+        icon.style.transition = 'transform 1s linear';
+        icon.style.transform = 'rotate(720deg)';
+      }
+      try {
+        const res = await pullFromGoogleSheets(state.settings.webhookUrl);
+        if (res.success && res.data) {
+          let dataChanged = false;
+          if (JSON.stringify(state.pemasukan) !== JSON.stringify(res.data.pemasukan || [])) { state.pemasukan = res.data.pemasukan || []; dataChanged = true; }
+          if (JSON.stringify(state.pengeluaran) !== JSON.stringify(res.data.pengeluaran || [])) { state.pengeluaran = res.data.pengeluaran || []; dataChanged = true; }
+          if (JSON.stringify(state.kirimDskt) !== JSON.stringify(res.data.kirimDskt || [])) { state.kirimDskt = res.data.kirimDskt || []; dataChanged = true; }
+          
+          if (dataChanged) {
+            localStorage.setItem('gmahk_bendahara_state_v1', JSON.stringify(state));
+            showToast("Sinkronisasi sukses! Halaman akan dimuat ulang.", "success");
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+            showToast("Data sudah yang paling terbaru (tersinkronisasi).", "success");
+            if (icon) {
+              setTimeout(() => { icon.style.transition = 'none'; icon.style.transform = 'rotate(0deg)'; }, 1000);
+            }
+          }
+        } else {
+          showToast("Gagal menarik data dari server.", "danger");
+        }
+      } catch (e) {
+        showToast("Terjadi kesalahan jaringan saat sinkronisasi.", "danger");
+      }
+    });
     document.getElementById('btn-close-install-modal')?.addEventListener('click', () => {
       modalInstall?.classList.remove('active');
     });
@@ -4095,10 +4180,10 @@ function doGet(e) {
     updateTopbarInfo(state);
     navigateTo(currentView);
 
-    // Auto-Pull on Load
-    if (state.settings && state.settings.autoPullOnLoad && state.settings.webhookUrl) {
+    // Auto-Pull on Load (Selalu Tarik Saat Aplikasi Dibuka Jika Ada Webhook)
+    if (state.settings && state.settings.webhookUrl) {
       setTimeout(async () => {
-        showToast("Memeriksa pembaruan data dari Google Sheets...", "info");
+        showToast("Sinkronisasi otomatis (memeriksa data server)...", "info");
         try {
           const res = await pullFromGoogleSheets(state.settings.webhookUrl);
           if (res.success && res.data) {

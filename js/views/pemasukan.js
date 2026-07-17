@@ -119,7 +119,13 @@ export function renderPemasukan(container, state, showToast) {
 
       <!-- Riwayat Pemasukan -->
       <div class="glass-card">
-        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 16px;">Riwayat Pemasukan Terakhir</h3>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0;">Riwayat Pemasukan Terakhir</h3>
+          <div style="position: relative; max-width: 300px; width: 100%;">
+            <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: hsl(var(--text-muted));"></i>
+            <input type="text" id="search-history-pemasukan" class="form-control" placeholder="Cari Nama atau No Kuitansi..." style="padding-left: 32px; border-radius: 20px; font-size: 0.85rem; height: 36px; border: 1px solid var(--border-color);" />
+          </div>
+        </div>
         
         <div class="table-responsive" style="max-height: 650px; overflow-y: auto;">
           <table class="data-table">
@@ -130,12 +136,12 @@ export function renderPemasukan(container, state, showToast) {
                 <th>Aksi</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="history-pemasukan-tbody">
               ${pemasukanList.map(item => {
                 const calc = calculateIncomeBreakdown(item);
                 return `
-                  <tr>
-                    <td style="vertical-align: top; width: 38%;">
+                  <tr class="history-row">
+                    <td style="vertical-align: top; width: 38%;" class="searchable-text">
                       <div style="font-weight: 700; color: hsl(var(--accent-gold));">${item.memberName}</div>
                       <div style="font-size: 0.8rem; color: hsl(var(--text-muted));">${formatDateIndo(item.date)}</div>
                       <div style="font-size: 0.75rem; color: hsl(var(--text-secondary)); margin-top: 4px;">Kuitansi: ${item.receiptNo}</div>
@@ -438,6 +444,23 @@ export function renderPemasukan(container, state, showToast) {
     showToast("Transaksi persembahan berhasil disimpan dan dibagi secara otomatis!", "success");
     renderPemasukan(container, state, showToast);
   });
+
+  // Search History Logic
+  const searchInput = container.querySelector('#search-history-pemasukan');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const val = e.target.value.toLowerCase();
+      const rows = container.querySelectorAll('.history-row');
+      rows.forEach(row => {
+        const textToSearch = row.querySelector('.searchable-text')?.textContent.toLowerCase() || '';
+        if (textToSearch.includes(val)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+  }
 
   // Delete Income Entry
   container.querySelectorAll('.btn-del-masuk').forEach(btn => {
