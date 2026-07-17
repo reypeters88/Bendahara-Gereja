@@ -15,7 +15,7 @@ const INITIAL_STATE = {
     saldoAwalGereja: 15000000,
     saldoAwalPembangunan: 45000000,
     saldoAwalDskt: 0,
-    webhookUrl: "",
+    webhookUrl: "https://script.google.com/macros/s/AKfycbxvAaD62QxGOYAnr___hD3QYD-c4BVEAdzglB12Q5x72df_5wiwz8hapar1FrMcgMsG/exec",
     theme: "dark"
   },
   members: [
@@ -133,6 +133,9 @@ export function loadState() {
       appState = JSON.parse(saved);
       // Pastikan struktur state lengkap jika ada pembaruan
       appState.settings = { ...INITIAL_STATE.settings, ...appState.settings };
+      if (!appState.settings.webhookUrl) {
+        appState.settings.webhookUrl = "https://script.google.com/macros/s/AKfycbxvAaD62QxGOYAnr___hD3QYD-c4BVEAdzglB12Q5x72df_5wiwz8hapar1FrMcgMsG/exec";
+      }
       appState.members = appState.members || INITIAL_STATE.members;
       appState.pemasukan = appState.pemasukan || INITIAL_STATE.pemasukan;
       appState.pengeluaran = appState.pengeluaran || INITIAL_STATE.pengeluaran;
