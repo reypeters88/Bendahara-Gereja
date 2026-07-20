@@ -139,10 +139,10 @@ export function renderDashboard(container, state, navigateTo) {
                 <td>
                   <div style="font-weight: 600; color: hsl(var(--accent-gold));">${item.memberName}</div>
                 </td>
-                <td><span class="badge badge-dskt">${formatRupiah(item.persepuluhan)}</span></td>
+                <td><span style="font-weight: 600; color: hsl(var(--danger));">${formatRupiah(item.persepuluhan)}</span></td>
                 <td><span style="font-weight: 600;">${formatRupiah(item.persembahanTerpadu)}</span></td>
-                <td><span class="badge badge-gereja">${formatRupiah(item.persembahanKhusus)}</span></td>
-                <td><span class="badge badge-pembangunan">${formatRupiah(item.persembahanPembangunan)}</span></td>
+                <td><span style="font-weight: 600; color: hsl(var(--success));">${formatRupiah(item.persembahanKhusus)}</span></td>
+                <td><span style="font-weight: 600; color: hsl(var(--accent-blue));">${formatRupiah(item.persembahanPembangunan)}</span></td>
                 <td style="font-weight: 800; color: hsl(var(--success));">${formatRupiah(item.persepuluhan + item.persembahanTerpadu + item.persembahanKhusus + item.persembahanPembangunan + item.lainLain)}</td>
               </tr>
             `).join('')}

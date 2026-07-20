@@ -322,10 +322,10 @@ export function renderPemasukan(container, state, showToast) {
 
       const calc = calculateIncomeBreakdown({ persepuluhan: psp, persembahanTerpadu: tpd, persembahanKhusus: khs, persembahanPembangunan: pbg, lainLain: dll });
 
-      container.querySelector('#split-dskt').textContent = formatRupiah(calc.kasDskt);
-      container.querySelector('#split-gereja').textContent = formatRupiah(calc.kasGereja);
-      container.querySelector('#split-pembangunan').textContent = formatRupiah(calc.kasPembangunan);
-      container.querySelector('#split-total').textContent = formatRupiah(calc.total);
+      container.querySelector('#split-dskt').innerHTML = formatRupiah(calc.kasDskt);
+      container.querySelector('#split-gereja').innerHTML = formatRupiah(calc.kasGereja);
+      container.querySelector('#split-pembangunan').innerHTML = formatRupiah(calc.kasPembangunan);
+      container.querySelector('#split-total').innerHTML = formatRupiah(calc.total);
     });
   });
 

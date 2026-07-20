@@ -126,12 +126,8 @@ export function calculateFinancialSummary(state) {
 
 export function formatRupiah(amount) {
   const val = Math.round(Number(amount) || 0);
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(val);
+  const numString = new Intl.NumberFormat('id-ID').format(val);
+  return `<span style="display: flex; justify-content: space-between; width: 100%;"><span>Rp</span> <span>${numString}</span></span>`;
 }
 
 export function formatAngka(amount) {
