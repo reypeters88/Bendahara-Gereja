@@ -205,15 +205,15 @@
 
   function generateReceiptNo(dateStr, state) {
     const d = dateStr ? new Date(dateStr) : new Date();
-    if (isNaN(d.getTime())) return "TRT-010126-001";
-    const dd = String(d.getDate()).padStart(2, '0');
+    if (isNaN(d.getTime())) return "TRT-0126-001";
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const yy = String(d.getFullYear()).slice(-2);
-    const monthStr = (dateStr || "").slice(0, 7); // Cth: "2026-07"
     
     // Cari transaksi di bulan & tahun yang sama (reset setiap pergantian bulan)
     const existingInMonth = (state.pemasukan || []).filter(item => {
-      return item.date && item.date.slice(0, 7) === monthStr;
+      if (!item.date) return false;
+      const idate = new Date(item.date);
+      return !isNaN(idate.getTime()) && idate.getFullYear() === d.getFullYear() && idate.getMonth() === d.getMonth();
     });
 
     let highestSeq = 0;
@@ -228,7 +228,7 @@
     });
 
     const nextSeq = highestSeq + 1;
-    return `TRT-${dd}${mm}${yy}-${String(nextSeq).padStart(3, '0')}`;
+    return `TRT-${mm}${yy}-${String(nextSeq).padStart(3, '0')}`;
   }
 
   function generateVoucherNo(dateStr, state) {
@@ -237,10 +237,12 @@
     const dd = String(d.getDate()).padStart(2, '0');
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const yy = String(d.getFullYear()).slice(-2);
-    const monthStr = (dateStr || "").slice(0, 7);
     
+    // Cari transaksi di bulan & tahun yang sama
     const existingInMonth = (state.pengeluaran || []).filter(item => {
-      return item.date && item.date.slice(0, 7) === monthStr;
+      if (!item.date) return false;
+      const idate = new Date(item.date);
+      return !isNaN(idate.getTime()) && idate.getFullYear() === d.getFullYear() && idate.getMonth() === d.getMonth();
     });
 
     let highestSeq = 0;
@@ -256,6 +258,60 @@
 
     const nextSeq = highestSeq + 1;
     return `TRT-OUT-${dd}${mm}${yy}-${String(nextSeq).padStart(3, '0')}`;
+  }
+
+  function generatePembangunanNo(dateStr, state) {
+    const d = dateStr ? new Date(dateStr) : new Date();
+    if (isNaN(d.getTime())) return "TRT-PMB-0126-001";
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yy = String(d.getFullYear()).slice(-2);
+    
+    const existingInMonth = (state.kirimPembangunan || []).filter(item => {
+      if (!item.date) return false;
+      const idate = new Date(item.date);
+      return !isNaN(idate.getTime()) && idate.getFullYear() === d.getFullYear() && idate.getMonth() === d.getMonth();
+    });
+
+    let highestSeq = 0;
+    existingInMonth.forEach(item => {
+      if (item.referenceNo) {
+        const match = item.referenceNo.match(/(\d{3,})$/);
+        if (match) {
+          const seq = parseInt(match[1], 10);
+          if (seq > highestSeq) highestSeq = seq;
+        }
+      }
+    });
+
+    const nextSeq = highestSeq + 1;
+    return `TRT-PMB-${mm}${yy}-${String(nextSeq).padStart(3, '0')}`;
+  }
+
+  function generateDsktNo(dateStr, state) {
+    const d = dateStr ? new Date(dateStr) : new Date();
+    if (isNaN(d.getTime())) return "TRT-DSKT-0126-001";
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yy = String(d.getFullYear()).slice(-2);
+    
+    const existingInMonth = (state.kirimDskt || []).filter(item => {
+      if (!item.date) return false;
+      const idate = new Date(item.date);
+      return !isNaN(idate.getTime()) && idate.getFullYear() === d.getFullYear() && idate.getMonth() === d.getMonth();
+    });
+
+    let highestSeq = 0;
+    existingInMonth.forEach(item => {
+      if (item.referenceNo) {
+        const match = item.referenceNo.match(/(\d{3,})$/);
+        if (match) {
+          const seq = parseInt(match[1], 10);
+          if (seq > highestSeq) highestSeq = seq;
+        }
+      }
+    });
+
+    const nextSeq = highestSeq + 1;
+    return `TRT-DSKT-${mm}${yy}-${String(nextSeq).padStart(3, '0')}`;
   }
 
   // ============================================================================
@@ -1031,8 +1087,18 @@ function doGet(e) {
     const pengeluaranList = state.pengeluaran || [];
     
     const yearSet = new Set();
-    pemasukanList.forEach(i => { if(i.date) yearSet.add(i.date.slice(0, 4)) });
-    pengeluaranList.forEach(i => { if(i.date) yearSet.add(i.date.slice(0, 4)) });
+    pemasukanList.forEach(i => { 
+      if(i.date) {
+        const d = new Date(i.date);
+        if (!isNaN(d.getTime())) yearSet.add(String(d.getFullYear()));
+      }
+    });
+    pengeluaranList.forEach(i => { 
+      if(i.date) {
+        const d = new Date(i.date);
+        if (!isNaN(d.getTime())) yearSet.add(String(d.getFullYear()));
+      }
+    });
     const availableYears = Array.from(yearSet).sort().reverse();
 
     container.innerHTML = `
@@ -1066,11 +1132,11 @@ function doGet(e) {
 
         <div class="stat-card" style="--stat-glow: rgba(245, 158, 11, 0.2); --icon-bg: rgba(245, 158, 11, 0.15); --icon-color: hsl(var(--accent-gold));">
           <div class="stat-header">
-            <span class="stat-title">Total Uang Masuk (Periode Ini)</span>
+            <span class="stat-title">Total Pemasukan (Seluruh Waktu)</span>
             <div class="stat-icon"><i data-lucide="trending-up"></i></div>
           </div>
           <div class="stat-value">${formatRupiah(summary.totalUangMasuk)}</div>
-          <div class="stat-desc"><i data-lucide="users" style="width: 14px; height: 14px;"></i><span>Dari ${state.pemasukan.length} Transaksi Persembahan</span></div>
+          <div class="stat-desc"><i data-lucide="users" style="width: 14px; height: 14px;"></i><span>Total dari ${state.pemasukan.length} Transaksi</span></div>
         </div>
       </div>
 
@@ -1104,7 +1170,7 @@ function doGet(e) {
         </select>
         <select id="filter-year" class="form-control" style="width: auto; font-weight: 600;">
           <option value="ALL" ${dashboardFilterYear === 'ALL' ? 'selected' : ''}>Semua Tahun</option>
-          ${availableYears.map(y => `<option value="${y}" ${dashboardFilterYear === y ? 'selected' : ''}>${y}</option>`).join('')}
+          ${availableYears.map(y => `<option value="${y}" ${String(dashboardFilterYear) === String(y) ? 'selected' : ''}>${y}</option>`).join('')}
         </select>
       </div>
 
@@ -1180,6 +1246,61 @@ function doGet(e) {
 
     if (window.lucide) window.lucide.createIcons();
 
+    if (!document.getElementById('fullscreen-chart-styles')) {
+       const style = document.createElement('style');
+       style.id = 'fullscreen-chart-styles';
+       style.innerHTML = `
+         .chart-fs-mode {
+           position: fixed !important;
+           top: 0 !important;
+           left: 0 !important;
+           width: 100vw !important;
+           height: 100vh !important;
+           z-index: 999999 !important;
+           margin: 0 !important;
+           border-radius: 0 !important;
+           background: hsl(var(--bg-primary)) !important;
+           padding: 5vh 5vw !important;
+           display: flex !important;
+           flex-direction: column !important;
+           box-sizing: border-box !important;
+           cursor: zoom-out !important;
+         }
+         .glass-card canvas, #print-area-transmital {
+           cursor: zoom-in;
+         }
+         .chart-fs-mode canvas, #print-area-transmital.chart-fs-mode {
+           cursor: zoom-out !important;
+         }
+         .chart-fs-mode > div:last-child {
+           flex: 1 !important;
+           height: auto !important;
+           min-height: 0 !important;
+         }
+       `;
+       document.head.appendChild(style);
+    }
+
+    const toggleFs = (e) => {
+       const card = e.currentTarget;
+       card.classList.toggle('chart-fs-mode');
+       setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+    };
+    
+    const c1 = container.querySelector('#dashboardChart');
+    if (c1) {
+       const card1 = c1.closest('.glass-card');
+       card1.title = "Klik 2x untuk perbesar/perkecil layar";
+       card1.addEventListener('dblclick', toggleFs);
+    }
+    
+    const c2 = container.querySelector('#expenseChart');
+    if (c2) {
+       const card2 = c2.closest('.glass-card');
+       card2.title = "Klik 2x untuk perbesar/perkecil layar";
+       card2.addEventListener('dblclick', toggleFs);
+    }
+
     container.querySelector('#btn-goto-masuk')?.addEventListener('click', () => navigateTo('pemasukan'));
     container.querySelector('#btn-goto-keluar')?.addEventListener('click', () => navigateTo('pengeluaran'));
     container.querySelector('#btn-goto-dskt')?.addEventListener('click', () => navigateTo('kirim-dskt'));
@@ -1189,10 +1310,12 @@ function doGet(e) {
     function drawDashboardCharts() {
       const isMatch = (dateStr) => {
          if (!dateStr) return false;
-         const y = dateStr.slice(0, 4);
-         const m = dateStr.slice(5, 7);
-         if (dashboardFilterYear !== 'ALL' && y !== dashboardFilterYear) return false;
-         if (dashboardFilterMonth !== 'ALL' && m !== dashboardFilterMonth) return false;
+         const d = new Date(dateStr);
+         if (isNaN(d.getTime())) return false;
+         const y = String(d.getFullYear());
+         const m = String(d.getMonth() + 1).padStart(2, '0');
+         if (dashboardFilterYear !== 'ALL' && y !== String(dashboardFilterYear)) return false;
+         if (dashboardFilterMonth !== 'ALL' && m !== String(dashboardFilterMonth)) return false;
          return true;
       };
       
@@ -1216,6 +1339,17 @@ function doGet(e) {
         chartSummary.lain += Number(item.lainLain) || 0;
       });
 
+      const totalPemasukan = chartSummary.persepuluhan + chartSummary.terpadu + chartSummary.khusus + chartSummary.pembangunan + chartSummary.lain;
+      let dashLabels = ['Persepuluhan', 'Pers. Terpadu', 'Pers. Khusus', 'Pers. Pembangunan', 'Lain-lain'];
+      let dashData = [chartSummary.persepuluhan, chartSummary.terpadu, chartSummary.khusus, chartSummary.pembangunan, chartSummary.lain];
+      let dashBg = ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#8b5cf6'];
+      
+      if (totalPemasukan === 0) {
+        dashLabels = ['Belum ada pemasukan di periode ini'];
+        dashData = [1];
+        dashBg = ['rgba(255, 255, 255, 0.08)'];
+      }
+
       const canvas = document.getElementById('dashboardChart');
       if (canvas && window.Chart) {
         if (chartInstance) chartInstance.destroy();
@@ -1223,17 +1357,11 @@ function doGet(e) {
         chartInstance = new window.Chart(ctx, {
           type: 'doughnut',
           data: {
-            labels: ['Persepuluhan', 'Pers. Terpadu', 'Pers. Khusus', 'Pers. Pembangunan', 'Lain-lain'],
+            labels: dashLabels,
             datasets: [{
-              data: [
-                chartSummary.persepuluhan || 1, 
-                chartSummary.terpadu || 1, 
-                chartSummary.khusus || 1, 
-                chartSummary.pembangunan || 1, 
-                chartSummary.lain || 1
-              ],
-              backgroundColor: ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#8b5cf6'],
-              borderWidth: 2,
+              data: dashData,
+              backgroundColor: dashBg,
+              borderWidth: totalPemasukan === 0 ? 0 : 2,
               borderColor: '#0f172a'
             }]
           },
@@ -1244,6 +1372,9 @@ function doGet(e) {
               legend: {
                 position: 'bottom',
                 labels: { color: '#e2e8f0', font: { size: 11, family: 'Plus Jakarta Sans' }, padding: 14, usePointStyle: true }
+              },
+              tooltip: {
+                enabled: totalPemasukan !== 0
               }
             },
             cutout: '45%'
@@ -1263,12 +1394,16 @@ function doGet(e) {
         
         const sortedDepts = Object.entries(deptTotals).sort((a,b) => b[1] - a[1]);
         
-        const labels = sortedDepts.map(d => d[0]);
-        const data = sortedDepts.map(d => d[1]);
+        let labels = sortedDepts.map(d => d[0]);
+        let data = sortedDepts.map(d => d[1]);
+        let bgColors = ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#64748b'];
+        let hasData = true;
         
         if (labels.length === 0) {
-           labels.push('Belum ada data');
-           data.push(1);
+           labels = ['Belum ada pengeluaran di periode ini'];
+           data = [1];
+           bgColors = ['rgba(255, 255, 255, 0.08)'];
+           hasData = false;
         }
 
         expenseChartInstance = new window.Chart(ctxExp, {
@@ -1277,8 +1412,8 @@ function doGet(e) {
             labels: labels,
             datasets: [{
               data: data,
-              backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#64748b'],
-              borderWidth: 2,
+              backgroundColor: bgColors,
+              borderWidth: hasData ? 2 : 0,
               borderColor: '#0f172a'
             }]
           },
@@ -1289,6 +1424,9 @@ function doGet(e) {
               legend: {
                 position: 'bottom',
                 labels: { color: '#e2e8f0', font: { size: 11, family: 'Plus Jakarta Sans' }, padding: 14, usePointStyle: true }
+              },
+              tooltip: {
+                enabled: hasData
               }
             },
             cutout: '45%'
@@ -1443,7 +1581,7 @@ function doGet(e) {
           
           <!-- Header -->
           <div style="text-align: center; position: relative; margin-bottom: 3px;">
-            <img src="data:image/png;base64,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" style="position: absolute; left: 15px; top: 0px; width: 60px; height: 60px; object-fit: contain;" />
+            <img src="data:image/png;base64,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" style="position: absolute; left: 15px; top: -6px; width: 56px; height: 56px; object-fit: contain;" />
             <div style="font-weight: bold; font-size: 14px; margin-bottom: 1px;">GEREJA MASEHI ADVENT HARI KETUJUH</div>
             <div style="font-size: 10px;">Uni Indonesia Kawasan Barat</div><div style="font-size: 10px; font-style: italic;">Indonesia</div>
           </div>
@@ -1522,7 +1660,7 @@ function doGet(e) {
       `;
 
       if (isLastInPage && !isLastItem) {
-        html += '<div style="page-break-after: always; margin-bottom: 2px;"></div>';
+        html += '<div style="page-break-after: always; height: 10px;"></div>';
       } else if (!isLastItem) {
         html += '<div style="border-bottom: 1px dashed #999; margin: 4px 20px;"></div>';
       } else {
@@ -1579,7 +1717,9 @@ function doGet(e) {
             <thead>
               <tr>
                 <th style="width: 40px; text-align: center;"><input type="checkbox" id="check-all-receipts" /></th>
-                <th>Tanggal & Anggota</th>
+                <th>Anggota</th>
+                <th>No. Kuitansi</th>
+                <th>Tanggal</th>
                 <th>Rincian Persembahan</th>
                 <th>Aksi</th>
               </tr>
@@ -1592,11 +1732,15 @@ function doGet(e) {
                     <td style="text-align: center; vertical-align: middle;">
                       <input type="checkbox" class="check-receipt-item" data-id="${item.id}" />
                     </td>
-                    <td style="vertical-align: top; width: 38%;" class="searchable-text-tab">
+                    <td style="vertical-align: top; width: 22%;">
                       <div style="font-weight: 700; color: hsl(var(--accent-gold)); font-size: 1.05rem;">${item.memberName}</div>
-                      <div style="font-size: 0.85rem; color: hsl(var(--text-muted)); margin-top: 4px;">${formatDateIndo(item.date)}</div>
-                      <div style="font-size: 0.8rem; color: hsl(var(--text-secondary)); margin-top: 4px;">Kuitansi: <strong>${item.receiptNo}</strong></div>
                       ${item.notes ? `<div style="font-size: 0.8rem; font-style: italic; color: hsl(var(--text-muted)); margin-top: 4px;">"${item.notes}"</div>` : ''}
+                    </td>
+                    <td style="vertical-align: top; width: 14%;">
+                      <div style="font-size: 0.9rem; font-weight: bold; color: hsl(var(--text-secondary));">${item.receiptNo}</div>
+                    </td>
+                    <td style="vertical-align: top; width: 12%;">
+                      <div style="font-size: 0.9rem; color: hsl(var(--text-muted));">${formatDateIndo(item.date)}</div>
                     </td>
                     <td style="vertical-align: top;">
                       <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;"><span>Persepuluhan (DSKT):</span> <strong style="color: hsl(var(--danger));">${formatRupiah(item.persepuluhan)}</strong></div>
@@ -1614,7 +1758,7 @@ function doGet(e) {
                   </tr>
                 `;
               }).join('')}
-              ${pemasukanList.length === 0 ? `<tr><td colspan="3" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada data riwayat persembahan.</td></tr>` : ''}
+              ${pemasukanList.length === 0 ? `<tr><td colspan="6" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada data riwayat persembahan.</td></tr>` : ''}
             </tbody>
           </table>
         </div>
@@ -1633,7 +1777,7 @@ function doGet(e) {
       
       const rows = container.querySelectorAll('.history-row-tab');
       rows.forEach(row => {
-        const textToSearch = row.querySelector('.searchable-text-tab')?.textContent.toLowerCase() || '';
+        const textToSearch = row.textContent.toLowerCase();
         const rowDate = row.getAttribute('data-date') || ''; // format YYYY-MM-DD
         const rowMonth = rowDate.split('-')[1] || '';
         
@@ -1866,13 +2010,14 @@ function doGet(e) {
           <i data-lucide="history" style="color: hsl(var(--accent-blue));"></i> Riwayat Input Pemasukan Terakhir
         </h3>
         <div class="table-responsive">
-          <table class="data-table">
+          <table class="data-table" style="width: 100%;">
             <thead>
               <tr>
-                <th>No Kuitansi & Tanggal</th>
-                <th>Nama Anggota</th>
-                <th>Total Persembahan</th>
-                <th>Aksi</th>
+                <th style="width: 22%;">No Kuitansi</th>
+                <th style="width: 16%;">Tanggal</th>
+                <th style="width: 34%;">Nama Anggota</th>
+                <th style="width: 18%;">Total Persembahan</th>
+                <th style="width: 10%; text-align: center;">Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -1882,18 +2027,22 @@ function doGet(e) {
                   <tr>
                     <td>
                       <div style="font-weight: bold;">${item.receiptNo}</div>
-                      <div style="font-size: 0.8rem; color: hsl(var(--text-secondary));">${formatDateIndo(item.date)}</div>
+                    </td>
+                    <td>
+                      <div style="font-size: 0.85rem; color: hsl(var(--text-secondary));">${formatDateIndo(item.date)}</div>
                     </td>
                     <td style="font-weight: 600; color: hsl(var(--accent-gold));">${item.memberName}</td>
                     <td style="font-weight: 800; color: hsl(var(--success));">${formatRupiah(calc.total)}</td>
                     <td>
-                      <button type="button" class="icon-btn btn-edit-masuk-inline" data-id="${item.id}" title="Edit"><i data-lucide="edit-2"></i></button>
-                      <button type="button" class="icon-btn btn-delete-masuk-inline" data-id="${item.id}" title="Hapus" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button>
+                      <div style="display: flex; justify-content: center; gap: 8px;">
+                        <button type="button" class="icon-btn btn-edit-masuk-inline" data-id="${item.id}" title="Edit"><i data-lucide="edit-2"></i></button>
+                        <button type="button" class="icon-btn btn-delete-masuk-inline" data-id="${item.id}" title="Hapus" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button>
+                      </div>
                     </td>
                   </tr>
                 `;
               }).join('')}
-              ${state.pemasukan.length === 0 ? `<tr><td colspan="4" style="text-align: center; padding: 20px; color: hsl(var(--text-muted));">Belum ada transaksi.</td></tr>` : ''}
+              ${state.pemasukan.length === 0 ? `<tr><td colspan="5" style="text-align: center; padding: 20px; color: hsl(var(--text-muted));">Belum ada transaksi.</td></tr>` : ''}
             </tbody>
           </table>
         </div>
@@ -2486,24 +2635,34 @@ function doGet(e) {
           </div>
           <div class="table-responsive" style="max-height: 650px; overflow-y: auto;">
             <table class="data-table">
-              <thead><tr><th>Tanggal & Voucher</th><th>Departemen & Keterangan</th><th>Nominal</th><th>Aksi</th></tr></thead>
+              <thead>
+                <tr>
+                  <th style="width: 22%;">No Voucher</th>
+                  <th style="width: 15%;">Tanggal</th>
+                  <th style="width: 35%;">Departemen & Keterangan</th>
+                  <th style="width: 18%;">Nominal</th>
+                  <th style="width: 10%; text-align: center;">Aksi</th>
+                </tr>
+              </thead>
               <tbody>
                 ${pengeluaranList.map(item => `
                   <tr>
-                    <td style="width: 25%;">
-                      <div style="font-weight: 600;">${formatDateIndo(item.date)}</div>
-                      <div style="font-size: 0.78rem; color: hsl(var(--text-secondary));">Voucher: ${item.voucherNo}</div>
-                      ${item.isBuildingFund ? `<span class="badge badge-pembangunan" style="margin-top: 4px;">Kas Pembangunan</span>` : `<span class="badge badge-gereja" style="margin-top: 4px;">Kas Jemaat</span>`}
+                    <td>
+                      <div style="font-weight: bold;">${item.voucherNo}</div>
+                      ${item.isBuildingFund ? `<span class="badge badge-pembangunan" style="margin-top: 4px; padding: 2px 6px; font-size: 0.7rem;">Pembangunan</span>` : `<span class="badge badge-gereja" style="margin-top: 4px; padding: 2px 6px; font-size: 0.7rem;">Gereja</span>`}
                     </td>
+                    <td><div style="font-size: 0.85rem; color: hsl(var(--text-secondary));">${formatDateIndo(item.date)}</div></td>
                     <td><div style="font-weight: 700; color: hsl(var(--text-primary));">${item.departmentName}</div><div style="font-size: 0.85rem; color: hsl(var(--text-secondary)); margin-top: 2px;">${item.description}</div></td>
-                    <td style="font-weight: 800; color: hsl(var(--danger)); width: 22%;">${formatRupiah(item.amount)}</td>
-                    <td style="text-align: center; width: 80px;">
-                      <button class="icon-btn btn-edit-keluar" data-id="${item.id}" title="Edit Pengeluaran" style="margin-bottom: 6px; color: hsl(var(--accent-gold));"><i data-lucide="edit"></i></button>
-                      <button class="icon-btn btn-del-keluar" data-id="${item.id}" title="Hapus Pengeluaran" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button>
+                    <td style="font-weight: 800; color: hsl(var(--danger));">${formatRupiah(item.amount)}</td>
+                    <td>
+                      <div style="display: flex; justify-content: center; gap: 8px;">
+                        <button class="icon-btn btn-edit-keluar" data-id="${item.id}" title="Edit" style="color: hsl(var(--accent-gold));"><i data-lucide="edit"></i></button>
+                        <button class="icon-btn btn-del-keluar" data-id="${item.id}" title="Hapus" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button>
+                      </div>
                     </td>
                   </tr>
                 `).join('')}
-                ${pengeluaranList.length === 0 ? `<tr><td colspan="4" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada catatan pengeluaran.</td></tr>` : ''}
+                ${pengeluaranList.length === 0 ? `<tr><td colspan="5" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada catatan pengeluaran.</td></tr>` : ''}
               </tbody>
             </table>
           </div>
@@ -2641,7 +2800,7 @@ function doGet(e) {
     }
 
     const today = isEdit && editItem.date ? editItem.date : new Date().toISOString().split('T')[0];
-    const refVal = isEdit && editItem.referenceNo ? editItem.referenceNo : "";
+    const refVal = isEdit && editItem.referenceNo ? editItem.referenceNo : generateDsktNo(today, state);
     const amountVal = isEdit && editItem.amount ? editItem.amount : Math.max(0, summary.kewajibanDsktBelumDisetor);
     const notesVal = isEdit && editItem.notes ? editItem.notes : "";
 
@@ -2689,20 +2848,31 @@ function doGet(e) {
           <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 16px;">Riwayat Pengiriman Uang ke DSKT</h3>
           <div class="table-responsive" style="max-height: 550px; overflow-y: auto;">
             <table class="data-table">
-              <thead><tr><th>Tanggal & Ref</th><th>Keterangan</th><th>Jumlah Dikirim</th><th>Aksi</th></tr></thead>
+              <thead>
+                <tr>
+                  <th style="width: 24%;">No Referensi</th>
+                  <th style="width: 16%;">Tanggal</th>
+                  <th style="width: 32%;">Keterangan</th>
+                  <th style="width: 18%;">Jumlah Dikirim</th>
+                  <th style="width: 10%; text-align: center;">Aksi</th>
+                </tr>
+              </thead>
               <tbody>
                 ${kirimList.map(item => `
                   <tr>
-                    <td style="width: 28%;"><div style="font-weight: 700;">${formatDateIndo(item.date)}</div><div style="font-size: 0.78rem; color: hsl(var(--text-secondary));">Ref: ${item.referenceNo}</div></td>
+                    <td><div style="font-weight: bold;">${item.referenceNo}</div></td>
+                    <td><div style="font-size: 0.85rem; color: hsl(var(--text-secondary));">${formatDateIndo(item.date)}</div></td>
                     <td><div style="font-size: 0.88rem; color: hsl(var(--text-primary));">${item.notes}</div></td>
-                    <td style="font-weight: 800; color: hsl(var(--warning)); width: 25%;">${formatRupiah(item.amount)}</td>
-                    <td style="text-align: center; width: 80px;">
-                      <button class="icon-btn btn-edit-dskt" data-id="${item.id}" title="Edit Setoran" style="margin-bottom: 6px; color: hsl(var(--accent-gold));"><i data-lucide="edit"></i></button>
-                      <button class="icon-btn btn-del-dskt" data-id="${item.id}" title="Hapus Bukti Setoran" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button>
+                    <td style="font-weight: 800; color: hsl(var(--warning));">${formatRupiah(item.amount)}</td>
+                    <td>
+                      <div style="display: flex; justify-content: center; gap: 8px;">
+                        <button class="icon-btn btn-edit-dskt" data-id="${item.id}" title="Edit Setoran" style="color: hsl(var(--accent-gold));"><i data-lucide="edit"></i></button>
+                        <button class="icon-btn btn-del-dskt" data-id="${item.id}" title="Hapus Bukti Setoran" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button>
+                      </div>
                     </td>
                   </tr>
                 `).join('')}
-                ${kirimList.length === 0 ? `<tr><td colspan="4" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada catatan setoran ke DSKT.</td></tr>` : ''}
+                ${kirimList.length === 0 ? `<tr><td colspan="5" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada catatan setoran ke DSKT.</td></tr>` : ''}
               </tbody>
             </table>
           </div>
@@ -2711,6 +2881,14 @@ function doGet(e) {
     `;
 
     if (window.lucide) window.lucide.createIcons();
+
+    const dateInput = container.querySelector('#tr-date');
+    const refInput = container.querySelector('#tr-ref');
+    if (dateInput && refInput && !isEdit) {
+      dateInput.addEventListener('change', () => {
+        refInput.value = generateDsktNo(dateInput.value, state);
+      });
+    }
 
     container.querySelector('#btn-back-dashboard-dskt')?.addEventListener('click', () => {
       if (typeof navigateTo === 'function') navigateTo('dashboard');
@@ -2771,7 +2949,7 @@ function doGet(e) {
     }
 
     const today = isEdit && editItem.date ? editItem.date : new Date().toISOString().split('T')[0];
-    const refVal = isEdit && editItem.referenceNo ? editItem.referenceNo : "";
+    const refVal = isEdit && editItem.referenceNo ? editItem.referenceNo : generatePembangunanNo(today, state);
     const amountVal = isEdit && editItem.amount ? editItem.amount : Math.max(0, summary.saldoKasPembangunan);
     const notesVal = isEdit && editItem.notes ? editItem.notes : "";
 
@@ -2822,20 +3000,31 @@ function doGet(e) {
           <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 16px;">Riwayat Setoran Pembangunan</h3>
           <div class="table-responsive" style="max-height: 550px; overflow-y: auto;">
             <table class="data-table">
-              <thead><tr><th>Tanggal & Ref</th><th>Keterangan</th><th>Jumlah Disetor</th><th>Aksi</th></tr></thead>
+              <thead>
+                <tr>
+                  <th style="width: 24%;">No Referensi</th>
+                  <th style="width: 16%;">Tanggal</th>
+                  <th style="width: 32%;">Keterangan</th>
+                  <th style="width: 18%;">Jumlah Disetor</th>
+                  <th style="width: 10%; text-align: center;">Aksi</th>
+                </tr>
+              </thead>
               <tbody>
                 ${kirimList.map(item => `
                   <tr>
-                    <td style="width: 28%;"><div style="font-weight: 700;">${formatDateIndo(item.date)}</div><div style="font-size: 0.78rem; color: hsl(var(--text-secondary));">Ref: ${item.referenceNo}</div></td>
+                    <td><div style="font-weight: bold;">${item.referenceNo}</div></td>
+                    <td><div style="font-size: 0.85rem; color: hsl(var(--text-secondary));">${formatDateIndo(item.date)}</div></td>
                     <td><div style="font-size: 0.88rem; color: hsl(var(--text-primary));">${item.notes}</div></td>
-                    <td style="font-weight: 800; color: #3b82f6; width: 25%;">${formatRupiah(item.amount)}</td>
-                    <td style="text-align: center; width: 80px;">
-                      <button class="icon-btn btn-edit-pembangunan" data-id="${item.id}" title="Edit Setoran" style="margin-bottom: 6px; color: hsl(var(--accent-gold));"><i data-lucide="edit"></i></button>
-                      <button class="icon-btn btn-del-pembangunan" data-id="${item.id}" title="Hapus Bukti Setoran" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button>
+                    <td style="font-weight: 800; color: #3b82f6;">${formatRupiah(item.amount)}</td>
+                    <td>
+                      <div style="display: flex; justify-content: center; gap: 8px;">
+                        <button class="icon-btn btn-edit-pembangunan" data-id="${item.id}" title="Edit Setoran" style="color: hsl(var(--accent-gold));"><i data-lucide="edit"></i></button>
+                        <button class="icon-btn btn-del-pembangunan" data-id="${item.id}" title="Hapus Bukti Setoran" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button>
+                      </div>
                     </td>
                   </tr>
                 `).join('')}
-                ${kirimList.length === 0 ? `<tr><td colspan="4" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada catatan setoran pembangunan.</td></tr>` : ''}
+                ${kirimList.length === 0 ? `<tr><td colspan="5" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada catatan setoran pembangunan.</td></tr>` : ''}
               </tbody>
             </table>
           </div>
@@ -2844,6 +3033,14 @@ function doGet(e) {
     `;
 
     if (window.lucide) window.lucide.createIcons();
+
+    const dateInput = container.querySelector('#trp-date');
+    const refInput = container.querySelector('#trp-ref');
+    if (dateInput && refInput && !isEdit) {
+      dateInput.addEventListener('change', () => {
+        refInput.value = generatePembangunanNo(dateInput.value, state);
+      });
+    }
 
     container.querySelector('#btn-back-dashboard-pemb')?.addEventListener('click', () => {
       if (typeof navigateTo === 'function') navigateTo('dashboard');
@@ -3720,7 +3917,7 @@ function doGet(e) {
                     <td style="text-align: right; font-weight: 700; color: hsl(var(--success));">${formatAngka(qData.m1.saldoKasGereja)}</td><td style="text-align: right; font-weight: 700; color: hsl(var(--success));">${formatAngka(qData.m2.saldoKasGereja)}</td><td style="text-align: right; font-weight: 700; color: hsl(var(--success));">${formatAngka(qData.m3.saldoKasGereja)}</td><td style="text-align: right; font-weight: 800; color: hsl(var(--success));">${formatAngka(qData.qTotal.saldoKasGereja)}</td>
                   </tr>
                   <tr style="border-bottom: 1px dashed var(--border-color);">
-                    <td style="padding: 8px 6px; color: hsl(var(--text-secondary));">7200</td><td style="padding: 8px 6px;">Saldo Kas Pembangunan</td>
+                    <td style="padding: 8px 6px; color: hsl(var(--text-secondary));">7200</td><td style="padding: 8px 6px;">Titipan Kas PMB Belum Disetor</td>
                     <td style="text-align: right; font-weight: 700; color: hsl(var(--accent-blue));">${formatAngka(qData.m1.saldoKasPemb)}</td><td style="text-align: right; font-weight: 700; color: hsl(var(--accent-blue));">${formatAngka(qData.m2.saldoKasPemb)}</td><td style="text-align: right; font-weight: 700; color: hsl(var(--accent-blue));">${formatAngka(qData.m3.saldoKasPemb)}</td><td style="text-align: right; font-weight: 800; color: hsl(var(--accent-blue));">${formatAngka(qData.qTotal.saldoKasPemb)}</td>
                   </tr>
                   <tr style="border-bottom: 1px dashed var(--border-color);">
@@ -3789,7 +3986,7 @@ function doGet(e) {
                   <!-- SALDO KAS AKHIR -->
                   <tr><td colspan="3" style="padding: 32px 8px 8px 8px;"><h4 style="font-size: 1.05rem; font-weight: 800; color: hsl(var(--text-primary)); margin: 0;">7000 - REKAPITULASI SALDO KAS AKHIR</h4></td></tr>
                   <tr style="border-bottom: 1px dashed var(--border-color);"><td style="padding: 8px; color: hsl(var(--text-secondary));">7100</td><td style="padding: 8px;">Saldo Kas Operasional Gereja</td><td style="text-align: right; font-weight: 700; color: hsl(var(--success));">${formatAngka(mData.saldoKasGereja)}</td></tr>
-                  <tr style="border-bottom: 1px dashed var(--border-color);"><td style="padding: 8px; color: hsl(var(--text-secondary));">7200</td><td style="padding: 8px;">Saldo Kas Pembangunan</td><td style="text-align: right; font-weight: 700; color: hsl(var(--accent-blue));">${formatAngka(mData.saldoKasPemb)}</td></tr>
+                  <tr style="border-bottom: 1px dashed var(--border-color);"><td style="padding: 8px; color: hsl(var(--text-secondary));">7200</td><td style="padding: 8px;">Titipan Kas PMB Belum Disetor</td><td style="text-align: right; font-weight: 700; color: hsl(var(--accent-blue));">${formatAngka(mData.saldoKasPemb)}</td></tr>
                   <tr style="border-bottom: 1px dashed var(--border-color);"><td style="padding: 8px; color: hsl(var(--text-secondary));">7300</td><td style="padding: 8px;">Titipan DSKT Belum Disetor (Kewajiban)</td><td style="text-align: right; font-weight: 700; color: hsl(var(--danger));">${formatAngka(mData.kewajibanDskt)}</td></tr>
                   <tr style="border-bottom: 2px solid var(--border-highlight); background: rgba(255, 255, 255, 0.05);"><td style="padding: 16px 8px; font-weight: 800; color: hsl(var(--text-primary));">7999</td><td style="padding: 16px 8px; font-weight: 800; color: hsl(var(--text-primary));">SISA SALDO KAS KESELURUHAN (A + B - C - D)</td><td style="text-align: right; color: hsl(var(--accent-gold)); font-size: 1.25rem; font-weight: 800;">${formatAngka(mData.sisaSaldoTotal)}</td></tr>
                 </tbody>
@@ -4153,6 +4350,52 @@ function doGet(e) {
 
       container.querySelector('#btn-print-transmital')?.addEventListener('click', () => window.print());
       container.querySelector('#btn-pdf-transmital')?.addEventListener('click', () => window.print());
+      
+      const transPrintArea = container.querySelector('#print-area-transmital');
+      if (transPrintArea) {
+        if (!document.getElementById('fullscreen-chart-styles')) {
+           const style = document.createElement('style');
+           style.id = 'fullscreen-chart-styles';
+           style.innerHTML = `
+             .chart-fs-mode {
+               position: fixed !important;
+               top: 0 !important;
+               left: 0 !important;
+               width: 100vw !important;
+               height: 100vh !important;
+               z-index: 999999 !important;
+               margin: 0 !important;
+               border-radius: 0 !important;
+               background: hsl(var(--bg-primary)) !important;
+               padding: 5vh 5vw !important;
+               display: flex !important;
+               flex-direction: column !important;
+               box-sizing: border-box !important;
+               cursor: zoom-out !important;
+             }
+             .glass-card canvas, #print-area-transmital {
+               cursor: zoom-in;
+             }
+             .chart-fs-mode canvas, #print-area-transmital.chart-fs-mode {
+               cursor: zoom-out !important;
+             }
+             .chart-fs-mode > div:last-child {
+               flex: 1 !important;
+               height: auto !important;
+               min-height: 0 !important;
+             }
+           `;
+           document.head.appendChild(style);
+        }
+        
+        transPrintArea.title = "Klik 2x untuk perbesar/perkecil layar";
+        transPrintArea.addEventListener('dblclick', (e) => {
+          if (e.target.closest('button') || e.target.closest('select') || e.target.closest('input')) return;
+          const card = e.currentTarget;
+          card.classList.toggle('chart-fs-mode');
+          setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+        });
+      }
 
       container.querySelector('#btn-export-transmital-excel')?.addEventListener('click', () => {
         if (!window.XLSX) {
@@ -4261,7 +4504,7 @@ function doGet(e) {
           rows.push({});
           rows.push({"No. Akun": "7000", "Nama Akun / Uraian": "REKAPITULASI SALDO KAS AKHIR", "Jumlah (Rp)": ""});
           rows.push({"No. Akun": "7100", "Nama Akun / Uraian": "Saldo Kas Operasional Gereja", "Jumlah (Rp)": mData.saldoKasGereja});
-          rows.push({"No. Akun": "7200", "Nama Akun / Uraian": "Saldo Kas Pembangunan", "Jumlah (Rp)": mData.saldoKasPemb});
+          rows.push({"No. Akun": "7200", "Nama Akun / Uraian": "Titipan Kas PMB Belum Disetor", "Jumlah (Rp)": mData.saldoKasPemb});
           rows.push({"No. Akun": "7300", "Nama Akun / Uraian": "Titipan DSKT Belum Disetor (Kewajiban)", "Jumlah (Rp)": mData.kewajibanDskt});
           rows.push({"No. Akun": "7999", "Nama Akun / Uraian": "SISA SALDO KAS KESELURUHAN (A + B - C - D)", "Jumlah (Rp)": mData.sisaSaldoTotal});
           
@@ -4300,7 +4543,7 @@ function doGet(e) {
           rows.push({});
           rows.push({"No. Akun": "7000", "Nama Akun / Uraian": "REKAPITULASI SALDO KAS AKHIR", [qData.m1.monthName]: "", [qData.m2.monthName]: "", [qData.m3.monthName]: "", "Total Triwulan": ""});
           rows.push({"No. Akun": "7100", "Nama Akun / Uraian": "Saldo Kas Operasional Gereja", [qData.m1.monthName]: qData.m1.saldoKasGereja, [qData.m2.monthName]: qData.m2.saldoKasGereja, [qData.m3.monthName]: qData.m3.saldoKasGereja, "Total Triwulan": qData.qTotal.saldoKasGereja});
-          rows.push({"No. Akun": "7200", "Nama Akun / Uraian": "Saldo Kas Pembangunan", [qData.m1.monthName]: qData.m1.saldoKasPemb, [qData.m2.monthName]: qData.m2.saldoKasPemb, [qData.m3.monthName]: qData.m3.saldoKasPemb, "Total Triwulan": qData.qTotal.saldoKasPemb});
+          rows.push({"No. Akun": "7200", "Nama Akun / Uraian": "Titipan Kas PMB Belum Disetor", [qData.m1.monthName]: qData.m1.saldoKasPemb, [qData.m2.monthName]: qData.m2.saldoKasPemb, [qData.m3.monthName]: qData.m3.saldoKasPemb, "Total Triwulan": qData.qTotal.saldoKasPemb});
           rows.push({"No. Akun": "7300", "Nama Akun / Uraian": "Titipan DSKT Belum Disetor (Kewajiban)", [qData.m1.monthName]: qData.m1.kewajibanDskt, [qData.m2.monthName]: qData.m2.kewajibanDskt, [qData.m3.monthName]: qData.m3.kewajibanDskt, "Total Triwulan": qData.qTotal.kewajibanDskt});
           rows.push({"No. Akun": "7999", "Nama Akun / Uraian": "SISA SALDO KAS KESELURUHAN (A + B - C - D)", [qData.m1.monthName]: qData.m1.sisaSaldoTotal, [qData.m2.monthName]: qData.m2.sisaSaldoTotal, [qData.m3.monthName]: qData.m3.sisaSaldoTotal, "Total Triwulan": qData.qTotal.sisaSaldoTotal});
         }

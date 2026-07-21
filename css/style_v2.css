@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 :root {
   /* HSL Color Palette - Premium Royal Blue & Gold Accents for Adventist Heritage */
@@ -1220,9 +1220,10 @@ body.thermal-print-mode #receipt-body * {
     background: white !important;
   }
   body.printing-batch-receipt .batch-receipt-item {
-    height: auto !important; min-height: 68mm;
+    height: 64mm !important;
     box-sizing: border-box;
     overflow: hidden;
+    page-break-inside: avoid;
   }
   body.printing-batch-receipt @page {
     margin: 10mm;
