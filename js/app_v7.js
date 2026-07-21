@@ -3345,8 +3345,17 @@ function doGet(e) {
           }
         });
 
+        let priorKirimPemb = 0;
+        (state.kirimPembangunan || []).forEach(item => {
+          if (!item.date) return;
+          const dDate = new Date(item.date);
+          if (!isNaN(dDate.getTime()) && dDate < startOfThisMonth) {
+            priorKirimPemb += (Number(item.amount) || 0);
+          }
+        });
+
         const saldoAwalGereja = (Number(settings.saldoAwalGereja) || 0) + priorMasukGereja - priorKeluarGereja;
-        const saldoAwalPemb = (Number(settings.saldoAwalPembangunan) || 0) + priorMasukPemb - priorKeluarPemb;
+        const saldoAwalPemb = (Number(settings.saldoAwalPembangunan) || 0) + priorMasukPemb - priorKeluarPemb - priorKirimPemb;
         const saldoAwalDskt = (Number(settings.saldoAwalDskt) || 0) + priorMasukDskt - priorKirimDskt;
         const saldoAwalTotal = saldoAwalGereja + saldoAwalPemb + saldoAwalDskt;
 
@@ -3396,10 +3405,19 @@ function doGet(e) {
           }
         });
 
+        let totalKirimPemb = 0;
+        (state.kirimPembangunan || []).forEach(item => {
+          if (!item.date) return;
+          const dDate = new Date(item.date);
+          if (!isNaN(dDate.getTime()) && dDate >= startOfThisMonth && dDate <= endOfThisMonth) {
+            totalKirimPemb += (Number(item.amount) || 0);
+          }
+        });
+
         const saldoKasGereja = saldoAwalGereja + masukGereja - keluarGereja;
-        const saldoKasPemb = saldoAwalPemb + masukPemb - keluarPemb;
+        const saldoKasPemb = saldoAwalPemb + masukPemb - keluarPemb - totalKirimPemb;
         const kewajibanDskt = saldoAwalDskt + masukDskt - totalKirim;
-        const sisaSaldoTotal = saldoAwalTotal + totalMasuk - totalKirim - totalKeluar;
+        const sisaSaldoTotal = saldoAwalTotal + totalMasuk - totalKirim - totalKirimPemb - totalKeluar;
 
         return {
           monthIdx: mIdx,
@@ -3408,7 +3426,7 @@ function doGet(e) {
           persepuluhan, terpadu, khusus, pembangunan, lain, totalMasuk,
           masukGereja, masukPemb, masukDskt,
           deptMap, totalKeluar, keluarGereja, keluarPemb,
-          totalKirim,
+          totalKirim, totalKirimPemb,
           saldoKasGereja, saldoKasPemb, kewajibanDskt, sisaSaldoTotal
         };
       };
@@ -3439,6 +3457,7 @@ function doGet(e) {
         totalKeluar: m1.totalKeluar + m2.totalKeluar + m3.totalKeluar,
         keluarPemb: m1.keluarPemb + m2.keluarPemb + m3.keluarPemb,
         totalKirim: m1.totalKirim + m2.totalKirim + m3.totalKirim,
+        totalKirimPemb: m1.totalKirimPemb + m2.totalKirimPemb + m3.totalKirimPemb,
         saldoKasGereja: m3.saldoKasGereja,
         saldoKasPemb: m3.saldoKasPemb,
         kewajibanDskt: m3.kewajibanDskt,
@@ -5026,7 +5045,9 @@ function doGet(e) {
         state.pemasukan = res.data.pemasukan || [];
         state.pengeluaran = res.data.pengeluaran || [];
         state.kirimDskt = res.data.kirimDskt || [];
-        state.kirimPembangunan = res.data.kirimPembangunan || [];
+        if (res.data.kirimPembangunan !== undefined) {
+          state.kirimPembangunan = res.data.kirimPembangunan;
+        }
         localStorage.setItem('gmahk_bendahara_state_v1', JSON.stringify(state));
         showToast("Data berhasil ditarik dan diperbarui! Memuat ulang...", "success");
         setTimeout(() => window.location.reload(), 1500);
@@ -5386,7 +5407,9 @@ function doGet(e) {
           if (JSON.stringify(state.pemasukan) !== JSON.stringify(res.data.pemasukan || [])) { state.pemasukan = res.data.pemasukan || []; dataChanged = true; }
           if (JSON.stringify(state.pengeluaran) !== JSON.stringify(res.data.pengeluaran || [])) { state.pengeluaran = res.data.pengeluaran || []; dataChanged = true; }
           if (JSON.stringify(state.kirimDskt) !== JSON.stringify(res.data.kirimDskt || [])) { state.kirimDskt = res.data.kirimDskt || []; dataChanged = true; }
-          if (JSON.stringify(state.kirimPembangunan) !== JSON.stringify(res.data.kirimPembangunan || [])) { state.kirimPembangunan = res.data.kirimPembangunan || []; dataChanged = true; }
+          if (res.data.kirimPembangunan !== undefined && JSON.stringify(state.kirimPembangunan) !== JSON.stringify(res.data.kirimPembangunan)) { 
+            state.kirimPembangunan = res.data.kirimPembangunan; dataChanged = true; 
+          }
           
           if (dataChanged) {
             localStorage.setItem('gmahk_bendahara_state_v1', JSON.stringify(state));
@@ -5444,7 +5467,9 @@ function doGet(e) {
             if (JSON.stringify(state.pemasukan) !== JSON.stringify(res.data.pemasukan || [])) { state.pemasukan = res.data.pemasukan || []; dataChanged = true; }
             if (JSON.stringify(state.pengeluaran) !== JSON.stringify(res.data.pengeluaran || [])) { state.pengeluaran = res.data.pengeluaran || []; dataChanged = true; }
             if (JSON.stringify(state.kirimDskt) !== JSON.stringify(res.data.kirimDskt || [])) { state.kirimDskt = res.data.kirimDskt || []; dataChanged = true; }
-            if (JSON.stringify(state.kirimPembangunan) !== JSON.stringify(res.data.kirimPembangunan || [])) { state.kirimPembangunan = res.data.kirimPembangunan || []; dataChanged = true; }
+            if (res.data.kirimPembangunan !== undefined && JSON.stringify(state.kirimPembangunan) !== JSON.stringify(res.data.kirimPembangunan)) { 
+              state.kirimPembangunan = res.data.kirimPembangunan; dataChanged = true; 
+            }
             
             if (dataChanged) {
               localStorage.setItem('gmahk_bendahara_state_v1', JSON.stringify(state));
