@@ -5231,7 +5231,7 @@ function doGet(e) {
         return renderDaftarPemberi(container, state, showToast);
       }
       
-      const historySorted = member.history.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      const historySorted = member.history.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
       container.innerHTML = `
         <div style="margin-bottom: 16px;">
@@ -5241,16 +5241,47 @@ function doGet(e) {
           </button>
         </div>
 
-        <div class="card animate-fade-in" style="margin-bottom: 24px;">
-          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <style>
+          @media print {
+            body * { visibility: hidden; }
+            #printable-member-history, #printable-member-history * { visibility: visible; }
+            #printable-member-history { 
+              position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0;
+              box-shadow: none; border: none; max-width: 100%; background: white !important; color: black !important;
+            }
+            #printable-member-history .table-responsive { overflow: visible !important; }
+            #printable-member-history .card-header h3 { color: black !important; }
+            #printable-member-history table { 
+              color: black !important; 
+              font-size: 9px !important; 
+              min-width: 100% !important; 
+              width: 100% !important; 
+              table-layout: fixed; 
+              word-wrap: break-word; 
+            }
+            #printable-member-history th { color: black !important; background: #eee !important; border-bottom: 1px solid #ccc !important; padding: 4px 2px !important; font-size: 8px !important; }
+            #printable-member-history td { border-bottom: 1px solid #ccc !important; padding: 4px 2px !important; font-size: 9px !important; }
+            .print-hidden-member { display: none !important; }
+            .print-only-member { display: flex !important; color: black !important; }
+            @page { size: portrait; margin: 0.5cm; }
+          }
+        </style>
+
+        <div id="printable-member-history" class="card animate-fade-in" style="margin-bottom: 24px;">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
             <div>
               <h3 style="display: flex; align-items: center; gap: 8px; margin: 0; color: hsl(var(--accent-gold));">
                 <i data-lucide="book-open"></i> Histori Pemberian: ${member.name}
               </h3>
             </div>
-            <div style="background: rgba(var(--success-rgb), 0.1); padding: 6px 12px; border-radius: 8px; border: 1px solid hsl(var(--success));">
-              <span style="font-size: 0.8rem; color: hsl(var(--text-muted));">Total Seluruh Pemberian:</span><br>
-              <strong style="color: hsl(var(--success)); font-size: 1.1rem;">${formatRupiah(member.total)}</strong>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+              <button class="btn btn-secondary print-hidden-member" id="btn-print-member-history" style="padding: 4px 12px; font-size: 0.8rem; border-color: var(--border-color); color: hsl(var(--accent-blue)); display: inline-flex; align-items: center; gap: 6px;">
+                <i data-lucide="file-text" style="width:14px; height:14px;"></i> Export PDF
+              </button>
+              <div style="background: rgba(var(--success-rgb), 0.1); padding: 6px 12px; border-radius: 8px; border: 1px solid hsl(var(--success)); text-align: right;">
+                <span style="font-size: 0.8rem; color: hsl(var(--text-muted));">Total Seluruh Pemberian:</span><br>
+                <strong style="color: hsl(var(--success)); font-size: 1.1rem;">${formatRupiah(member.total)}</strong>
+              </div>
             </div>
           </div>
           <div class="card-body" style="padding: 0;">
@@ -5261,12 +5292,12 @@ function doGet(e) {
                     <th style="width: 50px; text-align: center;">NO</th>
                     <th>TANGGAL</th>
                     <th>NO. KUITANSI</th>
-                    <th style="text-align: right;">PERSEPULUHAN</th>
-                    <th style="text-align: right;">PERS. TERPADU</th>
-                    <th style="text-align: right;">PERS. KHUSUS</th>
-                    <th style="text-align: right;">PEMBANGUNAN</th>
-                    <th style="text-align: right;">LAIN-LAIN</th>
-                    <th style="text-align: right;">TOTAL</th>
+                    <th style="text-align: center;">PERSEPULUHAN</th>
+                    <th style="text-align: center;">PERS. TERPADU</th>
+                    <th style="text-align: center;">PERS. KHUSUS</th>
+                    <th style="text-align: center;">PEMBANGUNAN</th>
+                    <th style="text-align: center;">LAIN-LAIN</th>
+                    <th style="text-align: center;">TOTAL</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -5288,6 +5319,17 @@ function doGet(e) {
                 </tbody>
               </table>
             </div>
+            
+            <div class="print-only-member" style="display: none; margin-top: 20px; display: flex; justify-content: space-between; align-items: flex-start;">
+              <div style="font-size: 11px; font-style: italic; max-width: 60%; color: #333;">
+                <b>Note.</b> Terima kasih atas kontribusinya dalam memajukan penginjilan gereja kita, Tuhan memberkati.
+              </div>
+              <div style="text-align: center; min-width: 200px;">
+                <p style="margin-bottom: ${state.settings?.treasurerSignature ? '4px' : '60px'}; font-size: 11px; margin-top: 0;">Bendahara Gereja,</p>
+                ${state.settings?.treasurerSignature ? `<img src="${state.settings.treasurerSignature}" style="height: 100px; object-fit: contain; margin: 0 auto; display: block;" />` : ''}
+                <p style="font-weight: bold; font-size: 12px; margin: 0;">${state.settings?.treasurerName ? `<u>${state.settings.treasurerName}</u>` : '( ......................................... )'}</p>
+              </div>
+            </div>
           </div>
         </div>
       `;
@@ -5296,6 +5338,10 @@ function doGet(e) {
 
       container.querySelector('#btn-back-to-list')?.addEventListener('click', () => {
         renderDaftarPemberi(container, state, showToast);
+      });
+
+      container.querySelector('#btn-print-member-history')?.addEventListener('click', () => {
+        window.print();
       });
 
       return;
@@ -5499,6 +5545,11 @@ function doGet(e) {
             <div class="form-group"><label class="form-label">Nama Gereja / Jemaat</label><input type="text" class="form-control" id="st-church" value="${settings.churchName || ''}" placeholder="Cth: Jemaat Teratai Batam" required /></div>
             <div class="form-group"><label class="form-label">Nama Daerah / Konferens (DSKT)</label><input type="text" class="form-control" id="st-district" value="${settings.districtName || ''}" placeholder="Cth: DSKT - Daerah Sumatera Kawasan Tengah" required /></div>
             <div class="form-group"><label class="form-label">Nama Bendahara Jemaat</label><input type="text" class="form-control" id="st-treasurer" value="${settings.treasurerName || ''}" placeholder="Cth: Bpk. R. Situmorang" /></div>
+            <div class="form-group"><label class="form-label">Tanda Tangan Bendahara (Opsional)</label>
+              ${settings.treasurerSignature ? `<div style="margin-bottom:8px;"><img src="${settings.treasurerSignature}" style="max-height: 90px; border: 1px dashed var(--border-color); padding: 4px; background: white; border-radius: 4px;" /></div>` : ''}
+              <input type="file" class="form-control" id="st-treasurer-sign" accept="image/png, image/jpeg" />
+              <small style="color: hsl(var(--text-muted)); font-size: 0.75rem;">Pilih file gambar TTD (rasio proporsional, max 2MB). Disarankan berlatar transparan/putih.</small>
+            </div>
             <div class="form-group"><label class="form-label">Nama Ketua Jemaat</label><input type="text" class="form-control" id="st-ketua" value="${settings.ketuaJemaat || ''}" placeholder="Cth: Bpk. Gerhard Panjaitan" /></div>
             <div class="form-group"><label class="form-label">Nama Gembala Jemaat / Pendeta</label><input type="text" class="form-control" id="st-gembala" value="${settings.gembalaJemaat || ''}" placeholder="Cth: Pdt. Edisyaputra Ginting" /></div>
             <div style="border-top: 1px dashed var(--border-color); margin: 20px 0; padding-top: 16px;">
@@ -5575,12 +5626,36 @@ function doGet(e) {
       else if (window.BendaharaApp?.navigateTo) window.BendaharaApp.navigateTo('dashboard');
     });
 
-    container.querySelector('#form-settings')?.addEventListener('submit', (e) => {
+    container.querySelector('#form-settings')?.addEventListener('submit', async (e) => {
       e.preventDefault();
+      
+      let signatureBase64 = state.settings?.treasurerSignature || '';
+      const signInput = container.querySelector('#st-treasurer-sign');
+      
+      if (signInput && signInput.files && signInput.files.length > 0) {
+        const file = signInput.files[0];
+        if (file.size > 2 * 1024 * 1024) {
+          showToast("Ukuran gambar tanda tangan maksimal 2MB!", "danger");
+          return;
+        }
+        try {
+          signatureBase64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        } catch(err) {
+          showToast("Gagal membaca file gambar", "danger");
+          return;
+        }
+      }
+
       updateSettings({
         churchName: container.querySelector('#st-church').value,
         districtName: container.querySelector('#st-district').value,
         treasurerName: container.querySelector('#st-treasurer').value,
+        treasurerSignature: signatureBase64,
         ketuaJemaat: container.querySelector('#st-ketua').value,
         gembalaJemaat: container.querySelector('#st-gembala').value,
         saldoAwalGereja: Number(container.querySelector('#st-saldo-grj').value) || 0,
@@ -5589,7 +5664,7 @@ function doGet(e) {
         webhookUrl: container.querySelector('#st-webhook').value.trim(),
         autoPullOnLoad: container.querySelector('#st-autopull') ? container.querySelector('#st-autopull').checked : false
       });
-      showToast("Pengaturan identitas dan saldo awal berhasil disimpan!", "success");
+      showToast("Pengaturan identitas, tanda tangan, dan saldo awal berhasil disimpan!", "success");
       renderPengaturan(container, getState());
     });
 
