@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gmahk-bendahara-v6.7';
+const CACHE_NAME = 'gmahk-bendahara-v7.10';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -71,3 +71,4 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
+

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Aplikasi WebApp Bendahara Gereja Advent (GMAHK) - Universal Bundle
  * Dirancang berjalan di semua lingkungan (File/Double-click lokal, Google Drive, Hosting) tanpa terblokir CORS Module.
  */
@@ -275,109 +275,10 @@
       webhookUrl: "https://script.google.com/macros/s/AKfycbxvAaD62QxGOYAnr___hD3QYD-c4BVEAdzglB12Q5x72df_5wiwz8hapar1FrMcgMsG/exec",
       theme: "dark"
     },
-    members: [
-      { id: "M1", name: "Keluarga Bpk. H. Tampubolon", phone: "081234567801", address: "Jl. Teratai No. 12" },
-      { id: "M2", name: "Keluarga Bpk. S. Simanjuntak", phone: "081234567802", address: "Jl. Harapan No. 4" },
-      { id: "M3", name: "Ibu M. Sitorus", phone: "081234567803", address: "Jl. Damai No. 8" },
-      { id: "M4", name: "Keluarga Pdt. J. Sihombing", phone: "081234567804", address: "Pastory Gereja" },
-      { id: "M5", name: "Sdr. D. Panjaitan", phone: "081234567805", address: "Jl. Pemuda No. 22" },
-      { id: "M6", name: "Keluarga Bpk. R. Nainggolan", phone: "081234567806", address: "Jl. Advent No. 7" }
-    ],
-    pemasukan: [
-      {
-        id: "IN-20260704-01",
-        date: "2026-07-04",
-        sabbathName: "Sabat 1 - Juli 2026",
-        memberId: "M1",
-        memberName: "Keluarga Bpk. H. Tampubolon",
-        persepuluhan: 1500000,
-        persembahanTerpadu: 400000,
-        persembahanKhusus: 250000,
-        persembahanPembangunan: 500000,
-        lainLain: 0,
-        receiptNo: "KW-001",
-        notes: "Persembahan Sabat Pertama"
-      },
-      {
-        id: "IN-20260704-02",
-        date: "2026-07-04",
-        sabbathName: "Sabat 1 - Juli 2026",
-        memberId: "M2",
-        memberName: "Keluarga Bpk. S. Simanjuntak",
-        persepuluhan: 2000000,
-        persembahanTerpadu: 600000,
-        persembahanKhusus: 300000,
-        persembahanPembangunan: 1000000,
-        lainLain: 100000,
-        receiptNo: "KW-002",
-        notes: "Ucapan Syukur Keluarga"
-      },
-      {
-        id: "IN-20260711-01",
-        date: "2026-07-11",
-        sabbathName: "Sabat 2 - Juli 2026",
-        memberId: "M3",
-        memberName: "Ibu M. Sitorus",
-        persepuluhan: 800000,
-        persembahanTerpadu: 200000,
-        persembahanKhusus: 150000,
-        persembahanPembangunan: 200000,
-        lainLain: 0,
-        receiptNo: "KW-003",
-        notes: ""
-      }
-    ],
-    pengeluaran: [
-      {
-        id: "EX-20260705-01",
-        date: "2026-07-05",
-        departmentId: 10,
-        departmentName: "Listrik Gereja - PLN",
-        amount: 1250000,
-        description: "Pembayaran Tagihan Listrik PLN Bulan Juni 2026",
-        voucherNo: "VK-001",
-        isBuildingFund: false
-      },
-      {
-        id: "EX-20260706-01",
-        date: "2026-07-06",
-        departmentId: 5,
-        departmentName: "Koster Gereja",
-        amount: 2500000,
-        description: "Tunjangan Koster Gereja Bulan Juli 2026",
-        voucherNo: "VK-002",
-        isBuildingFund: false
-      },
-      {
-        id: "EX-20260708-01",
-        date: "2026-07-08",
-        departmentId: 4,
-        departmentName: "Perlawatan: Sakit,Lahir Dukacita,Pernikahan",
-        amount: 750000,
-        description: "Bingkisan & Perlawatan Anggota Jemaat Sakit di RS",
-        voucherNo: "VK-003",
-        isBuildingFund: false
-      },
-      {
-        id: "EX-20260710-01",
-        date: "2026-07-10",
-        departmentId: 19,
-        departmentName: "Sekolah Sabat Dewasa + Anak2",
-        amount: 600000,
-        description: "Pembelian Alat Peraga & Bahan Sekolah Sabat Anak",
-        voucherNo: "VK-004",
-        isBuildingFund: false
-      }
-    ],
-    kirimDskt: [
-      {
-        id: "TR-20260712-01",
-        date: "2026-07-12",
-        amount: 4000000,
-        referenceNo: "TRX-BNI-982173",
-        notes: "Setoran Persepuluhan & 50% Pers. Terpadu Sabat 1 & 2"
-      }
-    ],
+    members: [],
+    pemasukan: [],
+    pengeluaran: [],
+    kirimDskt: [],
     kirimPembangunan: []
   };
 

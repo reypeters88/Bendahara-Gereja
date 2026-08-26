@@ -32,7 +32,7 @@ export function renderPengeluaran(container, state, showToast) {
           <div class="form-group">
             <label class="form-label">Pilih Kategori Departemen / Pos Pengeluaran (30 Resmi)</label>
             <select class="form-control" id="ex-dept" required style="font-weight: 600;">
-              ${EXPENDITURE_DEPARTMENTS.map(d => `<option value="${d.id}">${d.id}. ${d.name} (${d.category})</option>`).join('')}
+              ${EXPENDITURE_DEPARTMENTS.map(d => `<option value="${d.id}">${d.id} - ${d.name} (${d.category})</option>`).join('')}
             </select>
           </div>
 
@@ -113,7 +113,7 @@ export function renderPengeluaran(container, state, showToast) {
     e.preventDefault();
     const deptSelect = container.querySelector('#ex-dept');
     const deptId = deptSelect.value;
-    const deptName = deptSelect.options[deptSelect.selectedIndex].text.replace(/^\d+\.\s*/, '').split(' (')[0];
+    const deptName = deptSelect.options[deptSelect.selectedIndex].text.split(' (')[0];
 
     const entry = {
       date: container.querySelector('#ex-date').value,

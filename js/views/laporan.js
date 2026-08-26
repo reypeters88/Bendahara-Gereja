@@ -862,15 +862,38 @@ export function renderLaporan(container, state, showToast, activeTab = null, tra
                   ${(() => {
                     const operasionalDepts = qData.deptsSummary.filter(d => d.total > 0 && !d.name.toLowerCase().includes('pembangunan') && !d.name.toLowerCase().includes('bangunan'));
                     if (operasionalDepts.length === 0) return '<tr><td colspan="6" style="padding: 16px 6px; text-align: center; color: hsl(var(--text-muted));">Belum ada pengeluaran operasional periode triwulan ini.</td></tr>';
-                    return operasionalDepts.map((d, i) => `
+                    return operasionalDepts.map((d, i) => {
+                      let realId = \`60\${String(i+1).padStart(2, '0')}\`;
+                      let cleanName = d.name;
+                      const match = d.name.match(/^(\\d{4})\\s*-\\s*(.*)/);
+                      if (match) {
+                        realId = match[1];
+                        cleanName = match[2];
+                      } else {
+                        // Fallback for old data, we use dynamic numbering if we can't find it
+                        // But since we want to try our best to match the names:
+                        if (d.name.toLowerCase().includes('poutluck') || d.name.toLowerCase().includes('konsumsi')) realId = '6022';
+                        else if (d.name.toLowerCase().includes('air minum')) realId = '6020';
+                        else if (d.name.toLowerCase().includes('listrik gereja')) realId = '6010';
+                        else if (d.name.toLowerCase().includes('listrik') && d.name.toLowerCase().includes('pastory')) realId = '6011';
+                        else if (d.name.toLowerCase().includes('telephone') || d.name.toLowerCase().includes('internet')) realId = '6012';
+                        else if (d.name.toLowerCase().includes('koster')) realId = '6005';
+                        else if (d.name.toLowerCase().includes('gembala')) realId = '6003';
+                        else if (d.name.toLowerCase().includes('sosial')) realId = '6001';
+                        else if (d.name.toLowerCase().includes('pelmas')) realId = '6002';
+                        else if (d.name.toLowerCase().includes('perlawatan')) realId = '6004';
+                      }
+                      
+                      return \`
                       <tr style="border-bottom: 1px dashed var(--border-color);">
-                        <td style="padding: 8px 6px; color: hsl(var(--text-secondary));">60${String(i+1).padStart(2, '0')}</td><td style="padding: 8px 6px;">${d.name}</td>
-                        <td style="text-align: right; font-weight: 600; color: hsl(var(--danger));">${formatAngka(d.amt1)}</td>
-                        <td style="text-align: right; font-weight: 600; color: hsl(var(--danger));">${formatAngka(d.amt2)}</td>
-                        <td style="text-align: right; font-weight: 600; color: hsl(var(--danger));">${formatAngka(d.amt3)}</td>
-                        <td style="text-align: right; font-weight: 700; color: hsl(var(--danger));">${formatAngka(d.total)}</td>
+                        <td style="padding: 8px 6px; color: hsl(var(--text-secondary));">\${realId}</td><td style="padding: 8px 6px;">\${cleanName}</td>
+                        <td style="text-align: right; font-weight: 600; color: hsl(var(--danger));">\${formatAngka(d.amt1)}</td>
+                        <td style="text-align: right; font-weight: 600; color: hsl(var(--danger));">\${formatAngka(d.amt2)}</td>
+                        <td style="text-align: right; font-weight: 600; color: hsl(var(--danger));">\${formatAngka(d.amt3)}</td>
+                        <td style="text-align: right; font-weight: 700; color: hsl(var(--danger));">\${formatAngka(d.total)}</td>
                       </tr>
-                    `).join('');
+                      \`;
+                    }).join('');
                   })()}
                   <tr style="border-bottom: 2px solid var(--border-highlight); background: rgba(239, 68, 68, 0.05);">
                     <td style="padding: 12px 6px; font-weight: 800; color: hsl(var(--danger));">6999</td><td style="padding: 12px 6px; font-weight: 800; color: hsl(var(--danger));">TOTAL PENGELUARAN OPERASIONAL (D)</td>
@@ -1377,7 +1400,25 @@ export function renderLaporan(container, state, showToast, activeTab = null, tra
             {"No. Akun": "6000", "Nama Akun / Uraian": "PENGELUARAN DANA OPERASIONAL", "Jumlah (Rp)": ""}
           ];
           deptListBulanan.forEach((d, i) => {
-            rows.push({"No. Akun": "60" + String(i+1).padStart(2, '0'), "Nama Akun / Uraian": d.name, "Jumlah (Rp)": d.amount});
+            let realId = "60" + String(i+1).padStart(2, '0');
+            let cleanName = d.name;
+            const match = d.name.match(/^(\d{4})\s*-\s*(.*)/);
+            if (match) {
+              realId = match[1];
+              cleanName = match[2];
+            } else {
+              if (d.name.toLowerCase().includes('poutluck') || d.name.toLowerCase().includes('konsumsi')) realId = '6022';
+              else if (d.name.toLowerCase().includes('air minum')) realId = '6020';
+              else if (d.name.toLowerCase().includes('listrik gereja')) realId = '6010';
+              else if (d.name.toLowerCase().includes('listrik') && d.name.toLowerCase().includes('pastory')) realId = '6011';
+              else if (d.name.toLowerCase().includes('telephone') || d.name.toLowerCase().includes('internet')) realId = '6012';
+              else if (d.name.toLowerCase().includes('koster')) realId = '6005';
+              else if (d.name.toLowerCase().includes('gembala')) realId = '6003';
+              else if (d.name.toLowerCase().includes('sosial')) realId = '6001';
+              else if (d.name.toLowerCase().includes('pelmas')) realId = '6002';
+              else if (d.name.toLowerCase().includes('perlawatan')) realId = '6004';
+            }
+            rows.push({"No. Akun": realId, "Nama Akun / Uraian": cleanName, "Jumlah (Rp)": d.amount});
           });
           if (deptListBulanan.length === 0) rows.push({"No. Akun": "", "Nama Akun / Uraian": "Belum ada pengeluaran operasional.", "Jumlah (Rp)": 0});
           rows.push({"No. Akun": "6999", "Nama Akun / Uraian": "TOTAL PENGELUARAN OPERASIONAL (D)", "Jumlah (Rp)": mData.keluarGereja});
@@ -1416,7 +1457,25 @@ export function renderLaporan(container, state, showToast, activeTab = null, tra
             {"No. Akun": "6000", "Nama Akun / Uraian": "PENGELUARAN DANA OPERASIONAL", [qData.m1.monthName]: "", [qData.m2.monthName]: "", [qData.m3.monthName]: "", "Total Triwulan": ""}
           ];
           operasionalDepts.forEach((d, i) => {
-            rows.push({"No. Akun": "60" + String(i+1).padStart(2, '0'), "Nama Akun / Uraian": d.name, [qData.m1.monthName]: d.amt1, [qData.m2.monthName]: d.amt2, [qData.m3.monthName]: d.amt3, "Total Triwulan": d.total});
+            let realId = "60" + String(i+1).padStart(2, '0');
+            let cleanName = d.name;
+            const match = d.name.match(/^(\d{4})\s*-\s*(.*)/);
+            if (match) {
+              realId = match[1];
+              cleanName = match[2];
+            } else {
+              if (d.name.toLowerCase().includes('poutluck') || d.name.toLowerCase().includes('konsumsi')) realId = '6022';
+              else if (d.name.toLowerCase().includes('air minum')) realId = '6020';
+              else if (d.name.toLowerCase().includes('listrik gereja')) realId = '6010';
+              else if (d.name.toLowerCase().includes('listrik') && d.name.toLowerCase().includes('pastory')) realId = '6011';
+              else if (d.name.toLowerCase().includes('telephone') || d.name.toLowerCase().includes('internet')) realId = '6012';
+              else if (d.name.toLowerCase().includes('koster')) realId = '6005';
+              else if (d.name.toLowerCase().includes('gembala')) realId = '6003';
+              else if (d.name.toLowerCase().includes('sosial')) realId = '6001';
+              else if (d.name.toLowerCase().includes('pelmas')) realId = '6002';
+              else if (d.name.toLowerCase().includes('perlawatan')) realId = '6004';
+            }
+            rows.push({"No. Akun": realId, "Nama Akun / Uraian": cleanName, [qData.m1.monthName]: d.amt1, [qData.m2.monthName]: d.amt2, [qData.m3.monthName]: d.amt3, "Total Triwulan": d.total});
           });
           if (operasionalDepts.length === 0) rows.push({"No. Akun": "", "Nama Akun / Uraian": "Belum ada pengeluaran operasional.", [qData.m1.monthName]: 0, [qData.m2.monthName]: 0, [qData.m3.monthName]: 0, "Total Triwulan": 0});
           rows.push({"No. Akun": "6999", "Nama Akun / Uraian": "TOTAL PENGELUARAN OPERASIONAL (D)", [qData.m1.monthName]: qData.m1.keluarGereja, [qData.m2.monthName]: qData.m2.keluarGereja, [qData.m3.monthName]: qData.m3.keluarGereja, "Total Triwulan": qData.qTotal.totalKeluar - qData.qTotal.keluarPemb});

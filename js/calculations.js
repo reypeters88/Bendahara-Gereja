@@ -70,7 +70,7 @@ export function calculateFinancialSummary(state) {
     const amount = Number(item.amount) || 0;
     totalPengeluaran += amount;
     // Jika kategori berhubungan langsung dengan proyek/pembangunan (opsional, secara default kas gereja)
-    if (item.isBuildingFund || item.departmentId === 24 || item.departmentName?.toLowerCase().includes('pembangunan')) {
+    if (item.isBuildingFund || item.departmentId === 6024 || item.departmentId === 24 || item.departmentName?.toLowerCase().includes('pembangunan')) {
       totalPengeluaranPembangunan += amount;
     } else {
       totalPengeluaranGereja += amount;

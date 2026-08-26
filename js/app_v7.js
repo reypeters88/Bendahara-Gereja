@@ -8,37 +8,43 @@
   // 1. DAFTAR DEPARTEMEN PENGELUARAN (30 POS RESMI)
   // ============================================================================
   const EXPENDITURE_DEPARTMENTS = [
-    { id: 1, name: "Sosial/Pendidikan Teratai", icon: "heart-handshake", category: "Sosial & Pendidikan" },
-    { id: 2, name: "Pelmas", icon: "users", category: "Pelayanan Masyarakat" },
-    { id: 3, name: "Gembala Jemaat/Pendeta", icon: "book-open", category: "Pelayanan Rohani" },
-    { id: 4, name: "Perlawatan: Sakit,Lahir Dukacita,Pernikahan", icon: "home", category: "Pelayanan Rohani" },
-    { id: 5, name: "Koster Gereja", icon: "key", category: "Operasional & Staf" },
-    { id: 6, name: "Administrator Gereja", icon: "briefcase", category: "Operasional & Staf" },
-    { id: 7, name: "Pemeliharaan Snd.System, AC Dll", icon: "tool", category: "Pemeliharaan Gedung" },
-    { id: 8, name: "Bendahara", icon: "dollar-sign", category: "Operasional & Staf" },
-    { id: 9, name: "Air - ATB", icon: "droplet", category: "Utilitas" },
-    { id: 10, name: "Listrik Gereja - PLN", icon: "zap", category: "Utilitas" },
-    { id: 11, name: "Listrik R.Pastory/R. Serbaguna - PLN", icon: "zap-off", category: "Utilitas" },
-    { id: 12, name: "Telephone /Kuota Internet/ Zoom", icon: "wifi", category: "Utilitas & Komunikasi" },
-    { id: 13, name: "Rumah Tangga", icon: "coffee", category: "Operasional & Staf" },
-    { id: 14, name: "P P + KPA +Retreat + Penginjilan", icon: "compass", category: "Pelayanan & Penginjilan" },
-    { id: 15, name: "Pathfinder + Acara jemaat", icon: "flag", category: "Pemuda & Anak" },
-    { id: 16, name: "Sekretaris", icon: "file-text", category: "Operasional & Staf" },
-    { id: 17, name: "Diakon", icon: "shield", category: "Pelayanan Rohani" },
-    { id: 18, name: "Komunikasi", icon: "share-2", category: "Utilitas & Komunikasi" },
-    { id: 19, name: "Sekolah Sabat Dewasa + Anak2", icon: "book", category: "Pelayanan Rohani" },
-    { id: 20, name: "Air Minum Gereja", icon: "cup-soda", category: "Utilitas" },
-    { id: 21, name: "Diakones", icon: "heart", category: "Pelayanan Rohani" },
-    { id: 22, name: "Poutluck + Konsumsi lainnya", icon: "utensils", category: "Acara & Konsumsi" },
-    { id: 23, name: "PA CMG", icon: "smile", category: "Pemuda & Anak" },
-    { id: 24, name: "Project/Maintenance/Others", icon: "hammer", category: "Pemeliharaan Gedung" },
-    { id: 25, name: "Pertarakan Kesehatan", icon: "activity", category: "Pelayanan & Penginjilan" },
-    { id: 26, name: "Musik & Biduan", icon: "music", category: "Pelayanan Rohani" },
-    { id: 27, name: "BWA", icon: "sun", category: "Pelayanan Rohani" },
-    { id: 28, name: "Proposal dari Jemaat lain", icon: "mail", category: "Sosial & Pendidikan" },
-    { id: 29, name: "Lingkungan Gereja kebersihan Lingkungan", icon: "trash-2", category: "Pemeliharaan Gedung" },
-    { id: 30, name: "Lain Lain", icon: "more-horizontal", category: "Lain-lain" }
+    { id: 6001, name: "Sosial/Pendidikan Teratai", icon: "heart-handshake", category: "Sosial & Pendidikan" },
+    { id: 6002, name: "Pelmas", icon: "users", category: "Pelayanan Masyarakat" },
+    { id: 6003, name: "Gembala Jemaat/Pendeta", icon: "book-open", category: "Pelayanan Rohani" },
+    { id: 6004, name: "Perlawatan: Sakit,Lahir Dukacita,Pernikahan", icon: "home", category: "Pelayanan Rohani" },
+    { id: 6005, name: "Koster Gereja", icon: "key", category: "Operasional & Staf" },
+    { id: 6006, name: "Administrator Gereja", icon: "briefcase", category: "Operasional & Staf" },
+    { id: 6007, name: "Pemeliharaan Snd.System, AC Dll", icon: "tool", category: "Pemeliharaan Gedung" },
+    { id: 6008, name: "Bendahara", icon: "dollar-sign", category: "Operasional & Staf" },
+    { id: 6009, name: "Air - ATB", icon: "droplet", category: "Utilitas" },
+    { id: 6010, name: "Listrik Gereja - PLN", icon: "zap", category: "Utilitas" },
+    { id: 6011, name: "Listrik R.Pastory/R. Serbaguna - PLN", icon: "zap", category: "Utilitas" },
+    { id: 6012, name: "Telephone /Kuota Internet/ Zoom", icon: "wifi", category: "Utilitas" },
+    { id: 6013, name: "Rumah Tangga", icon: "home", category: "Operasional & Staf" },
+    { id: 6014, name: "P P + KPA +Retreat + Penginjilan", icon: "star", category: "Kependetaan & Anak" },
+    { id: 6015, name: "Pathfinder + Acara jemaat", icon: "flag", category: "Kependetaan & Anak" },
+    { id: 6016, name: "Sekretaris", icon: "clipboard", category: "Operasional & Staf" },
+    { id: 6017, name: "Diakon", icon: "user", category: "Departemen Gereja" },
+    { id: 6018, name: "Komunikasi", icon: "radio", category: "Departemen Gereja" },
+    { id: 6019, name: "Sekolah Sabat Dewasa + Anak2", icon: "book", category: "Pelayanan Rohani" },
+    { id: 6020, name: "Air Minum Gereja", icon: "coffee", category: "Utilitas" },
+    { id: 6021, name: "Diakones", icon: "user-check", category: "Departemen Gereja" },
+    { id: 6022, name: "Poutluck + Konsumsi lainnya", icon: "utensils", category: "Operasional & Staf" },
+    { id: 6023, name: "PA CMG", icon: "users", category: "Departemen Gereja" },
+    { id: 6024, name: "Project/Maintenance/Others", icon: "hammer", category: "Pemeliharaan Gedung" },
+    { id: 6025, name: "Pertarakan Kesehatan", icon: "activity", category: "Kesehatan" },
+    { id: 6026, name: "Musik & Biduan", icon: "music", category: "Departemen Gereja" },
+    { id: 6027, name: "BWA", icon: "smile", category: "Kependetaan & Anak" },
+    { id: 6028, name: "Proposal dari Jemaat lain", icon: "file-text", category: "Sosial & Pendidikan" },
+    { id: 6029, name: "Lingkungan Gereja kebersihan Lingkungan", icon: "sun", category: "Pemeliharaan Gedung" },
+    { id: 6030, name: "Lain Lain", icon: "more-horizontal", category: "Lain-lain" }
   ];
+
+  function getDepartmentById(id) {
+    const numId = Number(id);
+    const searchId = (numId >= 1 && numId <= 30) ? 6000 + numId : (numId >= 6101 && numId <= 6130) ? numId - 100 : numId;
+    return EXPENDITURE_DEPARTMENTS.find(dep => dep.id === searchId) || EXPENDITURE_DEPARTMENTS[29];
+  }
 
   // ============================================================================
   // 2. PERHITUNGAN FINANSIAL & ALOKASI ARUS KAS
@@ -188,6 +194,27 @@
     return new Intl.NumberFormat('id-ID').format(val);
   }
 
+  function parseMonthRobust(dateStr) {
+    if (!dateStr) return '';
+    let d = new Date(dateStr);
+    if (isNaN(d.getTime())) {
+      d = new Date(dateStr.replace(/\s*\(.*\)$/, ''));
+    }
+    if (!isNaN(d.getTime())) {
+      return String(d.getMonth() + 1).padStart(2, '0');
+    }
+    const lowerDate = dateStr.toLowerCase();
+    const months = { jan:'01', feb:'02', mar:'03', apr:'04', mei:'05', may:'05', jun:'06', jul:'07', agu:'08', aug:'08', sep:'09', okt:'10', oct:'10', nov:'11', des:'12', dec:'12' };
+    for (const key in months) {
+      if (lowerDate.includes(key)) return months[key];
+    }
+    const parts = dateStr.split(/[-/]/);
+    if (parts.length >= 3) {
+      return parts[1].padStart(2, '0');
+    }
+    return '';
+  }
+
   function formatDateIndo(dateStr) {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
@@ -328,112 +355,13 @@
       saldoAwalGereja: 15000000,
       saldoAwalPembangunan: 45000000,
       saldoAwalDskt: 0,
-      webhookUrl: "https://script.google.com/macros/s/AKfycbxvAaD62QxGOYAnr___hD3QYD-c4BVEAdzglB12Q5x72df_5wiwz8hapar1FrMcgMsG/exec",
+      webhookUrl: "",
       theme: "dark"
     },
-    members: [
-      { id: "M1", name: "Keluarga Bpk. H. Tampubolon", phone: "081234567801", address: "Jl. Teratai No. 12" },
-      { id: "M2", name: "Keluarga Bpk. S. Simanjuntak", phone: "081234567802", address: "Jl. Harapan No. 4" },
-      { id: "M3", name: "Ibu M. Sitorus", phone: "081234567803", address: "Jl. Damai No. 8" },
-      { id: "M4", name: "Keluarga Pdt. J. Sihombing", phone: "081234567804", address: "Pastory Gereja" },
-      { id: "M5", name: "Sdr. D. Panjaitan", phone: "081234567805", address: "Jl. Pemuda No. 22" },
-      { id: "M6", name: "Keluarga Bpk. R. Nainggolan", phone: "081234567806", address: "Jl. Advent No. 7" }
-    ],
-    pemasukan: [
-      {
-        id: "IN-20260704-01",
-        date: "2026-07-04",
-        sabbathName: "Sabat 1 - Juli 2026",
-        memberId: "M1",
-        memberName: "Keluarga Bpk. H. Tampubolon",
-        persepuluhan: 1500000,
-        persembahanTerpadu: 400000,
-        persembahanKhusus: 250000,
-        persembahanPembangunan: 500000,
-        lainLain: 0,
-        receiptNo: "KW-001",
-        notes: "Persembahan Sabat Pertama"
-      },
-      {
-        id: "IN-20260704-02",
-        date: "2026-07-04",
-        sabbathName: "Sabat 1 - Juli 2026",
-        memberId: "M2",
-        memberName: "Keluarga Bpk. S. Simanjuntak",
-        persepuluhan: 2000000,
-        persembahanTerpadu: 600000,
-        persembahanKhusus: 300000,
-        persembahanPembangunan: 1000000,
-        lainLain: 100000,
-        receiptNo: "KW-002",
-        notes: "Ucapan Syukur Keluarga"
-      },
-      {
-        id: "IN-20260711-01",
-        date: "2026-07-11",
-        sabbathName: "Sabat 2 - Juli 2026",
-        memberId: "M3",
-        memberName: "Ibu M. Sitorus",
-        persepuluhan: 800000,
-        persembahanTerpadu: 200000,
-        persembahanKhusus: 150000,
-        persembahanPembangunan: 200000,
-        lainLain: 0,
-        receiptNo: "KW-003",
-        notes: ""
-      }
-    ],
-    pengeluaran: [
-      {
-        id: "EX-20260705-01",
-        date: "2026-07-05",
-        departmentId: 10,
-        departmentName: "Listrik Gereja - PLN",
-        amount: 1250000,
-        description: "Pembayaran Tagihan Listrik PLN Bulan Juni 2026",
-        voucherNo: "VK-001",
-        isBuildingFund: false
-      },
-      {
-        id: "EX-20260706-01",
-        date: "2026-07-06",
-        departmentId: 5,
-        departmentName: "Koster Gereja",
-        amount: 2500000,
-        description: "Tunjangan Koster Gereja Bulan Juli 2026",
-        voucherNo: "VK-002",
-        isBuildingFund: false
-      },
-      {
-        id: "EX-20260708-01",
-        date: "2026-07-08",
-        departmentId: 4,
-        departmentName: "Perlawatan: Sakit,Lahir Dukacita,Pernikahan",
-        amount: 750000,
-        description: "Bingkisan & Perlawatan Anggota Jemaat Sakit di RS",
-        voucherNo: "VK-003",
-        isBuildingFund: false
-      },
-      {
-        id: "EX-20260710-01",
-        date: "2026-07-10",
-        departmentId: 19,
-        departmentName: "Sekolah Sabat Dewasa + Anak2",
-        amount: 600000,
-        description: "Pembelian Alat Peraga & Bahan Sekolah Sabat Anak",
-        voucherNo: "VK-004",
-        isBuildingFund: false
-      }
-    ],
-    kirimDskt: [
-      {
-        id: "TR-20260712-01",
-        date: "2026-07-12",
-        amount: 4000000,
-        referenceNo: "TRX-BNI-982173",
-        notes: "Setoran Persepuluhan & 50% Pers. Terpadu Sabat 1 & 2"
-      }
-    ],
+    members: [],
+    pemasukan: [],
+    pengeluaran: [],
+    kirimDskt: [],
     kirimPembangunan: []
   };
 
@@ -445,18 +373,15 @@
       if (saved) {
         appState = JSON.parse(saved);
         appState.settings = { ...INITIAL_STATE.settings, ...appState.settings };
-        if (!appState.settings.webhookUrl) {
-          appState.settings.webhookUrl = "https://script.google.com/macros/s/AKfycbxvAaD62QxGOYAnr___hD3QYD-c4BVEAdzglB12Q5x72df_5wiwz8hapar1FrMcgMsG/exec";
+        if (appState.settings.churchName === "Gereja Advent Jemaat Pusat" || appState.settings.churchName === "Jemaat Pusat") {
+          appState.settings.churchName = "Jemaat Teratai Batam";
+          saveState();
         }
         appState.members = appState.members || INITIAL_STATE.members;
         appState.pemasukan = appState.pemasukan || INITIAL_STATE.pemasukan;
         appState.pengeluaran = appState.pengeluaran || INITIAL_STATE.pengeluaran;
         appState.kirimDskt = appState.kirimDskt || INITIAL_STATE.kirimDskt;
         appState.kirimPembangunan = appState.kirimPembangunan || INITIAL_STATE.kirimPembangunan;
-        if (appState.settings.churchName === "Gereja Advent Jemaat Pusat" || appState.settings.churchName === "Jemaat Pusat") {
-          appState.settings.churchName = "Jemaat Teratai Batam";
-          saveState();
-        }
       } else {
         appState = JSON.parse(JSON.stringify(INITIAL_STATE));
         saveState();
@@ -509,6 +434,21 @@
     appState.members.push(newMember);
     saveState();
     return newMember;
+  }
+
+  function updateMember(id, data) {
+    const idx = appState.members.findIndex(m => m.id === id);
+    if (idx !== -1) {
+      appState.members[idx] = { ...appState.members[idx], ...data };
+      saveState();
+      return appState.members[idx];
+    }
+    return null;
+  }
+
+  function deleteMember(id) {
+    appState.members = appState.members.filter(m => m.id !== id);
+    saveState();
   }
 
   function addMembersBulk(membersList) {
@@ -707,7 +647,8 @@
             pemasukan: stateData.pemasukan || [],
             pengeluaran: stateData.pengeluaran || [],
             kirimDskt: stateData.kirimDskt || [],
-            kirimPembangunan: stateData.kirimPembangunan || []
+            kirimPembangunan: stateData.kirimPembangunan || [],
+            members: stateData.members || []
           }
         })
       });
@@ -837,7 +778,18 @@ function setupSheets() {
     sheetPembangunan.setFrozenRows(1);
   }
   
-  return { sheetMasuk: sheetMasuk, sheetKeluar: sheetKeluar, sheetDskt: sheetDskt, sheetPembangunan: sheetPembangunan };
+  // 5. Siapkan Sheet Pemberi
+  var sheetPemberi = ss.getSheetByName("Sheet Pemberi");
+  if (!sheetPemberi) {
+    sheetPemberi = ss.insertSheet("Sheet Pemberi");
+    sheetPemberi.appendRow([
+      "ID Anggota", "Nama Pemberi / Anggota", "Nomor HP", "Alamat", "Tanggal Didaftarkan"
+    ]);
+    sheetPemberi.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#4b5563").setFontColor("#ffffff");
+    sheetPemberi.setFrozenRows(1);
+  }
+  
+  return { sheetMasuk: sheetMasuk, sheetKeluar: sheetKeluar, sheetDskt: sheetDskt, sheetPembangunan: sheetPembangunan, sheetPemberi: sheetPemberi };
 }
 
 function doPost(e) {
@@ -852,6 +804,7 @@ function doPost(e) {
       var pengeluaranList = payload.data.pengeluaran || [];
       var kirimDsktList = payload.data.kirimDskt || [];
       var kirimPembangunanList = payload.data.kirimPembangunan || [];
+      var membersList = payload.data.members || [];
 
       // Bersihkan data lama setelah baris header dan masukkan data baru
       if (sheets.sheetMasuk.getLastRow() > 1) {
@@ -912,6 +865,18 @@ function doPost(e) {
         sheets.sheetPembangunan.getRange(2, 1, rowsPb.length, 5).setValues(rowsPb);
       }
 
+      if (sheets.sheetPemberi.getLastRow() > 1) {
+        sheets.sheetPemberi.getRange(2, 1, sheets.sheetPemberi.getLastRow() - 1, 5).clearContent();
+      }
+      if (membersList.length > 0) {
+        var rowsPemberi = membersList.map(function(item) {
+          return [
+            item.id || "", item.name || "", item.phone || "", item.address || "", item.joinDate || ""
+          ];
+        });
+        sheets.sheetPemberi.getRange(2, 1, rowsPemberi.length, 5).setValues(rowsPemberi);
+      }
+
       return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Sinkronisasi berhasil disimpan ke Google Sheets!" }))
         .setMimeType(ContentService.MimeType.JSON);
     } else if (action === "pull_all") {
@@ -919,6 +884,7 @@ function doPost(e) {
       var dataPengeluaran = [];
       var dataKirimDskt = [];
       var dataKirimPembangunan = [];
+      var dataMembers = [];
       
       if (sheets.sheetMasuk.getLastRow() > 1) {
         var rows = sheets.sheetMasuk.getRange(2, 1, sheets.sheetMasuk.getLastRow() - 1, 14).getValues();
@@ -985,6 +951,20 @@ function doPost(e) {
           });
         }
       }
+
+      if (sheets.sheetPemberi.getLastRow() > 1) {
+        var rows = sheets.sheetPemberi.getRange(2, 1, sheets.sheetPemberi.getLastRow() - 1, 5).getValues();
+        for (var i = 0; i < rows.length; i++) {
+          if (!rows[i][0]) continue;
+          dataMembers.push({
+            id: String(rows[i][0]),
+            name: String(rows[i][1]),
+            phone: String(rows[i][2]),
+            address: String(rows[i][3]),
+            joinDate: String(rows[i][4])
+          });
+        }
+      }
       
       return ContentService.createTextOutput(JSON.stringify({ 
         status: "success", 
@@ -993,7 +973,8 @@ function doPost(e) {
           pemasukan: dataPemasukan,
           pengeluaran: dataPengeluaran,
           kirimDskt: dataKirimDskt,
-          kirimPembangunan: dataKirimPembangunan
+          kirimPembangunan: dataKirimPembangunan,
+          members: dataMembers
         }
       })).setMimeType(ContentService.MimeType.JSON);
     }
@@ -1015,6 +996,7 @@ function doGet(e) {
       var dataPengeluaran = [];
       var dataKirimDskt = [];
       var dataKirimPembangunan = [];
+      var dataMembers = [];
       
       if (sheets.sheetMasuk.getLastRow() > 1) {
         var rows = sheets.sheetMasuk.getRange(2, 1, sheets.sheetMasuk.getLastRow() - 1, 14).getValues();
@@ -1060,7 +1042,7 @@ function doGet(e) {
       return ContentService.createTextOutput(JSON.stringify({ 
         status: "success", 
         message: "Data berhasil ditarik dari Google Sheets!",
-        data: { pemasukan: dataPemasukan, pengeluaran: dataPengeluaran, kirimDskt: dataKirimDskt, kirimPembangunan: dataKirimPembangunan }
+        data: { pemasukan: dataPemasukan, pengeluaran: dataPengeluaran, kirimDskt: dataKirimDskt, kirimPembangunan: dataKirimPembangunan, members: dataMembers }
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
@@ -1518,6 +1500,16 @@ function doGet(e) {
               </div>
               <i data-lucide="chevron-right" style="width: 20px; height: 20px; opacity: 0.6; flex-shrink: 0; margin-left: auto;"></i>
             </button>
+            <button type="button" class="btn ${activeTab === 'history-keluar' ? 'btn-primary' : 'btn-secondary'}" id="tab-btn-history-keluar" style="flex: 1; min-width: 220px; justify-content: flex-start; padding: 14px 18px; border-radius: 12px;">
+              <i data-lucide="history" style="width: 22px; height: 22px; flex-shrink: 0; color: ${activeTab === 'history-keluar' ? '#fff' : 'hsl(var(--danger))'};"></i>
+              <div style="text-align: left; overflow: hidden;">
+                <div style="font-weight: 800; font-size: 0.98rem; line-height: 1.2;">4. History Pengeluaran</div>
+                <div style="font-size: 0.76rem; opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">
+                  ${pengeluaranList.length} Transaksi | Cari Pengeluaran
+                </div>
+              </div>
+              <i data-lucide="chevron-right" style="width: 20px; height: 20px; opacity: 0.6; flex-shrink: 0; margin-left: auto;"></i>
+            </button>
           </div>
         </div>
       ` : ''}
@@ -1545,6 +1537,9 @@ function doGet(e) {
     container.querySelector('#tab-btn-history-masuk')?.addEventListener('click', () => {
       renderJurnal(container, state, showToast, 'history-masuk');
     });
+    container.querySelector('#tab-btn-history-keluar')?.addEventListener('click', () => {
+      renderJurnal(container, state, showToast, 'history-keluar');
+    });
 
     if (activeTab === 'pengeluaran') {
       renderPengeluaran(subContainer, state);
@@ -1552,6 +1547,8 @@ function doGet(e) {
       renderPemasukan(subContainer, state);
     } else if (activeTab === 'history-masuk') {
       renderHistoryPemasukan(subContainer, state);
+    } else if (activeTab === 'history-keluar') {
+      renderHistoryPengeluaran(subContainer, state);
     }
 
     if (window.lucide) window.lucide.createIcons();
@@ -1675,7 +1672,7 @@ function doGet(e) {
     const pemasukanList = state.pemasukan || [];
     container.innerHTML = `
       <div class="glass-card" style="max-width: 1000px; margin: 0 auto;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; background: rgba(0,0,0,0.15); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
           <h3 style="font-size: 1.2rem; font-weight: 700; margin: 0;"><i data-lucide="history" style="color: hsl(var(--accent-blue)); margin-right: 8px;"></i> Riwayat Transaksi Pemasukan</h3>
           <div style="display: flex; gap: 10px; flex: 1; justify-content: flex-end; flex-wrap: wrap;">
             <select id="filter-month-pemasukan-tab" class="form-control" style="border-radius: 20px; font-size: 0.9rem; height: 42px; border: 1px solid var(--border-color); max-width: 150px; cursor: pointer;">
@@ -1712,16 +1709,37 @@ function doGet(e) {
           </div>
         </div>
 
-        <div class="table-responsive" style="max-height: 650px; overflow-y: auto;">
-          <table class="data-table">
+        <style>
+  .transaction-card:hover { background: rgba(255,255,255,0.02); }
+  .transaction-card.expanded { background: rgba(255,255,255,0.03); }
+  .transaction-card.expanded .transaction-details { display: block !important; }
+  .transaction-card.expanded .chevron-icon { transform: rotate(180deg); transition: transform 0.3s ease; }
+  .chevron-icon { transition: transform 0.3s ease; }
+</style>
+        <style>
+  .history-data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .history-data-table th { background: rgba(0,0,0,0.3); color: hsl(var(--accent-gold)); padding: 12px 10px; text-align: left; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+  .history-data-table td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; white-space: nowrap; }
+  .history-data-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+  .money-cell { display: flex; justify-content: space-between; align-items: center; width: 100%; min-width: 100px; }
+  .money-symbol { color: inherit; opacity: 0.7; font-size: 0.8rem; margin-right: 8px; }
+  .money-amount { font-weight: 700; text-align: right; flex: 1; }
+</style>
+        <div class="table-responsive" style="max-height: 650px; overflow-x: auto; overflow-y: auto;">
+          <table class="history-data-table">
             <thead>
               <tr>
-                <th style="width: 40px; text-align: center;"><input type="checkbox" id="check-all-receipts" /></th>
-                <th>Anggota</th>
-                <th>No. Kuitansi</th>
-                <th>Tanggal</th>
-                <th>Rincian Persembahan</th>
-                <th>Aksi</th>
+                <th style="width: 40px; text-align: center;"><input type="checkbox" id="check-all-receipts" style="transform: scale(1.2); cursor: pointer;" /></th>
+                <th>TANGGAL</th>
+                <th>NO. KUITANSI</th>
+                <th>NAMA ANGGOTA</th>
+                <th>PERSEPULUHAN (DSKT)</th>
+                <th>PERS. TERPADU (50/50)</th>
+                <th>PERS. KHUSUS (GEREJA)</th>
+                <th>PERS. PEMBANGUNAN</th>
+                <th>LAIN-LAIN</th>
+                <th>TOTAL MASUK</th>
+                <th style="text-align: center;">AKSI</th>
               </tr>
             </thead>
             <tbody>
@@ -1729,41 +1747,47 @@ function doGet(e) {
                 const calc = calculateIncomeBreakdown(item);
                 return `
                   <tr class="history-row-tab" data-date="${item.date}">
-                    <td style="text-align: center; vertical-align: middle;">
-                      <input type="checkbox" class="check-receipt-item" data-id="${item.id}" />
+                    <td style="text-align: center;">
+                      <input type="checkbox" class="check-receipt-item" data-id="${item.id}" style="transform: scale(1.2); cursor: pointer;" />
                     </td>
-                    <td style="vertical-align: top; width: 22%;">
-                      <div style="font-weight: 700; color: hsl(var(--accent-gold)); font-size: 1.05rem;">${item.memberName}</div>
-                      ${item.notes ? `<div style="font-size: 0.8rem; font-style: italic; color: hsl(var(--text-muted)); margin-top: 4px;">"${item.notes}"</div>` : ''}
+                    <td style="font-weight: 600; color: hsl(var(--text-primary));">${formatDateIndo(item.date)}</td>
+                    <td style="color: hsl(var(--text-muted));">${item.receiptNo || '-'}</td>
+                    <td style="font-weight: 700; color: hsl(var(--accent-gold));">${item.memberName}</td>
+                    <td style="color: hsl(var(--danger));">
+                      <div class="money-cell"><span class="money-symbol">Rp</span><span class="money-amount">${formatRupiah(calc.persepuluhan).replace('Rp ', '')}</span></div>
                     </td>
-                    <td style="vertical-align: top; width: 14%;">
-                      <div style="font-size: 0.9rem; font-weight: bold; color: hsl(var(--text-secondary));">${item.receiptNo}</div>
+                    <td style="color: hsl(var(--text-primary));">
+                      <div class="money-cell"><span class="money-symbol">Rp</span><span class="money-amount">${formatRupiah(calc.persembahanTerpadu).replace('Rp ', '')}</span></div>
                     </td>
-                    <td style="vertical-align: top; width: 12%;">
-                      <div style="font-size: 0.9rem; color: hsl(var(--text-muted));">${formatDateIndo(item.date)}</div>
+                    <td style="color: hsl(var(--success));">
+                      <div class="money-cell"><span class="money-symbol">Rp</span><span class="money-amount">${formatRupiah(calc.persembahanKhusus).replace('Rp ', '')}</span></div>
                     </td>
-                    <td style="vertical-align: top;">
-                      <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;"><span>Persepuluhan (DSKT):</span> <strong style="color: hsl(var(--danger));">${formatRupiah(item.persepuluhan)}</strong></div>
-                      <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;"><span>Pers. Terpadu (50/50):</span> <strong>${formatRupiah(item.persembahanTerpadu)}</strong></div>
-                      ${item.persembahanKhusus ? `<div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;"><span>Pers. Khusus (Grj):</span> <strong style="color: hsl(var(--success));">${formatRupiah(item.persembahanKhusus)}</strong></div>` : ''}
-                      ${item.persembahanPembangunan ? `<div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;"><span>Pers. Pembangunan:</span> <strong style="color: hsl(var(--accent-blue));">${formatRupiah(item.persembahanPembangunan)}</strong></div>` : ''}
-                      ${item.lainLain ? `<div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;"><span>Lain-lain:</span> <strong>${formatRupiah(item.lainLain)}</strong></div>` : ''}
-                      <div style="border-top: 1px dashed var(--border-color); margin-top: 8px; padding-top: 6px; display: flex; justify-content: space-between; font-weight: 800; color: hsl(var(--accent-gold)); font-size: 1rem;"><span>Total:</span> <span>${formatRupiah(calc.total)}</span></div>
+                    <td style="color: hsl(var(--accent-blue));">
+                      <div class="money-cell"><span class="money-symbol">Rp</span><span class="money-amount">${formatRupiah(calc.persembahanPembangunan).replace('Rp ', '')}</span></div>
                     </td>
-                    <td style="vertical-align: middle; text-align: center; width: 80px;">
-                      <button class="icon-btn btn-print-kw" data-id="${item.id}" title="Cetak Kuitansi Thermal" style="margin-bottom: 10px; color: hsl(var(--text-muted)); width: 40px; height: 40px;"><i data-lucide="printer"></i></button>
-                      <button class="icon-btn btn-edit-masuk-tab" data-id="${item.id}" title="Edit Transaksi" style="margin-bottom: 10px; color: hsl(var(--accent-gold)); width: 40px; height: 40px;"><i data-lucide="edit"></i></button>
-                      <button class="icon-btn btn-del-masuk-tab" data-id="${item.id}" title="Hapus Transaksi" style="color: hsl(var(--danger)); width: 40px; height: 40px;"><i data-lucide="trash-2"></i></button>
+                    <td style="color: hsl(var(--text-muted));">
+                      <div class="money-cell"><span class="money-symbol">Rp</span><span class="money-amount">${formatRupiah(calc.lainLain).replace('Rp ', '')}</span></div>
+                    </td>
+                    <td style="color: hsl(var(--success)); background: rgba(var(--success-rgb), 0.05);">
+                      <div class="money-cell"><span class="money-symbol">Rp</span><span class="money-amount">${formatRupiah(calc.total).replace('Rp ', '')}</span></div>
+                    </td>
+                    <td style="text-align: center;">
+                      <div style="display: flex; gap: 4px; justify-content: center;">
+                        <button class="icon-btn btn-print-kw" data-id="${item.id}" title="Cetak Kuitansi" style="width: 32px; height: 32px; color: hsl(var(--text-primary));"><i data-lucide="printer" style="width:16px;height:16px;"></i></button>
+                        <button class="icon-btn btn-edit-masuk-tab" data-id="${item.id}" title="Edit" style="width: 32px; height: 32px; color: hsl(var(--accent-gold));"><i data-lucide="edit" style="width:16px;height:16px;"></i></button>
+                        <button class="icon-btn btn-del-masuk-tab" data-id="${item.id}" title="Hapus" style="width: 32px; height: 32px; color: hsl(var(--danger));"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+                      </div>
                     </td>
                   </tr>
                 `;
               }).join('')}
-              ${pemasukanList.length === 0 ? `<tr><td colspan="6" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada data riwayat persembahan.</td></tr>` : ''}
+              ${pemasukanList.length === 0 ? `<tr><td colspan="11" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada riwayat transaksi Pemasukan.</td></tr>` : ''}
             </tbody>
           </table>
         </div>
       </div>
     `;
+
 
     if (window.lucide) window.lucide.createIcons();
 
@@ -1778,10 +1802,10 @@ function doGet(e) {
       const rows = container.querySelectorAll('.history-row-tab');
       rows.forEach(row => {
         const textToSearch = row.textContent.toLowerCase();
-        const rowDate = row.getAttribute('data-date') || ''; // format YYYY-MM-DD
-        const rowMonth = rowDate.split('-')[1] || '';
-        
-        const matchSearch = textToSearch.includes(searchVal);
+        const rowDate = row.getAttribute('data-date') || '';
+          const rowMonth = parseMonthRobust(rowDate);
+          
+          const matchSearch = textToSearch.includes(searchVal);
         const matchMonth = monthVal === '' || rowMonth === monthVal;
         
         if (matchSearch && matchMonth) {
@@ -2574,6 +2598,120 @@ function doGet(e) {
     });
   }
 
+  function renderHistoryPengeluaran(container, state) {
+    const pengeluaranList = state.pengeluaran || [];
+    container.innerHTML = `
+      <div class="glass-card" style="max-width: 1000px; margin: 0 auto;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; background: rgba(0,0,0,0.15); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+          <h3 style="font-size: 1.2rem; font-weight: 700; margin: 0;"><i data-lucide="history" style="color: hsl(var(--danger)); margin-right: 8px;"></i> Riwayat Transaksi Pengeluaran</h3>
+          <div style="display: flex; gap: 10px; flex: 1; justify-content: flex-end; flex-wrap: wrap;">
+            <select id="filter-month-pengeluaran-tab" class="form-control" style="border-radius: 20px; font-size: 0.9rem; height: 42px; border: 1px solid var(--border-color); max-width: 150px; cursor: pointer;">
+              <option value="">Semua Bulan</option>
+              <option value="01">Januari</option>
+              <option value="02">Februari</option>
+              <option value="03">Maret</option>
+              <option value="04">April</option>
+              <option value="05">Mei</option>
+              <option value="06">Juni</option>
+              <option value="07">Juli</option>
+              <option value="08">Agustus</option>
+              <option value="09">September</option>
+              <option value="10">Oktober</option>
+              <option value="11">November</option>
+              <option value="12">Desember</option>
+            </select>
+            <div style="position: relative; max-width: 300px; width: 100%;">
+              <i data-lucide="search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: hsl(var(--text-muted));"></i>
+              <input type="text" id="search-history-pengeluaran-tab" class="form-control" placeholder="Cari Departemen / Keterangan..." style="padding-left: 40px; border-radius: 20px; font-size: 0.9rem; height: 42px; border: 1px solid var(--border-color);" />
+            </div>
+          </div>
+        </div>
+        
+        <div class="table-responsive" style="max-height: 650px; overflow-x: auto; overflow-y: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border-color);">
+                <th style="padding: 12px 8px; text-align: left; color: hsl(var(--text-muted)); font-weight: 600;">TANGGAL</th>
+                <th style="padding: 12px 8px; text-align: left; color: hsl(var(--text-muted)); font-weight: 600;">NO. VOUCHER</th>
+                <th style="padding: 12px 8px; text-align: left; color: hsl(var(--text-muted)); font-weight: 600;">DEPARTEMEN</th>
+                <th style="padding: 12px 8px; text-align: left; color: hsl(var(--text-muted)); font-weight: 600;">KETERANGAN</th>
+                <th style="padding: 12px 8px; text-align: right; color: hsl(var(--text-muted)); font-weight: 600;">NOMINAL</th>
+                <th style="padding: 12px 8px; text-align: center; color: hsl(var(--text-muted)); font-weight: 600;">AKSI</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${pengeluaranList.map(item => `
+                <tr class="history-row-tab-out" data-date="${item.date}" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                  <td style="padding: 12px 8px; font-weight: 500;">${formatDateIndo(item.date)}</td>
+                  <td style="padding: 12px 8px; color: hsl(var(--text-muted));">${item.voucherNo || '-'}</td>
+                  <td style="padding: 12px 8px; color: hsl(var(--accent-gold)); font-weight: 600;">${item.department}</td>
+                  <td style="padding: 12px 8px; color: hsl(var(--text-primary));">${item.description}</td>
+                  <td style="padding: 12px 8px; text-align: right; font-weight: 700; color: hsl(var(--danger));">${formatRupiah(item.amount)}</td>
+                  <td style="padding: 12px 8px; text-align: center;">
+                    <div style="display: flex; gap: 6px; justify-content: center;">
+                      <button class="icon-btn btn-edit-keluar-tab" data-id="${item.id}" title="Edit" style="width: 32px; height: 32px; color: hsl(var(--accent-gold));"><i data-lucide="edit" style="width:16px;height:16px;"></i></button>
+                      <button class="icon-btn btn-del-keluar-tab" data-id="${item.id}" title="Hapus" style="width: 32px; height: 32px; color: hsl(var(--danger));"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+              ${pengeluaranList.length === 0 ? `<tr><td colspan="6" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada riwayat pengeluaran.</td></tr>` : ''}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    if (window.lucide) window.lucide.createIcons();
+
+    const searchInput = container.querySelector('#search-history-pengeluaran-tab');
+    const monthSelect = container.querySelector('#filter-month-pengeluaran-tab');
+    
+    function applyFilters() {
+      const searchVal = searchInput ? searchInput.value.toLowerCase() : '';
+      const monthVal = monthSelect ? monthSelect.value : '';
+      
+      const rows = container.querySelectorAll('.history-row-tab-out');
+      rows.forEach(row => {
+        const textToSearch = row.textContent.toLowerCase();
+        const rowDate = row.getAttribute('data-date') || '';
+          const rowMonth = parseMonthRobust(rowDate);
+          
+          const matchSearch = textToSearch.includes(searchVal);
+        const matchMonth = monthVal === '' || rowMonth === monthVal;
+        
+        if (matchSearch && matchMonth) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    if (monthSelect) monthSelect.addEventListener('change', applyFilters);
+
+    container.querySelectorAll('.btn-del-keluar-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        if (confirm("Apakah Anda yakin ingin menghapus catatan pengeluaran ini?")) {
+          deletePengeluaran(id);
+          showToast("Transaksi berhasil dihapus.", "success");
+          renderHistoryPengeluaran(container, getState());
+        }
+      });
+    });
+
+    container.querySelectorAll('.btn-edit-keluar-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        window.editTransactionId = id;
+        if (typeof navigateTo === 'function') navigateTo('pengeluaran');
+        else if (window.BendaharaApp?.navigateTo) window.BendaharaApp.navigateTo('pengeluaran');
+      });
+    });
+  }
+
   function renderPengeluaran(container, state) {
     const pengeluaranList = state.pengeluaran || [];
     
@@ -2608,7 +2746,7 @@ function doGet(e) {
                 <div class="form-group">
                   <label class="form-label">Pilih Kategori Departemen / Pos Pengeluaran (30 Resmi)</label>
                   <select class="form-control ex-dept" required style="font-weight: 600;">
-                    ${EXPENDITURE_DEPARTMENTS.map(d => `<option value="${d.id}" ${isEdit && editItem.departmentId === d.id ? 'selected' : ''}>${d.id}. ${d.name} (${d.category})</option>`).join('')}
+                    ${EXPENDITURE_DEPARTMENTS.map(d => `<option value="${d.id}" ${isEdit && editItem.departmentId === d.id ? 'selected' : ''}>${d.id} - ${d.name} (${d.category})</option>`).join('')}
                   </select>
                 </div>
                 <div class="form-group"><label class="form-label">Nominal Pengeluaran (Rp)</label><input type="number" class="form-control ex-amount" value="${amountVal}" placeholder="0" min="0" required style="font-size: 1.15rem; font-weight: 700; color: hsl(var(--danger));" /></div>
@@ -2633,39 +2771,43 @@ function doGet(e) {
             <h3 style="font-size: 1.15rem; font-weight: 700;">Riwayat Pengeluaran Terakhir</h3>
             <span class="badge" style="background: rgba(239,68,68,0.15); color: hsl(var(--danger));">Total: ${pengeluaranList.length} Transaksi</span>
           </div>
-          <div class="table-responsive" style="max-height: 650px; overflow-y: auto;">
-            <table class="data-table">
+          <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
               <thead>
-                <tr>
-                  <th style="width: 22%;">No Voucher</th>
-                  <th style="width: 15%;">Tanggal</th>
-                  <th style="width: 35%;">Departemen & Keterangan</th>
-                  <th style="width: 18%;">Nominal</th>
-                  <th style="width: 10%; text-align: center;">Aksi</th>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <th style="padding: 12px 8px; text-align: left; color: hsl(var(--text-muted)); font-weight: 600;">TANGGAL</th>
+                  <th style="padding: 12px 8px; text-align: left; color: hsl(var(--text-muted)); font-weight: 600;">NO. VOUCHER</th>
+                  <th style="padding: 12px 8px; text-align: left; color: hsl(var(--text-muted)); font-weight: 600;">DEPARTEMEN</th>
+                  <th style="padding: 12px 8px; text-align: left; color: hsl(var(--text-muted)); font-weight: 600;">KETERANGAN</th>
+                  <th style="padding: 12px 8px; text-align: right; color: hsl(var(--text-muted)); font-weight: 600;">NOMINAL</th>
+                  <th style="padding: 12px 8px; text-align: center; color: hsl(var(--text-muted)); font-weight: 600;">AKSI</th>
                 </tr>
               </thead>
               <tbody>
-                ${pengeluaranList.map(item => `
-                  <tr>
-                    <td>
-                      <div style="font-weight: bold;">${item.voucherNo}</div>
-                      ${item.isBuildingFund ? `<span class="badge badge-pembangunan" style="margin-top: 4px; padding: 2px 6px; font-size: 0.7rem;">Pembangunan</span>` : `<span class="badge badge-gereja" style="margin-top: 4px; padding: 2px 6px; font-size: 0.7rem;">Gereja</span>`}
-                    </td>
-                    <td><div style="font-size: 0.85rem; color: hsl(var(--text-secondary));">${formatDateIndo(item.date)}</div></td>
-                    <td><div style="font-weight: 700; color: hsl(var(--text-primary));">${item.departmentName}</div><div style="font-size: 0.85rem; color: hsl(var(--text-secondary)); margin-top: 2px;">${item.description}</div></td>
-                    <td style="font-weight: 800; color: hsl(var(--danger));">${formatRupiah(item.amount)}</td>
-                    <td>
-                      <div style="display: flex; justify-content: center; gap: 8px;">
-                        <button class="icon-btn btn-edit-keluar" data-id="${item.id}" title="Edit" style="color: hsl(var(--accent-gold));"><i data-lucide="edit"></i></button>
-                        <button class="icon-btn btn-del-keluar" data-id="${item.id}" title="Hapus" style="color: hsl(var(--danger));"><i data-lucide="trash-2"></i></button>
+                ${pengeluaranList.slice(0, 10).map(item => `
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 12px 8px; font-weight: 500;">${formatDateIndo(item.date)}</td>
+                    <td style="padding: 12px 8px; color: hsl(var(--text-muted));">${item.voucherNo || '-'}</td>
+                    <td style="padding: 12px 8px; color: hsl(var(--accent-gold)); font-weight: 600;">${item.department}</td>
+                    <td style="padding: 12px 8px; color: hsl(var(--text-primary));">${item.description}</td>
+                    <td style="padding: 12px 8px; text-align: right; font-weight: 700; color: hsl(var(--danger));">${formatRupiah(item.amount)}</td>
+                    <td style="padding: 12px 8px; text-align: center;">
+                      <div style="display: flex; gap: 6px; justify-content: center;">
+                        <button class="icon-btn btn-edit-keluar-inline" data-id="${item.id}" title="Edit" style="width: 28px; height: 28px; color: hsl(var(--accent-gold));"><i data-lucide="edit" style="width:14px;height:14px;"></i></button>
+                        <button class="icon-btn btn-delete-keluar-inline" data-id="${item.id}" title="Hapus" style="width: 28px; height: 28px; color: hsl(var(--danger));"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
                       </div>
                     </td>
                   </tr>
                 `).join('')}
-                ${pengeluaranList.length === 0 ? `<tr><td colspan="5" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada catatan pengeluaran.</td></tr>` : ''}
+                ${pengeluaranList.length === 0 ? `<tr><td colspan="6" style="text-align: center; padding: 30px; color: hsl(var(--text-muted));">Belum ada data pengeluaran</td></tr>` : ''}
               </tbody>
             </table>
           </div>
+          ${pengeluaranList.length > 10 ? `
+            <div style="text-align: center; margin-top: 16px;">
+              <button class="btn btn-secondary" id="btn-goto-full-history-out" style="font-size: 0.85rem; padding: 8px 16px;">Lihat Semua Riwayat</button>
+            </div>
+          ` : ''}
         </div>
       </div>
     `;
@@ -2692,7 +2834,7 @@ function doGet(e) {
             <div class="form-group">
               <label class="form-label">Pilih Kategori Departemen / Pos Pengeluaran (30 Resmi)</label>
               <select class="form-control ex-dept" required style="font-weight: 600;">
-                ${EXPENDITURE_DEPARTMENTS.map(d => `<option value="${d.id}">${d.id}. ${d.name} (${d.category})</option>`).join('')}
+                ${EXPENDITURE_DEPARTMENTS.map(d => `<option value="${d.id}">${d.id} - ${d.name} (${d.category})</option>`).join('')}
               </select>
             </div>
             <div class="form-group"><label class="form-label">Nominal Pengeluaran (Rp)</label><input type="number" class="form-control ex-amount" placeholder="0" min="0" required style="font-size: 1.15rem; font-weight: 700; color: hsl(var(--danger));" /></div>
@@ -2740,7 +2882,7 @@ function doGet(e) {
       items.forEach(itemEl => {
         const deptSelect = itemEl.querySelector('.ex-dept');
         const deptId = deptSelect.value;
-        const deptName = deptSelect.options[deptSelect.selectedIndex].text.replace(/^\d+\.\s*/, '').split(' (')[0];
+        const deptName = deptSelect.options[deptSelect.selectedIndex].text.split(' (')[0];
         
         const entry = {
           date: dateVal,
@@ -3435,13 +3577,15 @@ function doGet(e) {
       const m2 = getMonthBreakdown(mIndices[1]);
       const m3 = getMonthBreakdown(mIndices[2]);
 
-      const allDeptsSet = new Set([...Object.keys(m1.deptMap), ...Object.keys(m2.deptMap), ...Object.keys(m3.deptMap)]);
-      const deptsSummary = Array.from(allDeptsSet).map(name => {
-        const amt1 = m1.deptMap[name] || 0;
-        const amt2 = m2.deptMap[name] || 0;
-        const amt3 = m3.deptMap[name] || 0;
-        return { name, amt1, amt2, amt3, total: amt1 + amt2 + amt3 };
-      }).sort((a, b) => b.total - a.total);
+      const deptsSummary = EXPENDITURE_DEPARTMENTS.map(d => {
+        const newName = `${d.id} - ${d.name}`;
+        const old1 = d.name;
+        const old2 = `${d.id}. ${d.name}`;
+        const amt1 = (m1.deptMap[newName]||0) + (m1.deptMap[old1]||0) + (m1.deptMap[old2]||0);
+        const amt2 = (m2.deptMap[newName]||0) + (m2.deptMap[old1]||0) + (m2.deptMap[old2]||0);
+        const amt3 = (m3.deptMap[newName]||0) + (m3.deptMap[old1]||0) + (m3.deptMap[old2]||0);
+        return { name: newName, amt1, amt2, amt3, total: amt1 + amt2 + amt3 };
+      });
 
       const qTotal = {
         saldoAwalGereja: m1.saldoAwalGereja,
@@ -3643,7 +3787,7 @@ function doGet(e) {
             <table class="data-table">
               <thead>
                 <tr style="background: var(--table-header-bg); color: var(--table-header-text);">
-                  <th>Tanggal</th><th>No. Kuitansi</th><th>Anggota Jemaat</th><th>Persepuluhan (DSKT)</th><th>Pers. Terpadu (Total)</th><th>Pers. Khusus (Grj)</th><th>Pers. Pembangunan</th><th>Lain-lain</th><th>Total Pemasukan</th>
+                  <th id="th-sort-date-laporan" style="cursor: pointer; user-select: none;" title="Urutkan berdasarkan Tanggal">Tanggal <i data-lucide="arrow-up-down" style="width:14px; height:14px; margin-left: 4px; opacity:0.5;"></i></th><th id="th-sort-receipt-laporan" style="cursor: pointer; user-select: none;" title="Urutkan berdasarkan No. Kuitansi">No. Kuitansi <i data-lucide="arrow-up-down" style="width:14px; height:14px; margin-left: 4px; opacity:0.5;"></i></th><th>Anggota Jemaat</th><th>Persepuluhan (DSKT)</th><th>Pers. Terpadu (Total)</th><th>Pers. Khusus (Grj)</th><th>Pers. Pembangunan</th><th>Lain-lain</th><th>Total Pemasukan</th>
                 </tr>
               </thead>
               <tbody>
@@ -3912,17 +4056,40 @@ function doGet(e) {
                   <!-- PENGELUARAN DANA OPERASIONAL -->
                   <tr><td colspan="6" style="padding: 32px 6px 8px 6px;"><h4 style="font-size: 1rem; font-weight: 800; color: hsl(var(--danger)); margin: 0;">6000 - PENGELUARAN DANA OPERASIONAL</h4></td></tr>
                   ${(() => {
-                    const operasionalDepts = qData.deptsSummary.filter(d => d.total > 0 && !d.name.toLowerCase().includes('pembangunan') && !d.name.toLowerCase().includes('bangunan'));
+                    const operasionalDepts = qData.deptsSummary.filter(d => !d.name.toLowerCase().includes('pembangunan') && !d.name.toLowerCase().includes('bangunan'));
                     if (operasionalDepts.length === 0) return '<tr><td colspan="6" style="padding: 16px 6px; text-align: center; color: hsl(var(--text-muted));">Belum ada pengeluaran operasional periode triwulan ini.</td></tr>';
-                    return operasionalDepts.map((d, i) => `
+                    return operasionalDepts.map((d, i) => {
+                      let realId = `60${String(i+1).padStart(2, '0')}`;
+                      let cleanName = d.name;
+                      const match = d.name.match(/^(\d{4})\s*-\s*(.*)/);
+                      if (match) {
+                        realId = match[1];
+                        cleanName = match[2];
+                      } else {
+                        // Fallback for old data, we use dynamic numbering if we can't find it
+                        // But since we want to try our best to match the names:
+                        if (d.name.toLowerCase().includes('poutluck') || d.name.toLowerCase().includes('konsumsi')) realId = '6022';
+                        else if (d.name.toLowerCase().includes('air minum')) realId = '6020';
+                        else if (d.name.toLowerCase().includes('listrik gereja')) realId = '6010';
+                        else if (d.name.toLowerCase().includes('listrik') && d.name.toLowerCase().includes('pastory')) realId = '6011';
+                        else if (d.name.toLowerCase().includes('telephone') || d.name.toLowerCase().includes('internet')) realId = '6012';
+                        else if (d.name.toLowerCase().includes('koster')) realId = '6005';
+                        else if (d.name.toLowerCase().includes('gembala')) realId = '6003';
+                        else if (d.name.toLowerCase().includes('sosial')) realId = '6001';
+                        else if (d.name.toLowerCase().includes('pelmas')) realId = '6002';
+                        else if (d.name.toLowerCase().includes('perlawatan')) realId = '6004';
+                      }
+                      
+                      return `
                       <tr style="border-bottom: 1px dashed var(--border-color);">
-                        <td style="padding: 8px 6px; color: hsl(var(--text-secondary));">60${String(i+1).padStart(2, '0')}</td><td style="padding: 8px 6px;">${d.name}</td>
+                        <td style="padding: 8px 6px; color: hsl(var(--text-secondary));">${realId}</td><td style="padding: 8px 6px;">${cleanName}</td>
                         <td style="text-align: right; font-weight: 600; color: hsl(var(--danger));">${formatAngka(d.amt1)}</td>
                         <td style="text-align: right; font-weight: 600; color: hsl(var(--danger));">${formatAngka(d.amt2)}</td>
                         <td style="text-align: right; font-weight: 600; color: hsl(var(--danger));">${formatAngka(d.amt3)}</td>
                         <td style="text-align: right; font-weight: 700; color: hsl(var(--danger));">${formatAngka(d.total)}</td>
                       </tr>
-                    `).join('');
+                      `;
+                    }).join('');
                   })()}
                   <tr style="border-bottom: 2px solid var(--border-highlight); background: rgba(239, 68, 68, 0.05);">
                     <td style="padding: 12px 6px; font-weight: 800; color: hsl(var(--danger));">6999</td><td style="padding: 12px 6px; font-weight: 800; color: hsl(var(--danger));">TOTAL PENGELUARAN OPERASIONAL (D)</td>
@@ -3960,7 +4127,7 @@ function doGet(e) {
               name: d.name,
               amount: mIndexInQ === 0 ? d.amt1 : mIndexInQ === 1 ? d.amt2 : d.amt3,
               isPemb: d.name.toLowerCase().includes('pembangunan') || d.name.toLowerCase().includes('bangunan')
-            })).filter(d => d.amount > 0 && !d.isPemb);
+            })).filter(d => !d.isPemb);
 
             return `
             <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; overflow-x: auto; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
@@ -3998,7 +4165,27 @@ function doGet(e) {
 
                   <!-- PENGELUARAN DANA OPERASIONAL -->
                   <tr><td colspan="3" style="padding: 32px 8px 8px 8px;"><h4 style="font-size: 1.05rem; font-weight: 800; color: hsl(var(--danger)); margin: 0;">6000 - PENGELUARAN DANA OPERASIONAL</h4></td></tr>
-                  ${operasionalDepts.map((d, i) => `<tr style="border-bottom: 1px dashed var(--border-color);"><td style="padding: 8px; color: hsl(var(--text-secondary));">60${String(i+1).padStart(2, '0')}</td><td style="padding: 8px;">${d.name}</td><td style="text-align: right; font-weight: 600; color: hsl(var(--danger));">${formatAngka(d.amount)}</td></tr>`).join('')}
+                  ${operasionalDepts.map((d, i) => {
+                    let realId = `60${String(i+1).padStart(2, '0')}`;
+                    let cleanName = d.name;
+                    const match = d.name.match(/^(\d{4})\s*-\s*(.*)/);
+                    if (match) {
+                      realId = match[1];
+                      cleanName = match[2];
+                    } else {
+                      if (d.name.toLowerCase().includes('poutluck') || d.name.toLowerCase().includes('konsumsi')) realId = '6022';
+                      else if (d.name.toLowerCase().includes('air minum')) realId = '6020';
+                      else if (d.name.toLowerCase().includes('listrik gereja')) realId = '6010';
+                      else if (d.name.toLowerCase().includes('listrik') && d.name.toLowerCase().includes('pastory')) realId = '6011';
+                      else if (d.name.toLowerCase().includes('telephone') || d.name.toLowerCase().includes('internet')) realId = '6012';
+                      else if (d.name.toLowerCase().includes('koster')) realId = '6005';
+                      else if (d.name.toLowerCase().includes('gembala')) realId = '6003';
+                      else if (d.name.toLowerCase().includes('sosial')) realId = '6001';
+                      else if (d.name.toLowerCase().includes('pelmas')) realId = '6002';
+                      else if (d.name.toLowerCase().includes('perlawatan')) realId = '6004';
+                    }
+                    return `<tr style="border-bottom: 1px dashed var(--border-color);"><td style="padding: 8px; color: hsl(var(--text-secondary));">${realId}</td><td style="padding: 8px;">${cleanName}</td><td style="text-align: right; font-weight: 600; color: hsl(var(--danger));">${formatAngka(d.amount)}</td></tr>`;
+                  }).join('')}
                   ${operasionalDepts.length === 0 ? `<tr><td colspan="3" style="padding: 16px 8px; text-align: center; color: hsl(var(--text-muted));">Belum ada pengeluaran operasional periode ini.</td></tr>` : ''}
                   <tr style="border-bottom: 2px solid var(--border-highlight); background: rgba(239, 68, 68, 0.05);"><td style="padding: 12px 8px; font-weight: 800; color: hsl(var(--danger));">6999</td><td style="padding: 12px 8px; font-weight: 800; color: hsl(var(--danger));">TOTAL PENGELUARAN OPERASIONAL (D)</td><td style="text-align: right; color: hsl(var(--danger)); font-size: 1.05rem; font-weight: 800;">${formatAngka(mData.keluarGereja)}</td></tr>
 
@@ -4487,10 +4674,18 @@ function doGet(e) {
         let rows = [];
         
         if (!isQ) {
-          const mData = computeMonthlyData(state, curKeuYear, keuanganMonth);
+          const tempQIdx = Math.floor(keuanganMonth / 3) + 1;
+          const tempQData = computeQuarterlyData(state, curKeuYear, tempQIdx);
+          const mIndexInQ = keuanganMonth % 3;
+          const mData = mIndexInQ === 0 ? tempQData.m1 : mIndexInQ === 1 ? tempQData.m2 : tempQData.m3;
+          mData.monthName = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][keuanganMonth];
+          mData.deptsSummary = tempQData.deptsSummary.map(d => ({
+            name: d.name,
+            amount: mIndexInQ === 0 ? d.amt1 : mIndexInQ === 1 ? d.amt2 : d.amt3
+          }));
           const deptListBulanan = mData.deptsSummary.map(d => ({
             name: d.name, amount: d.amount, isPemb: d.name.toLowerCase().includes('pembangunan') || d.name.toLowerCase().includes('bangunan')
-          })).filter(d => d.amount > 0 && !d.isPemb);
+          })).filter(d => !d.isPemb);
           
           rows = [
             {"No. Akun": "3000", "Nama Akun / Uraian": "SALDO AWAL PERIODE (" + mData.monthName.toUpperCase() + ")", "Jumlah (Rp)": ""},
@@ -4516,7 +4711,25 @@ function doGet(e) {
             {"No. Akun": "6000", "Nama Akun / Uraian": "PENGELUARAN DANA OPERASIONAL", "Jumlah (Rp)": ""}
           ];
           deptListBulanan.forEach((d, i) => {
-            rows.push({"No. Akun": "60" + String(i+1).padStart(2, '0'), "Nama Akun / Uraian": d.name, "Jumlah (Rp)": d.amount});
+            let realId = `60${String(i+1).padStart(2, '0')}`;
+            let cleanName = d.name;
+            const match = d.name.match(/^(\d{4})\s*-\s*(.*)/);
+            if (match) {
+              realId = match[1];
+              cleanName = match[2];
+            } else {
+              if (d.name.toLowerCase().includes('poutluck') || d.name.toLowerCase().includes('konsumsi')) realId = '6022';
+              else if (d.name.toLowerCase().includes('air minum')) realId = '6020';
+              else if (d.name.toLowerCase().includes('listrik gereja')) realId = '6010';
+              else if (d.name.toLowerCase().includes('listrik') && d.name.toLowerCase().includes('pastory')) realId = '6011';
+              else if (d.name.toLowerCase().includes('telephone') || d.name.toLowerCase().includes('internet')) realId = '6012';
+              else if (d.name.toLowerCase().includes('koster')) realId = '6005';
+              else if (d.name.toLowerCase().includes('gembala')) realId = '6003';
+              else if (d.name.toLowerCase().includes('sosial')) realId = '6001';
+              else if (d.name.toLowerCase().includes('pelmas')) realId = '6002';
+              else if (d.name.toLowerCase().includes('perlawatan')) realId = '6004';
+            }
+            rows.push({"No. Akun": realId, "Nama Akun / Uraian": cleanName, "Jumlah (Rp)": d.amount});
           });
           if (deptListBulanan.length === 0) rows.push({"No. Akun": "", "Nama Akun / Uraian": "Belum ada pengeluaran operasional.", "Jumlah (Rp)": 0});
           rows.push({"No. Akun": "6999", "Nama Akun / Uraian": "TOTAL PENGELUARAN OPERASIONAL (D)", "Jumlah (Rp)": mData.keluarGereja});
@@ -4529,7 +4742,7 @@ function doGet(e) {
           
         } else {
           const qData = computeQuarterlyData(state, curKeuYear, curKeuQuarter);
-          const operasionalDepts = qData.deptsSummary.filter(d => d.total > 0 && !d.name.toLowerCase().includes('pembangunan') && !d.name.toLowerCase().includes('bangunan'));
+          const operasionalDepts = qData.deptsSummary.filter(d => !d.name.toLowerCase().includes('pembangunan') && !d.name.toLowerCase().includes('bangunan'));
           
           rows = [
             {"No. Akun": "3000", "Nama Akun / Uraian": "SALDO AWAL PERIODE", [qData.m1.monthName]: "", [qData.m2.monthName]: "", [qData.m3.monthName]: "", "Total Triwulan": ""},
@@ -4555,7 +4768,25 @@ function doGet(e) {
             {"No. Akun": "6000", "Nama Akun / Uraian": "PENGELUARAN DANA OPERASIONAL", [qData.m1.monthName]: "", [qData.m2.monthName]: "", [qData.m3.monthName]: "", "Total Triwulan": ""}
           ];
           operasionalDepts.forEach((d, i) => {
-            rows.push({"No. Akun": "60" + String(i+1).padStart(2, '0'), "Nama Akun / Uraian": d.name, [qData.m1.monthName]: d.amt1, [qData.m2.monthName]: d.amt2, [qData.m3.monthName]: d.amt3, "Total Triwulan": d.total});
+            let realId = `60${String(i+1).padStart(2, '0')}`;
+            let cleanName = d.name;
+            const match = d.name.match(/^(\d{4})\s*-\s*(.*)/);
+            if (match) {
+              realId = match[1];
+              cleanName = match[2];
+            } else {
+              if (d.name.toLowerCase().includes('poutluck') || d.name.toLowerCase().includes('konsumsi')) realId = '6022';
+              else if (d.name.toLowerCase().includes('air minum')) realId = '6020';
+              else if (d.name.toLowerCase().includes('listrik gereja')) realId = '6010';
+              else if (d.name.toLowerCase().includes('listrik') && d.name.toLowerCase().includes('pastory')) realId = '6011';
+              else if (d.name.toLowerCase().includes('telephone') || d.name.toLowerCase().includes('internet')) realId = '6012';
+              else if (d.name.toLowerCase().includes('koster')) realId = '6005';
+              else if (d.name.toLowerCase().includes('gembala')) realId = '6003';
+              else if (d.name.toLowerCase().includes('sosial')) realId = '6001';
+              else if (d.name.toLowerCase().includes('pelmas')) realId = '6002';
+              else if (d.name.toLowerCase().includes('perlawatan')) realId = '6004';
+            }
+            rows.push({"No. Akun": realId, "Nama Akun / Uraian": cleanName, [qData.m1.monthName]: d.amt1, [qData.m2.monthName]: d.amt2, [qData.m3.monthName]: d.amt3, "Total Triwulan": d.total});
           });
           if (operasionalDepts.length === 0) rows.push({"No. Akun": "", "Nama Akun / Uraian": "Belum ada pengeluaran operasional.", [qData.m1.monthName]: 0, [qData.m2.monthName]: 0, [qData.m3.monthName]: 0, "Total Triwulan": 0});
           rows.push({"No. Akun": "6999", "Nama Akun / Uraian": "TOTAL PENGELUARAN OPERASIONAL (D)", [qData.m1.monthName]: qData.m1.keluarGereja, [qData.m2.monthName]: qData.m2.keluarGereja, [qData.m3.monthName]: qData.m3.keluarGereja, "Total Triwulan": qData.qTotal.totalKeluar - qData.qTotal.keluarPemb});
@@ -4593,7 +4824,7 @@ function doGet(e) {
         const matchDate = (rowDate) => {
           if (!rowDate) return false;
           if (filterType === 'all') return true;
-          const d = new Date(rowDate);
+          let d = new Date(rowDate); if (isNaN(d.getTime())) d = new Date(rowDate.replace(/\s*\(.*\)$/, ''));
           if (isNaN(d.getTime())) {
              if (filterType === 'date' && filterDate && rowDate !== filterDate) return false;
              if (filterType === 'month' && filterMonth && !rowDate.startsWith(filterMonth)) return false;
@@ -4661,7 +4892,7 @@ function doGet(e) {
       const matchDate = (rowDate) => {
         if (!rowDate) return false;
         if (typeVal === 'all') return true;
-        const d = new Date(rowDate);
+        let d = new Date(rowDate); if (isNaN(d.getTime())) d = new Date(rowDate.replace(/\s*\(.*\)$/, ''));
         if (isNaN(d.getTime())) {
            if (typeVal === 'date' && dVal && rowDate !== dVal) return false;
            if (typeVal === 'month' && mVal && !rowDate.startsWith(mVal)) return false;
@@ -4740,7 +4971,59 @@ function doGet(e) {
       });
     }
     if (filterDate) filterDate.addEventListener('change', applyPemasukanFilter);
-    if (filterMonth) filterMonth.addEventListener('change', applyPemasukanFilter);
+        if (filterMonth) filterMonth.addEventListener('change', applyPemasukanFilter);
+    
+    // Sorting Logic for Laporan Pemasukan
+    window.sortLaporanPemasukanCol = null;
+    window.sortLaporanPemasukanDir = 'asc';
+    
+    const thDateLap = container.querySelector('#th-sort-date-laporan');
+    const thReceiptLap = container.querySelector('#th-sort-receipt-laporan');
+    
+    function sortPemasukanRowsLap(col) {
+       if (window.sortLaporanPemasukanCol === col) {
+           window.sortLaporanPemasukanDir = window.sortLaporanPemasukanDir === 'asc' ? 'desc' : 'asc';
+       } else {
+           window.sortLaporanPemasukanCol = col;
+           window.sortLaporanPemasukanDir = 'asc';
+       }
+       
+       if (!thDateLap || !thReceiptLap) return;
+       const tbody = thDateLap.closest('table').querySelector('tbody');
+       if (!tbody) return;
+       
+       const rows = Array.from(tbody.querySelectorAll('.pemasukan-row'));
+       
+       rows.sort((a,b) => {
+           if (col === 'date') {
+               let da = new Date(a.getAttribute('data-date'));
+               if (isNaN(da.getTime())) da = new Date(String(a.getAttribute('data-date')).replace(/\s*\(.*\)$/, ''));
+               let db = new Date(b.getAttribute('data-date'));
+               if (isNaN(db.getTime())) db = new Date(String(b.getAttribute('data-date')).replace(/\s*\(.*\)$/, ''));
+               const va = da.getTime() || 0;
+               const vb = db.getTime() || 0;
+               return window.sortLaporanPemasukanDir === 'asc' ? va - vb : vb - va;
+           } else {
+               const ra = a.querySelector('td:nth-child(2)').textContent.replace('No. ', '').trim();
+               const rb = b.querySelector('td:nth-child(2)').textContent.replace('No. ', '').trim();
+               return window.sortLaporanPemasukanDir === 'asc' ? ra.localeCompare(rb, undefined, {numeric: true}) : rb.localeCompare(ra, undefined, {numeric: true});
+           }
+       });
+       
+       rows.forEach(r => tbody.appendChild(r));
+       
+       const ascIcon = '<i data-lucide="arrow-up" style="width:14px; height:14px; margin-left:4px;"></i>';
+       const descIcon = '<i data-lucide="arrow-down" style="width:14px; height:14px; margin-left:4px;"></i>';
+       const defIcon = '<i data-lucide="arrow-up-down" style="width:14px; height:14px; margin-left:4px; opacity:0.5;"></i>';
+       
+       thDateLap.innerHTML = 'Tanggal ' + (col === 'date' ? (window.sortLaporanPemasukanDir === 'asc' ? ascIcon : descIcon) : defIcon);
+       thReceiptLap.innerHTML = 'No. Kuitansi ' + (col === 'receipt' ? (window.sortLaporanPemasukanDir === 'asc' ? ascIcon : descIcon) : defIcon);
+       
+       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    }
+    
+    if (thDateLap) thDateLap.addEventListener('click', () => sortPemasukanRowsLap('date'));
+    if (thReceiptLap) thReceiptLap.addEventListener('click', () => sortPemasukanRowsLap('receipt'));
   }
 
   function renderPersentase(container, state, showToast) {
@@ -4901,6 +5184,302 @@ function doGet(e) {
     container.querySelector('#btn-print-persentase')?.addEventListener('click', () => window.print());
   }
 
+  function extractMembersFromTransactions(state) {
+    let members = state.members || [];
+    const pemasukanList = state.pemasukan || [];
+    const uniqueNames = [...new Set(pemasukanList.filter(p => p.memberName && p.memberName.trim() && p.memberName.trim() !== '-').map(p => p.memberName.trim()))];
+    let hasNewMembers = false;
+    
+    uniqueNames.forEach(name => {
+      const exists = members.find(m => m.name.toLowerCase() === name.toLowerCase());
+      if (!exists) {
+        members.push({
+          id: "MBR-AUTO-" + Math.random().toString(36).substr(2, 9),
+          name: name,
+          phone: "-",
+          address: "-",
+          joinDate: new Date().toISOString().slice(0, 10)
+        });
+        hasNewMembers = true;
+      }
+    });
+
+    if (hasNewMembers) {
+      state.members = members;
+      localStorage.setItem('gmahk_bendahara_state_v1', JSON.stringify(state));
+    }
+  }
+
+  function renderDaftarPemberi(container, state, showToast, selectedMemberId = null) {
+    extractMembersFromTransactions(state);
+    let members = state.members || [];
+    const pemasukanList = state.pemasukan || [];
+
+    const augmentedMembers = members.map(m => {
+      const history = pemasukanList.filter(p => p.memberName && p.memberName.trim().toLowerCase() === m.name.trim().toLowerCase());
+      let total = 0;
+      history.forEach(p => {
+        const calc = calculateIncomeBreakdown(p);
+        total += calc.total;
+      });
+      return { ...m, history, total };
+    });
+
+    if (selectedMemberId) {
+      const member = augmentedMembers.find(m => m.id === selectedMemberId);
+      if (!member) {
+        return renderDaftarPemberi(container, state, showToast);
+      }
+      
+      const historySorted = member.history.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      container.innerHTML = `
+        <div style="margin-bottom: 16px;">
+          <button type="button" class="btn btn-secondary" id="btn-back-to-list" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--surface-subtle); color: hsl(var(--text-primary)); cursor: pointer;">
+            <i data-lucide="arrow-left" style="width: 18px; height: 18px; color: hsl(var(--accent-gold));"></i>
+            <span>Kembali ke Daftar Pemberi</span>
+          </button>
+        </div>
+
+        <div class="card animate-fade-in" style="margin-bottom: 24px;">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h3 style="display: flex; align-items: center; gap: 8px; margin: 0; color: hsl(var(--accent-gold));">
+                <i data-lucide="book-open"></i> Histori Pemberian: ${member.name}
+              </h3>
+            </div>
+            <div style="background: rgba(var(--success-rgb), 0.1); padding: 6px 12px; border-radius: 8px; border: 1px solid hsl(var(--success));">
+              <span style="font-size: 0.8rem; color: hsl(var(--text-muted));">Total Seluruh Pemberian:</span><br>
+              <strong style="color: hsl(var(--success)); font-size: 1.1rem;">${formatRupiah(member.total)}</strong>
+            </div>
+          </div>
+          <div class="card-body" style="padding: 0;">
+            <div class="table-responsive">
+              <table class="table" style="min-width: 900px; margin: 0; border: none; font-size: 0.85rem;">
+                <thead>
+                  <tr style="color: hsl(var(--accent-gold)); font-size: 0.75rem;">
+                    <th style="width: 50px; text-align: center;">NO</th>
+                    <th>TANGGAL</th>
+                    <th>NO. KUITANSI</th>
+                    <th style="text-align: right;">PERSEPULUHAN</th>
+                    <th style="text-align: right;">PERS. TERPADU</th>
+                    <th style="text-align: right;">PERS. KHUSUS</th>
+                    <th style="text-align: right;">PEMBANGUNAN</th>
+                    <th style="text-align: right;">LAIN-LAIN</th>
+                    <th style="text-align: right;">TOTAL</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${historySorted.length === 0 ? '<tr><td colspan="9" style="text-align: center; padding: 30px; color: hsl(var(--text-muted)); font-style: italic;">Belum ada histori transaksi untuk nama ini.</td></tr>' : 
+                  historySorted.map((h, i) => {
+                    const calc = calculateIncomeBreakdown(h);
+                    return '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">' +
+                      '<td style="text-align: center;">' + (i + 1) + '</td>' +
+                      '<td style="font-weight: 600;">' + formatDateIndo(h.date) + '</td>' +
+                      '<td style="color: hsl(var(--text-secondary));">' + (h.receiptNo || '-') + '</td>' +
+                      '<td style="text-align: right; color: hsl(var(--danger));">' + formatRupiah(calc.persepuluhan) + '</td>' +
+                      '<td style="text-align: right;">' + formatRupiah(calc.persembahanTerpadu) + '</td>' +
+                      '<td style="text-align: right; color: hsl(var(--success));">' + formatRupiah(calc.persembahanKhusus) + '</td>' +
+                      '<td style="text-align: right; color: hsl(var(--accent-blue));">' + formatRupiah(calc.persembahanPembangunan) + '</td>' +
+                      '<td style="text-align: right;">' + formatRupiah(calc.lainLain) + '</td>' +
+                      '<td style="text-align: right; font-weight: 700; color: hsl(var(--success));">' + formatRupiah(calc.total) + '</td>' +
+                    '</tr>';
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+
+      if (window.lucide) window.lucide.createIcons();
+
+      container.querySelector('#btn-back-to-list')?.addEventListener('click', () => {
+        renderDaftarPemberi(container, state, showToast);
+      });
+
+      return;
+    }
+    
+    container.innerHTML = `
+      <div style="margin-bottom: 16px;">
+        <button type="button" class="btn btn-secondary" id="btn-back-dashboard-pemberi" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--surface-subtle); color: hsl(var(--text-primary)); cursor: pointer;">
+          <i data-lucide="arrow-left" style="width: 18px; height: 18px; color: hsl(var(--accent-gold));"></i>
+          <span>Kembali ke Dashboard</span>
+        </button>
+      </div>
+
+      <div class="card animate-fade-in" style="margin-bottom: 24px;">
+        <div class="card-header">
+          <h3 style="display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="user-plus"></i> <span id="form-pemberi-title">Tambah Data Pemberi</span>
+          </h3>
+        </div>
+        <div class="card-body">
+          <form id="form-pemberi" style="display: flex; flex-direction: column; gap: 14px;">
+            <input type="hidden" id="pemberi-id" value="">
+            <div class="form-group">
+              <label>Nama Pemberi / Anggota <span style="color:hsl(var(--danger));">*</span></label>
+              <input type="text" id="pemberi-nama" class="form-control" required placeholder="Contoh: Bpk. Yohanes" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label>Nomor HP / WhatsApp (Opsional)</label>
+              <input type="text" id="pemberi-hp" class="form-control" placeholder="Contoh: 08123456789" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label>Alamat (Opsional)</label>
+              <textarea id="pemberi-alamat" class="form-control" rows="2" placeholder="Contoh: Perum. Anggrek Blok A No. 1"></textarea>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 8px;">
+              <button type="submit" class="btn btn-primary" style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 700;">
+                <i data-lucide="save" style="width: 18px; height: 18px;"></i> Simpan Data
+              </button>
+              <button type="button" id="btn-cancel-pemberi" class="btn btn-secondary" style="display: none; justify-content: center; align-items: center; gap: 8px; font-weight: 700;">
+                <i data-lucide="x" style="width: 18px; height: 18px;"></i> Batal
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card animate-fade-in" style="animation-delay: 0.1s;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="display: flex; align-items: center; gap: 8px; margin: 0;">
+            <i data-lucide="users"></i> Daftar Pemberi (${augmentedMembers.length})
+          </h3>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <div class="table-responsive">
+            <table class="table" style="min-width: 700px; margin: 0; border: none;">
+              <thead>
+                <tr>
+                  <th style="width: 50px; text-align: center;">No</th>
+                  <th>Nama Pemberi</th>
+                  <th>No. HP</th>
+                  <th style="text-align: right; min-width: 140px;">Total Pemberian</th>
+                  <th style="width: 120px; text-align: center;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${augmentedMembers.length === 0 ? '<tr><td colspan="5" style="text-align: center; padding: 30px; color: hsl(var(--text-muted)); font-style: italic;">Belum ada data pemberi. Silakan tambahkan di atas.</td></tr>' : 
+                augmentedMembers.sort((a,b) => b.total - a.total).map((m, i) => '<tr>' +
+                  '<td style="text-align: center;">' + (i + 1) + '</td>' +
+                  '<td style="font-weight: 700;">' +
+                    '<a href="#" class="view-history-link" data-id="' + m.id + '" style="color: hsl(var(--accent-gold)); text-decoration: none; border-bottom: 1px dashed hsl(var(--accent-gold)); transition: opacity 0.2s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">' + m.name + '</a>' +
+                  '</td>' +
+                  '<td>' + (m.phone !== '-' && m.phone ? m.phone : '<span style="color: hsl(var(--text-muted)); font-style: italic;">-</span>') + '</td>' +
+                  '<td style="text-align: right; font-weight: 700; color: hsl(var(--success));">' + formatRupiah(m.total) + '</td>' +
+                  '<td>' +
+                    '<div style="display: flex; gap: 6px; justify-content: center;">' +
+                      '<button type="button" class="icon-btn btn-edit-pemberi" data-id="' + m.id + '" title="Edit Data" style="background: rgba(59, 130, 246, 0.15); color: hsl(var(--accent-blue)); width: 34px; height: 34px;">' +
+                        '<i data-lucide="edit-3" style="width: 16px; height: 16px;"></i>' +
+                      '</button>' +
+                      '<button type="button" class="icon-btn btn-hapus-pemberi" data-id="' + m.id + '" title="Hapus Data" style="background: rgba(239, 68, 68, 0.15); color: hsl(var(--danger)); width: 34px; height: 34px;">' +
+                        '<i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>' +
+                      '</button>' +
+                    '</div>' +
+                  '</td>' +
+                '</tr>'
+                ).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    `;
+
+    if (window.lucide) window.lucide.createIcons();
+
+    container.querySelector('#btn-back-dashboard-pemberi')?.addEventListener('click', () => {
+      if (typeof navigateTo === 'function') navigateTo('dashboard');
+    });
+
+    const form = container.querySelector('#form-pemberi');
+    if (form) {
+      const inputId = container.querySelector('#pemberi-id');
+      const inputNama = container.querySelector('#pemberi-nama');
+      const inputHp = container.querySelector('#pemberi-hp');
+      const inputAlamat = container.querySelector('#pemberi-alamat');
+      const btnCancel = container.querySelector('#btn-cancel-pemberi');
+      const titleForm = container.querySelector('#form-pemberi-title');
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = inputId.value;
+        const data = {
+          name: inputNama.value.trim(),
+          phone: inputHp.value.trim() || '-',
+          address: inputAlamat.value.trim() || '-'
+        };
+        
+        if (!data.name) return;
+
+        if (id) {
+          updateMember(id, data);
+          if (showToast) showToast('Data pemberi berhasil diperbarui!', 'success');
+        } else {
+          addMember(data);
+          if (showToast) showToast('Data pemberi baru berhasil ditambahkan!', 'success');
+        }
+        
+        renderDaftarPemberi(container, getState(), showToast);
+      });
+
+      btnCancel.addEventListener('click', () => {
+        inputId.value = '';
+        inputNama.value = '';
+        inputHp.value = '';
+        inputAlamat.value = '';
+        titleForm.textContent = 'Tambah Data Pemberi';
+        btnCancel.style.display = 'none';
+      });
+    }
+
+    container.querySelectorAll('.view-history-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const id = link.getAttribute('data-id');
+        renderDaftarPemberi(container, state, showToast, id);
+      });
+    });
+
+    container.querySelectorAll('.btn-edit-pemberi').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const m = state.members.find(x => x.id === id);
+        if (m) {
+          const inputId = container.querySelector('#pemberi-id');
+          const inputNama = container.querySelector('#pemberi-nama');
+          const inputHp = container.querySelector('#pemberi-hp');
+          const inputAlamat = container.querySelector('#pemberi-alamat');
+          const btnCancel = container.querySelector('#btn-cancel-pemberi');
+          const titleForm = container.querySelector('#form-pemberi-title');
+          
+          inputId.value = m.id;
+          inputNama.value = m.name;
+          inputHp.value = m.phone === '-' ? '' : m.phone;
+          inputAlamat.value = m.address === '-' ? '' : m.address;
+          titleForm.textContent = 'Edit Data Pemberi';
+          btnCancel.style.display = 'flex';
+          inputNama.focus();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    });
+
+    container.querySelectorAll('.btn-hapus-pemberi').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const m = state.members.find(x => x.id === id);
+        if (m && confirm(`Apakah Anda yakin ingin menghapus data "${m.name}"?`)) {
+          deleteMember(id);
+          if (showToast) showToast('Data pemberi berhasil dihapus!', 'success');
+          renderDaftarPemberi(container, getState(), showToast);
+        }
+      });
+    });
+  }
+
   function renderPengaturan(container, state) {
     const settings = state.settings || {};
     const summary = calculateFinancialSummary(state);
@@ -4966,8 +5545,9 @@ function doGet(e) {
           <div style="border-top: 1px solid var(--border-color); padding-top: 20px;">
             <h4 style="font-size: 0.95rem; font-weight: 700; color: hsl(var(--text-primary)); margin-bottom: 12px;">Backup File Lokal (JSON Offline)</h4>
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-              <button type="button" class="btn btn-secondary" id="btn-download-json" style="flex: 1; justify-content: center; font-size: 0.85rem;"><i data-lucide="download"></i><span>Unduh File Backup JSON</span></button>
+              <button type="button" class="btn btn-secondary" id="btn-download-json" style="flex: 1; justify-content: center; font-size: 0.85rem;"><i data-lucide="download"></i><span>Unduh Backup JSON</span></button>
               <label class="btn btn-secondary" style="flex: 1; justify-content: center; font-size: 0.85rem; cursor: pointer; margin: 0;"><i data-lucide="upload"></i><span>Impor Data JSON</span><input type="file" id="input-import-json" accept=".json" style="display: none;" /></label>
+              <button type="button" class="btn btn-secondary" id="btn-reset-data" style="flex: 1; justify-content: center; font-size: 0.85rem; color: hsl(var(--danger)); border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.1);"><i data-lucide="trash-2"></i><span>Reset / Hapus Semua Data</span></button>
             </div>
           </div>
           <div style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 20px;">
@@ -5045,9 +5625,7 @@ function doGet(e) {
         state.pemasukan = res.data.pemasukan || [];
         state.pengeluaran = res.data.pengeluaran || [];
         state.kirimDskt = res.data.kirimDskt || [];
-        if (res.data.kirimPembangunan !== undefined) {
-          state.kirimPembangunan = res.data.kirimPembangunan;
-        }
+        state.kirimPembangunan = res.data.kirimPembangunan || [];
         localStorage.setItem('gmahk_bendahara_state_v1', JSON.stringify(state));
         showToast("Data berhasil ditarik dan diperbarui! Memuat ulang...", "success");
         setTimeout(() => window.location.reload(), 1500);
@@ -5085,6 +5663,14 @@ function doGet(e) {
         } catch (err) { showToast("Error membaca file JSON: " + err.message, "danger"); }
       };
       reader.readAsText(file);
+    });
+
+    container.querySelector('#btn-reset-data')?.addEventListener('click', () => {
+      if (confirm("PERINGATAN KERAS!\\n\\nApakah Anda yakin ingin MENGHAPUS SEMUA DATA TRANSAKSI dari aplikasi ini?\\nData yang sudah dihapus tidak bisa dikembalikan jika Anda belum mem-backupnya.\\n\\nTekan OK untuk melanjutkan hapus seluruh data.")) {
+        localStorage.removeItem('gmahk_bendahara_state_v1');
+        showToast("Semua data berhasil dikosongkan. Memuat ulang aplikasi...", "success");
+        setTimeout(() => window.location.reload(), 1500);
+      }
     });
 
     container.querySelector('#btn-download-csv-pemasukan')?.addEventListener('click', () => {
@@ -5269,6 +5855,10 @@ function doGet(e) {
       case 'pengaturan':
         updatePageTitle('Pengaturan Jemaat & Sinkronisasi Google Sheets');
         renderPengaturan(container, state, showToast);
+        break;
+      case 'daftar-pemberi':
+        updatePageTitle('Daftar Anggota & Pemberi');
+        renderDaftarPemberi(container, state, showToast);
         break;
       default:
         renderDashboard(container, state, navigateTo);
@@ -5496,3 +6086,7 @@ function doGet(e) {
     initApp();
   }
 })();
+
+
+
+
