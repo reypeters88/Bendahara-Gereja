@@ -5210,7 +5210,7 @@ function doGet(e) {
     }
   }
 
-  function renderDaftarPemberi(container, state, showToast, selectedMemberId = null) {
+  function renderDaftarPemberi(container, state, showToast, selectedMemberId = null, selectedYearFilter = 'all', isRekapView = false, rekapYearFilter = new Date().getFullYear().toString(), rekapKategoriFilter = 'all') {
     extractMembersFromTransactions(state);
     let members = state.members || [];
     const pemasukanList = state.pemasukan || [];
@@ -5225,13 +5225,275 @@ function doGet(e) {
       return { ...m, history, total };
     });
 
+    if (isRekapView) {
+      const allYears = [...new Set(pemasukanList.map(h => new Date(h.date).getFullYear()))].sort((a,b) => b - a);
+      if(allYears.length > 0 && !allYears.includes(parseInt(rekapYearFilter))) {
+         rekapYearFilter = allYears[0].toString();
+      }
+
+      const matrixData = [];
+      let grandTotalBulan = new Array(12).fill(0);
+      let grandTotalSemua = 0;
+
+      augmentedMembers.forEach(m => {
+        let monthly = new Array(12).fill(0);
+        let rowTotal = 0;
+        
+        m.history.forEach(h => {
+           if (new Date(h.date).getFullYear().toString() === rekapYearFilter) {
+              const monthIndex = new Date(h.date).getMonth();
+              const calc = calculateIncomeBreakdown(h);
+              let val = 0;
+              if (rekapKategoriFilter === 'all') val = calc.total;
+              else if (rekapKategoriFilter === 'perpuluhan') val = calc.persepuluhan;
+              else if (rekapKategoriFilter === 'terpadu') val = calc.persembahanTerpadu;
+              else if (rekapKategoriFilter === 'khusus') val = calc.persembahanKhusus;
+              else if (rekapKategoriFilter === 'pembangunan') val = calc.persembahanPembangunan;
+              else if (rekapKategoriFilter === 'lain') val = calc.lainLain;
+              
+              monthly[monthIndex] += val;
+              rowTotal += val;
+           }
+        });
+
+        if (rowTotal > 0) {
+           matrixData.push({ name: m.name, monthly, rowTotal });
+           for(let i=0; i<12; i++) grandTotalBulan[i] += monthly[i];
+           grandTotalSemua += rowTotal;
+        }
+      });
+      
+      matrixData.sort((a,b) => b.rowTotal - a.rowTotal);
+      const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+      
+      container.innerHTML = `
+        <div style="margin-bottom: 16px;">
+          <button type="button" class="btn btn-secondary" id="btn-back-to-list-from-rekap" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--surface-subtle); color: hsl(var(--text-primary)); cursor: pointer;">
+            <i data-lucide="arrow-left" style="width: 18px; height: 18px; color: hsl(var(--accent-gold));"></i>
+            <span>Kembali ke Daftar Pemberi</span>
+          </button>
+        </div>
+
+        <style>
+          .rekap-table { min-width: 1500px !important; white-space: nowrap; }
+          .rekap-table th, .rekap-table td { padding: 10px 16px !important; }
+          
+          /* Styles for A4 Landscape Rekap Preview */
+          #a4-rekap-wrapper .table-responsive { overflow: visible !important; margin: 0 !important; padding: 0 !important; }
+          #a4-rekap-wrapper table { 
+            font-size: 7.5px !important; 
+            min-width: 100% !important; 
+            width: 100% !important; 
+            word-wrap: break-word; 
+            margin-left: 0 !important;
+          }
+          #a4-rekap-wrapper th { background: #eee !important; border-bottom: 1px solid #ccc !important; padding: 4px 1px !important; font-size: 7.5px !important; }
+          #a4-rekap-wrapper td { border-bottom: 1px solid #ccc !important; padding: 4px 1px !important; font-size: 7.5px !important; text-align: right; }
+          #a4-rekap-wrapper td:nth-child(1), #a4-rekap-wrapper td:nth-child(2) { text-align: left; }
+
+          @media print {
+            body * { visibility: hidden; }
+            #a4-rekap-wrapper, #a4-rekap-wrapper * { visibility: visible; }
+            #a4-rekap-wrapper {
+              position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0;
+              box-shadow: none !important; border: none !important; max-width: 100%;
+            }
+            @page { size: A4 landscape; margin: 0.5cm; }
+          }
+        </style>
+
+        <div id="printable-rekap-history" class="card animate-fade-in" style="margin-bottom: 24px;">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+            <div>
+              <h3 style="display: flex; align-items: center; gap: 8px; margin: 0; color: hsl(var(--accent-gold));">
+                <i data-lucide="bar-chart-2"></i> Rekapitulasi Pemberian Tahunan
+              </h3>
+              <div class="print-hidden-rekap" style="margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <label for="rekap-year-filter" style="font-size: 0.85rem; color: hsl(var(--text-secondary)); font-weight: 600;">Tahun:</label>
+                  <select id="rekap-year-filter" class="form-control" style="width: auto; padding: 4px 32px 4px 12px; font-size: 0.85rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--surface-subtle); color: hsl(var(--text-primary));">
+                    ${allYears.map(year => `<option value="${year}" ${rekapYearFilter === year.toString() ? 'selected' : ''}>${year}</option>`).join('')}
+                  </select>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <label for="rekap-kategori-filter" style="font-size: 0.85rem; color: hsl(var(--text-secondary)); font-weight: 600;">Kategori:</label>
+                  <select id="rekap-kategori-filter" class="form-control" style="width: auto; padding: 4px 32px 4px 12px; font-size: 0.85rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--surface-subtle); color: hsl(var(--text-primary));">
+                    <option value="all" ${rekapKategoriFilter === 'all' ? 'selected' : ''}>Total Semua</option>
+                    <option value="perpuluhan" ${rekapKategoriFilter === 'perpuluhan' ? 'selected' : ''}>Persepuluhan</option>
+                    <option value="terpadu" ${rekapKategoriFilter === 'terpadu' ? 'selected' : ''}>Pers. Terpadu</option>
+                    <option value="khusus" ${rekapKategoriFilter === 'khusus' ? 'selected' : ''}>Pers. Khusus</option>
+                    <option value="pembangunan" ${rekapKategoriFilter === 'pembangunan' ? 'selected' : ''}>Pembangunan</option>
+                    <option value="lain" ${rekapKategoriFilter === 'lain' ? 'selected' : ''}>Lain-lain</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+              <button class="btn btn-secondary print-hidden-rekap" id="btn-preview-rekap-pdf" style="padding: 4px 12px; font-size: 0.8rem; border-color: var(--border-color); color: hsl(var(--accent-blue)); display: inline-flex; align-items: center; gap: 6px;">
+                <i data-lucide="file-text" style="width:14px; height:14px;"></i> Preview Cetak / PDF
+              </button>
+            </div>
+          </div>
+          <div class="card-body" style="padding: 0;">
+            <div class="table-responsive">
+              <table class="table rekap-table" style="margin: 0; border: none; font-size: 0.85rem;">
+                <thead>
+                  <tr style="color: hsl(var(--accent-gold)); font-size: 0.75rem;">
+                    <th style="width: 30px; text-align: center;">NO</th>
+                    <th style="min-width: 120px;">NAMA PEMBERI</th>
+                    ${months.map(m => `<th style="text-align: right;">${m}</th>`).join('')}
+                    <th style="text-align: right; color: hsl(var(--success));">TOTAL</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${matrixData.length === 0 ? '<tr><td colspan="15" style="text-align: center; padding: 30px; color: hsl(var(--text-muted)); font-style: italic;">Belum ada data pemberian untuk filter yang dipilih.</td></tr>' : 
+                  matrixData.map((row, i) => {
+                    return '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">' +
+                      '<td style="text-align: center;">' + (i + 1) + '</td>' +
+                      '<td style="font-weight: 600;">' + row.name + '</td>' +
+                      row.monthly.map(val => `<td style="text-align: right; ${val > 0 ? '' : 'color: transparent;'}">${formatRupiah(val)}</td>`).join('') +
+                      '<td style="text-align: right; font-weight: 700; color: hsl(var(--success));">' + formatRupiah(row.rowTotal) + '</td>' +
+                    '</tr>';
+                  }).join('')}
+                  ${matrixData.length > 0 ? `
+                  <tr style="background: rgba(var(--success-rgb), 0.1); font-weight: bold;">
+                    <td colspan="2" style="text-align: right;">GRAND TOTAL</td>
+                    ${grandTotalBulan.map(val => `<td style="text-align: right; color: hsl(var(--success));">${formatRupiah(val)}</td>`).join('')}
+                    <td style="text-align: right; font-size: 1.1em; color: hsl(var(--success));">${formatRupiah(grandTotalSemua)}</td>
+                  </tr>` : ''}
+                </tbody>
+              </table>
+            </div>
+            
+            <div class="print-only-rekap" style="display: none; margin-top: 20px; justify-content: space-between; align-items: flex-start;">
+              <div style="font-size: 11px; font-style: italic; max-width: 60%; color: #333;">
+                <b>Note.</b> Dokumen rekapitulasi tahunan.
+              </div>
+              <div style="text-align: center; min-width: 200px;">
+                <p style="margin-bottom: ${state.settings?.treasurerSignature ? '4px' : '60px'}; font-size: 11px; margin-top: 0;">Bendahara Gereja,</p>
+                ${state.settings?.treasurerSignature ? `<img src="${state.settings.treasurerSignature}" style="height: 100px; object-fit: contain; margin: 0 auto; display: block;" />` : ''}
+                <p style="font-weight: bold; font-size: 12px; margin: 0;">${state.settings?.treasurerName ? `<u>${state.settings.treasurerName}</u>` : '( ......................................... )'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- A4 Preview Modal Rekap -->
+        <div id="a4-rekap-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; overflow-y: auto; padding: 20px; align-items: flex-start; justify-content: center;">
+          <div style="display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 297mm;">
+            <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; position: sticky; top: 10px; z-index: 10000; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 12px 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
+              <button class="btn btn-secondary" id="btn-close-rekap-modal" style="font-size: 0.9rem; font-weight: 700; background: white; color: black;"><i data-lucide="x"></i> Tutup</button>
+              <button class="btn btn-primary" id="btn-do-print-rekap" style="font-size: 0.9rem; font-weight: 700;"><i data-lucide="printer"></i> Print Kertas</button>
+              <button class="btn btn-gold" id="btn-do-save-pdf-rekap" style="font-size: 0.9rem; font-weight: 700;"><i data-lucide="download"></i> Save PDF</button>
+            </div>
+            <div id="a4-rekap-wrapper" style="background: white; color: black; width: 297mm; min-height: 210mm; padding: 4mm; box-shadow: 0 5px 25px rgba(0,0,0,0.5); font-family: sans-serif; position: relative;">
+              <!-- Content will be injected here -->
+            </div>
+          </div>
+        </div>
+      `;
+
+      if (window.lucide) window.lucide.createIcons();
+
+      container.querySelector('#btn-back-to-list-from-rekap')?.addEventListener('click', () => {
+        renderDaftarPemberi(container, state, showToast);
+      });
+
+      container.querySelector('#rekap-year-filter')?.addEventListener('change', (e) => {
+        renderDaftarPemberi(container, state, showToast, null, 'all', true, e.target.value, rekapKategoriFilter);
+      });
+      container.querySelector('#rekap-kategori-filter')?.addEventListener('change', (e) => {
+        renderDaftarPemberi(container, state, showToast, null, 'all', true, rekapYearFilter, e.target.value);
+      });
+
+      const rekapModal = container.querySelector('#a4-rekap-modal');
+      const rekapWrapper = container.querySelector('#a4-rekap-wrapper');
+
+      container.querySelector('#btn-preview-rekap-pdf')?.addEventListener('click', () => {
+        const content = container.querySelector('#printable-rekap-history').cloneNode(true);
+        const headerBtn = content.querySelector('.print-hidden-rekap');
+        if(headerBtn) headerBtn.remove();
+        
+        const printOnly = content.querySelector('.print-only-rekap');
+        if(printOnly) printOnly.style.display = 'flex';
+        
+        content.style.color = 'black';
+        content.style.background = 'white';
+        content.style.boxShadow = 'none';
+        content.style.border = 'none';
+        content.style.marginBottom = '0';
+        
+        content.querySelectorAll('*').forEach(el => {
+          if (el.style) {
+            if(el.style.color && el.style.color.includes('hsl')) el.style.color = 'black';
+            if(el.tagName === 'TH' || el.tagName === 'TD') {
+              el.style.borderColor = '#ccc';
+              el.style.color = 'black';
+            }
+          }
+        });
+
+        const table = content.querySelector('table');
+        if (table) {
+          table.style.minWidth = '100%';
+          table.style.width = '100%';
+        }
+        const h3 = content.querySelector('h3');
+        if(h3) h3.style.color = 'black';
+
+        rekapWrapper.innerHTML = '';
+        rekapWrapper.appendChild(content);
+        rekapModal.style.display = 'flex';
+      });
+
+      container.querySelector('#btn-close-rekap-modal')?.addEventListener('click', () => {
+        rekapModal.style.display = 'none';
+      });
+
+      container.querySelector('#btn-do-print-rekap')?.addEventListener('click', () => {
+        window.print();
+      });
+
+      container.querySelector('#btn-do-save-pdf-rekap')?.addEventListener('click', () => {
+        if(typeof html2pdf === 'undefined') {
+          if(showToast) showToast('Library PDF sedang dimuat, coba lagi.', 'warning');
+          return;
+        }
+        if(showToast) showToast('Menyiapkan file PDF...', 'info');
+        const element = container.querySelector('#a4-rekap-wrapper');
+        const opt = {
+          margin:       4, // mm
+          filename:     `Rekap_Pemberian_${rekapYearFilter}_${rekapKategoriFilter}.pdf`,
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2, useCORS: true },
+          jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        };
+        html2pdf().set(opt).from(element).save().then(() => {
+          if(showToast) showToast('PDF berhasil di-download!', 'success');
+        });
+      });
+
+      return;
+    }
+
     if (selectedMemberId) {
       const member = augmentedMembers.find(m => m.id === selectedMemberId);
       if (!member) {
         return renderDaftarPemberi(container, state, showToast);
       }
       
-      const historySorted = member.history.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      let historySorted = member.history.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      const availableYears = [...new Set(historySorted.map(h => new Date(h.date).getFullYear()))].sort((a,b) => b - a);
+      if (selectedYearFilter !== 'all') {
+        historySorted = historySorted.filter(h => new Date(h.date).getFullYear().toString() === selectedYearFilter.toString());
+      }
+      
+      let filteredTotal = 0;
+      historySorted.forEach(h => {
+        const calc = calculateIncomeBreakdown(h);
+        filteredTotal += calc.total;
+      });
 
       container.innerHTML = `
         <div style="margin-bottom: 16px;">
@@ -5242,28 +5504,26 @@ function doGet(e) {
         </div>
 
         <style>
+          /* Styles for A4 preview and HTML2PDF rendering */
+          #a4-content-wrapper .table-responsive { overflow: visible !important; margin: 0 !important; padding: 0 !important; }
+          #a4-content-wrapper table { 
+            font-size: 7px !important; 
+            min-width: 100% !important; 
+            width: 100% !important; 
+            word-wrap: break-word; 
+            margin-left: 0 !important;
+          }
+          #a4-content-wrapper th { background: #eee !important; border-bottom: 1px solid #ccc !important; padding: 4px 1px !important; font-size: 7px !important; }
+          #a4-content-wrapper td { border-bottom: 1px solid #ccc !important; padding: 4px 1px !important; font-size: 7px !important; }
+
           @media print {
             body * { visibility: hidden; }
-            #printable-member-history, #printable-member-history * { visibility: visible; }
-            #printable-member-history { 
+            #a4-content-wrapper, #a4-content-wrapper * { visibility: visible; }
+            #a4-content-wrapper {
               position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0;
-              box-shadow: none; border: none; max-width: 100%; background: white !important; color: black !important;
+              box-shadow: none !important; border: none !important; max-width: 100%;
             }
-            #printable-member-history .table-responsive { overflow: visible !important; }
-            #printable-member-history .card-header h3 { color: black !important; }
-            #printable-member-history table { 
-              color: black !important; 
-              font-size: 9px !important; 
-              min-width: 100% !important; 
-              width: 100% !important; 
-              table-layout: fixed; 
-              word-wrap: break-word; 
-            }
-            #printable-member-history th { color: black !important; background: #eee !important; border-bottom: 1px solid #ccc !important; padding: 4px 2px !important; font-size: 8px !important; }
-            #printable-member-history td { border-bottom: 1px solid #ccc !important; padding: 4px 2px !important; font-size: 9px !important; }
-            .print-hidden-member { display: none !important; }
-            .print-only-member { display: flex !important; color: black !important; }
-            @page { size: portrait; margin: 0.5cm; }
+            @page { size: A4 portrait; margin: 0.5cm; }
           }
         </style>
 
@@ -5273,14 +5533,21 @@ function doGet(e) {
               <h3 style="display: flex; align-items: center; gap: 8px; margin: 0; color: hsl(var(--accent-gold));">
                 <i data-lucide="book-open"></i> Histori Pemberian: ${member.name}
               </h3>
+              <div class="print-hidden-member" style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
+                <label for="history-year-filter" style="font-size: 0.85rem; color: hsl(var(--text-secondary)); font-weight: 600;">Filter Tahun:</label>
+                <select id="history-year-filter" class="form-control" style="width: auto; padding: 4px 32px 4px 12px; font-size: 0.85rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--surface-subtle); color: hsl(var(--text-primary));">
+                  <option value="all" ${selectedYearFilter === 'all' ? 'selected' : ''}>Semua Tahun</option>
+                  ${availableYears.map(year => `<option value="${year}" ${selectedYearFilter === year.toString() ? 'selected' : ''}>${year}</option>`).join('')}
+                </select>
+              </div>
             </div>
             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-              <button class="btn btn-secondary print-hidden-member" id="btn-print-member-history" style="padding: 4px 12px; font-size: 0.8rem; border-color: var(--border-color); color: hsl(var(--accent-blue)); display: inline-flex; align-items: center; gap: 6px;">
-                <i data-lucide="file-text" style="width:14px; height:14px;"></i> Export PDF
+              <button class="btn btn-secondary print-hidden-member" id="btn-preview-pdf" style="padding: 4px 12px; font-size: 0.8rem; border-color: var(--border-color); color: hsl(var(--accent-blue)); display: inline-flex; align-items: center; gap: 6px;">
+                <i data-lucide="file-text" style="width:14px; height:14px;"></i> Preview Cetak / PDF
               </button>
               <div style="background: rgba(var(--success-rgb), 0.1); padding: 6px 12px; border-radius: 8px; border: 1px solid hsl(var(--success)); text-align: right;">
-                <span style="font-size: 0.8rem; color: hsl(var(--text-muted));">Total Seluruh Pemberian:</span><br>
-                <strong style="color: hsl(var(--success)); font-size: 1.1rem;">${formatRupiah(member.total)}</strong>
+                <span style="font-size: 0.8rem; color: hsl(var(--text-muted));">Total Pemberian ${selectedYearFilter === 'all' ? '(Semua)' : `(${selectedYearFilter})`}:</span><br>
+                <strong style="color: hsl(var(--success)); font-size: 1.1rem;">${formatRupiah(filteredTotal)}</strong>
               </div>
             </div>
           </div>
@@ -5320,7 +5587,7 @@ function doGet(e) {
               </table>
             </div>
             
-            <div class="print-only-member" style="display: none; margin-top: 20px; display: flex; justify-content: space-between; align-items: flex-start;">
+            <div class="print-only-member" style="display: none; margin-top: 20px; justify-content: space-between; align-items: flex-start;">
               <div style="font-size: 11px; font-style: italic; max-width: 60%; color: #333;">
                 <b>Note.</b> Terima kasih atas kontribusinya dalam memajukan penginjilan gereja kita, Tuhan memberkati.
               </div>
@@ -5332,6 +5599,20 @@ function doGet(e) {
             </div>
           </div>
         </div>
+
+        <!-- A4 Preview Modal -->
+        <div id="a4-preview-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; overflow-y: auto; padding: 20px; align-items: flex-start; justify-content: center;">
+          <div style="display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 210mm;">
+            <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; position: sticky; top: 10px; z-index: 10000; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 12px 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
+              <button class="btn btn-secondary" id="btn-close-modal" style="font-size: 0.9rem; font-weight: 700; background: white; color: black;"><i data-lucide="x"></i> Tutup</button>
+              <button class="btn btn-primary" id="btn-do-print" style="font-size: 0.9rem; font-weight: 700;"><i data-lucide="printer"></i> Print Kertas</button>
+              <button class="btn btn-gold" id="btn-do-save-pdf" style="font-size: 0.9rem; font-weight: 700;"><i data-lucide="download"></i> Save PDF</button>
+            </div>
+            <div id="a4-content-wrapper" style="background: white; color: black; width: 210mm; min-height: 297mm; padding: 2mm; box-shadow: 0 5px 25px rgba(0,0,0,0.5); font-family: sans-serif; position: relative;">
+              <!-- Content will be injected here -->
+            </div>
+          </div>
+        </div>
       `;
 
       if (window.lucide) window.lucide.createIcons();
@@ -5340,101 +5621,225 @@ function doGet(e) {
         renderDaftarPemberi(container, state, showToast);
       });
 
-      container.querySelector('#btn-print-member-history')?.addEventListener('click', () => {
+      container.querySelector('#history-year-filter')?.addEventListener('change', (e) => {
+        renderDaftarPemberi(container, state, showToast, selectedMemberId, e.target.value);
+      });
+
+      const modal = container.querySelector('#a4-preview-modal');
+      const wrapper = container.querySelector('#a4-content-wrapper');
+
+      container.querySelector('#btn-preview-pdf')?.addEventListener('click', () => {
+        const content = container.querySelector('#printable-member-history').cloneNode(true);
+        
+        // Buang tombol preview di hasil clone
+        const headerBtn = content.querySelector('.print-hidden-member');
+        if(headerBtn) headerBtn.remove();
+        
+        // Tampilkan elemen khusus print (seperti ttd)
+        const printOnly = content.querySelector('.print-only-member');
+        if(printOnly) printOnly.style.display = 'flex';
+        
+        // Paksa warna jadi hitam di A4
+        content.style.color = 'black';
+        content.style.background = 'white';
+        content.style.boxShadow = 'none';
+        content.style.border = 'none';
+        content.style.marginBottom = '0';
+        
+        content.querySelectorAll('*').forEach(el => {
+          if (el.style) {
+            // override colors for print
+            if(el.style.color && el.style.color.includes('hsl')) el.style.color = 'black';
+            if(el.tagName === 'TH' || el.tagName === 'TD') {
+              el.style.borderColor = '#ccc';
+              el.style.color = 'black';
+            }
+          }
+        });
+
+        // Paksa tabel tidak lebih lebar dari pembungkusnya
+        const table = content.querySelector('table');
+        if (table) {
+          table.style.minWidth = '100%';
+          table.style.width = '100%';
+        }
+
+        // Judul hitam
+        const h3 = content.querySelector('h3');
+        if(h3) h3.style.color = 'black';
+
+        wrapper.innerHTML = '';
+        wrapper.appendChild(content);
+        modal.style.display = 'flex';
+      });
+
+      container.querySelector('#btn-close-modal')?.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+
+      container.querySelector('#btn-do-print')?.addEventListener('click', () => {
         window.print();
+      });
+
+      container.querySelector('#btn-do-save-pdf')?.addEventListener('click', () => {
+        if(typeof html2pdf === 'undefined') {
+          if(showToast) showToast('Library PDF sedang dimuat, coba lagi.', 'warning');
+          return;
+        }
+        if(showToast) showToast('Menyiapkan file PDF...', 'info');
+        const element = container.querySelector('#a4-content-wrapper');
+        const opt = {
+          margin:       2, // mm
+          filename:     `Histori_Pemberian_${member.name.replace(/[^a-z0-9]/gi, '_')}.pdf`,
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2, useCORS: true },
+          jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save().then(() => {
+          if(showToast) showToast('PDF berhasil di-download!', 'success');
+        });
       });
 
       return;
     }
     
     container.innerHTML = `
-      <div style="margin-bottom: 16px;">
-        <button type="button" class="btn btn-secondary" id="btn-back-dashboard-pemberi" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--surface-subtle); color: hsl(var(--text-primary)); cursor: pointer;">
-          <i data-lucide="arrow-left" style="width: 18px; height: 18px; color: hsl(var(--accent-gold));"></i>
-          <span>Kembali ke Dashboard</span>
-        </button>
+      <div id="daftar-pemberi-main">
+        <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <button type="button" class="btn btn-secondary" id="btn-back-dashboard-pemberi" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--surface-subtle); color: hsl(var(--text-primary)); cursor: pointer;">
+            <i data-lucide="arrow-left" style="width: 18px; height: 18px; color: hsl(var(--accent-gold));"></i>
+            <span>Kembali ke Dashboard</span>
+          </button>
+          
+          <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+            <button type="button" class="btn btn-gold" id="btn-show-rekap-tahunan" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 700;">
+              <i data-lucide="bar-chart-2" style="width: 18px; height: 18px;"></i>
+              <span>Lihat Rekap Tahunan</span>
+            </button>
+            <button type="button" class="btn btn-primary" id="btn-show-add-pemberi" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 700;">
+              <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+              <span>Tambah Data Pemberi</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card animate-fade-in" style="animation-delay: 0.1s;">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="display: flex; align-items: center; gap: 8px; margin: 0;">
+              <i data-lucide="users"></i> Daftar Pemberi (${augmentedMembers.length})
+            </h3>
+          </div>
+          <div class="card-body" style="padding: 0;">
+            <div class="table-responsive">
+              <table class="table" style="min-width: 700px; margin: 0; border: none;">
+                <thead>
+                  <tr>
+                    <th style="width: 50px; text-align: center;">No</th>
+                    <th>Nama Pemberi</th>
+                    <th>No. HP</th>
+                    <th style="text-align: right; min-width: 140px;">Total Pemberian</th>
+                    <th style="width: 120px; text-align: center;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${augmentedMembers.length === 0 ? '<tr><td colspan="5" style="text-align: center; padding: 30px; color: hsl(var(--text-muted)); font-style: italic;">Belum ada data pemberi. Silakan tambahkan di atas.</td></tr>' : 
+                  augmentedMembers.sort((a,b) => b.total - a.total).map((m, i) => '<tr>' +
+                    '<td style="text-align: center;">' + (i + 1) + '</td>' +
+                    '<td style="font-weight: 700;">' +
+                      '<a href="#" class="view-history-link" data-id="' + m.id + '" style="color: hsl(var(--accent-gold)); text-decoration: none; border-bottom: 1px dashed hsl(var(--accent-gold)); transition: opacity 0.2s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">' + m.name + '</a>' +
+                    '</td>' +
+                    '<td>' + (m.phone !== '-' && m.phone ? m.phone : '<span style="color: hsl(var(--text-muted)); font-style: italic;">-</span>') + '</td>' +
+                    '<td style="text-align: right; font-weight: 700; color: hsl(var(--success));">' + formatRupiah(m.total) + '</td>' +
+                    '<td>' +
+                      '<div style="display: flex; gap: 6px; justify-content: center;">' +
+                        '<button type="button" class="icon-btn btn-edit-pemberi" data-id="' + m.id + '" title="Edit Data" style="background: rgba(59, 130, 246, 0.15); color: hsl(var(--accent-blue)); width: 34px; height: 34px;">' +
+                          '<i data-lucide="edit-3" style="width: 16px; height: 16px;"></i>' +
+                        '</button>' +
+                        '<button type="button" class="icon-btn btn-hapus-pemberi" data-id="' + m.id + '" title="Hapus Data" style="background: rgba(239, 68, 68, 0.15); color: hsl(var(--danger)); width: 34px; height: 34px;">' +
+                          '<i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>' +
+                        '</button>' +
+                      '</div>' +
+                    '</td>' +
+                  '</tr>'
+                  ).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="card animate-fade-in" style="margin-bottom: 24px;">
-        <div class="card-header">
-          <h3 style="display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="user-plus"></i> <span id="form-pemberi-title">Tambah Data Pemberi</span>
-          </h3>
+      <div id="daftar-pemberi-form" style="display: none;">
+        <div style="margin-bottom: 16px;">
+          <button type="button" class="btn btn-secondary" id="btn-back-to-list-main" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--surface-subtle); color: hsl(var(--text-primary)); cursor: pointer;">
+            <i data-lucide="arrow-left" style="width: 18px; height: 18px; color: hsl(var(--accent-gold));"></i>
+            <span>Kembali ke Daftar</span>
+          </button>
         </div>
-        <div class="card-body">
-          <form id="form-pemberi" style="display: flex; flex-direction: column; gap: 14px;">
-            <input type="hidden" id="pemberi-id" value="">
-            <div class="form-group">
-              <label>Nama Pemberi / Anggota <span style="color:hsl(var(--danger));">*</span></label>
-              <input type="text" id="pemberi-nama" class="form-control" required placeholder="Contoh: Bpk. Yohanes" autocomplete="off">
-            </div>
-            <div class="form-group">
-              <label>Nomor HP / WhatsApp (Opsional)</label>
-              <input type="text" id="pemberi-hp" class="form-control" placeholder="Contoh: 08123456789" autocomplete="off">
-            </div>
-            <div class="form-group">
-              <label>Alamat (Opsional)</label>
-              <textarea id="pemberi-alamat" class="form-control" rows="2" placeholder="Contoh: Perum. Anggrek Blok A No. 1"></textarea>
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 8px;">
-              <button type="submit" class="btn btn-primary" style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 700;">
-                <i data-lucide="save" style="width: 18px; height: 18px;"></i> Simpan Data
-              </button>
-              <button type="button" id="btn-cancel-pemberi" class="btn btn-secondary" style="display: none; justify-content: center; align-items: center; gap: 8px; font-weight: 700;">
-                <i data-lucide="x" style="width: 18px; height: 18px;"></i> Batal
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
 
-      <div class="card animate-fade-in" style="animation-delay: 0.1s;">
-        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-          <h3 style="display: flex; align-items: center; gap: 8px; margin: 0;">
-            <i data-lucide="users"></i> Daftar Pemberi (${augmentedMembers.length})
-          </h3>
-        </div>
-        <div class="card-body" style="padding: 0;">
-          <div class="table-responsive">
-            <table class="table" style="min-width: 700px; margin: 0; border: none;">
-              <thead>
-                <tr>
-                  <th style="width: 50px; text-align: center;">No</th>
-                  <th>Nama Pemberi</th>
-                  <th>No. HP</th>
-                  <th style="text-align: right; min-width: 140px;">Total Pemberian</th>
-                  <th style="width: 120px; text-align: center;">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${augmentedMembers.length === 0 ? '<tr><td colspan="5" style="text-align: center; padding: 30px; color: hsl(var(--text-muted)); font-style: italic;">Belum ada data pemberi. Silakan tambahkan di atas.</td></tr>' : 
-                augmentedMembers.sort((a,b) => b.total - a.total).map((m, i) => '<tr>' +
-                  '<td style="text-align: center;">' + (i + 1) + '</td>' +
-                  '<td style="font-weight: 700;">' +
-                    '<a href="#" class="view-history-link" data-id="' + m.id + '" style="color: hsl(var(--accent-gold)); text-decoration: none; border-bottom: 1px dashed hsl(var(--accent-gold)); transition: opacity 0.2s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">' + m.name + '</a>' +
-                  '</td>' +
-                  '<td>' + (m.phone !== '-' && m.phone ? m.phone : '<span style="color: hsl(var(--text-muted)); font-style: italic;">-</span>') + '</td>' +
-                  '<td style="text-align: right; font-weight: 700; color: hsl(var(--success));">' + formatRupiah(m.total) + '</td>' +
-                  '<td>' +
-                    '<div style="display: flex; gap: 6px; justify-content: center;">' +
-                      '<button type="button" class="icon-btn btn-edit-pemberi" data-id="' + m.id + '" title="Edit Data" style="background: rgba(59, 130, 246, 0.15); color: hsl(var(--accent-blue)); width: 34px; height: 34px;">' +
-                        '<i data-lucide="edit-3" style="width: 16px; height: 16px;"></i>' +
-                      '</button>' +
-                      '<button type="button" class="icon-btn btn-hapus-pemberi" data-id="' + m.id + '" title="Hapus Data" style="background: rgba(239, 68, 68, 0.15); color: hsl(var(--danger)); width: 34px; height: 34px;">' +
-                        '<i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>' +
-                      '</button>' +
-                    '</div>' +
-                  '</td>' +
-                '</tr>'
-                ).join('')}
-              </tbody>
-            </table>
+        <div class="card animate-fade-in" style="margin-bottom: 24px;">
+          <div class="card-header">
+            <h3 style="display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="user-plus"></i> <span id="form-pemberi-title">Tambah Data Pemberi</span>
+            </h3>
+          </div>
+          <div class="card-body">
+            <form id="form-pemberi" style="display: flex; flex-direction: column; gap: 14px;">
+              <input type="hidden" id="pemberi-id" value="">
+              <div class="form-group">
+                <label>Nama Pemberi / Anggota <span style="color:hsl(var(--danger));">*</span></label>
+                <input type="text" id="pemberi-nama" class="form-control" required placeholder="Contoh: Bpk. Yohanes" autocomplete="off">
+              </div>
+              <div class="form-group">
+                <label>Nomor HP / WhatsApp (Opsional)</label>
+                <input type="text" id="pemberi-hp" class="form-control" placeholder="Contoh: 08123456789" autocomplete="off">
+              </div>
+              <div class="form-group">
+                <label>Alamat (Opsional)</label>
+                <textarea id="pemberi-alamat" class="form-control" rows="2" placeholder="Contoh: Perum. Anggrek Blok A No. 1"></textarea>
+              </div>
+              <div style="display: flex; gap: 10px; margin-top: 8px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 700;">
+                  <i data-lucide="save" style="width: 18px; height: 18px;"></i> Simpan Data
+                </button>
+                <button type="button" id="btn-cancel-pemberi" class="btn btn-secondary" style="display: none; justify-content: center; align-items: center; gap: 8px; font-weight: 700;">
+                  <i data-lucide="x" style="width: 18px; height: 18px;"></i> Batal
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
     `;
 
     if (window.lucide) window.lucide.createIcons();
+
+    const mainContainer = container.querySelector('#daftar-pemberi-main');
+    const formContainer = container.querySelector('#daftar-pemberi-form');
+    
+    // Toggle ke Form
+    container.querySelector('#btn-show-add-pemberi')?.addEventListener('click', () => {
+      mainContainer.style.display = 'none';
+      formContainer.style.display = 'block';
+      container.querySelector('#pemberi-nama').focus();
+    });
+
+    container.querySelector('#btn-show-rekap-tahunan')?.addEventListener('click', () => {
+      renderDaftarPemberi(container, state, showToast, null, 'all', true);
+    });
+
+    // Toggle kembali ke List
+    container.querySelector('#btn-back-to-list-main')?.addEventListener('click', () => {
+      formContainer.style.display = 'none';
+      mainContainer.style.display = 'block';
+      // Reset form
+      container.querySelector('#pemberi-id').value = '';
+      container.querySelector('#pemberi-nama').value = '';
+      container.querySelector('#pemberi-hp').value = '';
+      container.querySelector('#pemberi-alamat').value = '';
+      container.querySelector('#form-pemberi-title').textContent = 'Tambah Data Pemberi';
+      container.querySelector('#btn-cancel-pemberi').style.display = 'none';
+    });
 
     container.querySelector('#btn-back-dashboard-pemberi')?.addEventListener('click', () => {
       if (typeof navigateTo === 'function') navigateTo('dashboard');
@@ -5478,6 +5883,10 @@ function doGet(e) {
         inputAlamat.value = '';
         titleForm.textContent = 'Tambah Data Pemberi';
         btnCancel.style.display = 'none';
+        
+        // Return to list view
+        formContainer.style.display = 'none';
+        mainContainer.style.display = 'block';
       });
     }
 
@@ -5507,6 +5916,11 @@ function doGet(e) {
           inputAlamat.value = m.address === '-' ? '' : m.address;
           titleForm.textContent = 'Edit Data Pemberi';
           btnCancel.style.display = 'flex';
+          
+          // Switch to form view
+          mainContainer.style.display = 'none';
+          formContainer.style.display = 'block';
+          
           inputNama.focus();
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
