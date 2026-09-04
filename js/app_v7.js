@@ -46,6 +46,78 @@
     return EXPENDITURE_DEPARTMENTS.find(dep => dep.id === searchId) || EXPENDITURE_DEPARTMENTS[29];
   }
 
+  function getMappedExpenditureDepartment(p) {
+      let depObj = getDepartmentById(p.departmentId);
+      if ((Number(p.departmentId) === 1 || Number(p.departmentId) === 6001) && p.departmentName && p.departmentName !== '-') {
+         const idMatch = p.departmentName.match(/(60[0-3][0-9])/);
+         if (idMatch) {
+             const foundId = Number(idMatch[1]);
+             let exactDep = EXPENDITURE_DEPARTMENTS.find(d => d.id === foundId);
+             if (exactDep) return exactDep;
+         }
+         
+         const cleanOriginal = p.departmentName.toLowerCase().trim();
+         let cleanName = cleanOriginal;
+         
+         // 1. Akun 6005 (Koster) HANYA untuk Gaji/Honor Koster
+         if (cleanName.includes('koster') && !cleanName.includes('gaji') && !cleanName.includes('honor') && cleanName !== 'koster' && cleanName !== 'koster gereja') {
+             cleanName = cleanName.replace(/koster/g, '').trim();
+         }
+         
+         const cleanDesc = p.description ? p.description.toLowerCase().trim() : '';
+         
+         // 2. Akun 6020 (Air Minum) vs 6022 (Konsumsi)
+         if (cleanOriginal.includes('aqua') || cleanOriginal.includes('galon') || (cleanOriginal.includes('air') && cleanOriginal.includes('minum'))) {
+             let exactDep = EXPENDITURE_DEPARTMENTS.find(d => d.id === 6020);
+             if (exactDep) return exactDep;
+         }
+         
+         // Deteksi khusus dari Keterangan (Description) untuk Air Minum (Sanford / Aqua / Galon)
+         if (cleanDesc.includes('sanford') || cleanDesc.includes('sanfors') || cleanDesc.includes('sunford') || cleanDesc.includes('aqua') || cleanDesc.includes('galon') || cleanDesc.includes('air minum')) {
+             // Jika BUKAN untuk meeting/rapat, masukkan ke Air Minum Gereja (6020)
+             if (!cleanDesc.includes('meeting') && !cleanDesc.includes('metting') && !cleanDesc.includes('majelis') && !cleanDesc.includes('rapat')) {
+                 let exactDep = EXPENDITURE_DEPARTMENTS.find(d => d.id === 6020);
+                 if (exactDep) return exactDep;
+             }
+         }
+
+         if (cleanOriginal.includes('konsumsi') || cleanOriginal.includes('makan') || cleanOriginal.includes('potluck') || cleanOriginal.includes('poutluck')) {
+             let exactDep = EXPENDITURE_DEPARTMENTS.find(d => d.id === 6022);
+             if (exactDep) return exactDep;
+         }
+
+         let match = EXPENDITURE_DEPARTMENTS.find(d => d.name.toLowerCase().trim() === cleanName);
+         
+         if (!match) {
+           let bestScore = 0;
+           let bestMatch = null;
+           const cleanWords = cleanName.split(/[\s/\\-]+/).filter(w => w.length > 2 && w !== 'gereja' && w !== 'jemaat');
+           
+           EXPENDITURE_DEPARTMENTS.forEach(d => {
+             const dName = d.name.toLowerCase();
+             let score = 0;
+             if (cleanName.includes(dName) || dName.includes(cleanName)) {
+                score = 100;
+             } else {
+                cleanWords.forEach(w => { if (dName.includes(w)) score += 10; });
+             }
+             if (score > bestScore) {
+                bestScore = score;
+                bestMatch = d;
+             }
+           });
+           if (bestScore > 0) match = bestMatch;
+         }
+         
+         if (match) {
+             depObj = match;
+         } else {
+             depObj = EXPENDITURE_DEPARTMENTS[29];
+         }
+      }
+      return depObj;
+  }
+
   // ============================================================================
   // 2. PERHITUNGAN FINANSIAL & ALOKASI ARUS KAS
   // ============================================================================
@@ -1671,7 +1743,7 @@ function doGet(e) {
   function renderHistoryPemasukan(container, state) {
     const pemasukanList = state.pemasukan || [];
     container.innerHTML = `
-      <div class="glass-card" style="max-width: 1000px; margin: 0 auto;">
+      <div class="glass-card" style="width: 100%; margin: 0 auto;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; background: rgba(0,0,0,0.15); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
           <h3 style="font-size: 1.2rem; font-weight: 700; margin: 0;"><i data-lucide="history" style="color: hsl(var(--accent-blue)); margin-right: 8px;"></i> Riwayat Transaksi Pemasukan</h3>
           <div style="display: flex; gap: 10px; flex: 1; justify-content: flex-end; flex-wrap: wrap;">
@@ -1717,10 +1789,11 @@ function doGet(e) {
   .chevron-icon { transition: transform 0.3s ease; }
 </style>
         <style>
-  .history-data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-  .history-data-table th { background: rgba(0,0,0,0.3); color: hsl(var(--accent-gold)); padding: 12px 10px; text-align: left; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
-  .history-data-table td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; white-space: nowrap; }
-  .history-data-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+  .history-data-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+  .history-data-table th { background: rgba(0,0,0,0.25); color: hsl(var(--text-secondary)); padding: 14px 12px; text-align: left; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; border-bottom: 2px solid rgba(255,255,255,0.05); letter-spacing: 0.5px; white-space: nowrap; }
+  .history-data-table td { padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; white-space: nowrap; }
+  .history-data-table tbody tr { transition: background 0.2s ease; }
+  .history-data-table tbody tr:hover { background: rgba(255,255,255,0.04); }
   .money-cell { display: flex; justify-content: space-between; align-items: center; width: 100%; min-width: 100px; }
   .money-symbol { color: inherit; opacity: 0.7; font-size: 0.8rem; margin-right: 8px; }
   .money-amount { font-weight: 700; text-align: right; flex: 1; }
@@ -1981,7 +2054,7 @@ function doGet(e) {
               <div class="autocomplete-wrapper" style="position: relative;">
                 <div style="position: relative; display: flex; align-items: center;">
                   <i data-lucide="search" style="position: absolute; left: 14px; color: hsl(var(--text-muted)); width: 18px; height: 18px; pointer-events: none;"></i>
-                  <input type="text" class="form-control" id="in-member" placeholder="🔍 Ketik awal/tengah/akhir nama atau pilih dari daftar..." value="${memberVal}" autocomplete="off" required style="padding-left: 42px; padding-right: 42px; font-weight: 600;" />
+                  <input type="text" class="form-control" id="in-member" placeholder="ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Ketik awal/tengah/akhir nama atau pilih dari daftar..." value="${memberVal}" autocomplete="off" required style="padding-left: 42px; padding-right: 42px; font-weight: 600;" />
                   <button type="button" id="btn-toggle-member-list" tabindex="-1" style="position: absolute; right: 6px; background: transparent; border: none; color: hsl(var(--text-muted)); padding: 8px; cursor: pointer; display: flex; align-items: center;">
                     <i data-lucide="chevron-down"></i>
                   </button>
@@ -2100,7 +2173,7 @@ function doGet(e) {
           <div id="tab-content-massal" style="display: none;">
             <div class="modal-body">
               <div style="background: rgba(59, 130, 246, 0.1); border: 1px dashed rgba(59, 130, 246, 0.4); padding: 14px; border-radius: var(--radius-sm); margin-bottom: 16px;">
-                <div style="font-weight: 700; color: hsl(var(--accent-blue)); font-size: 0.9rem; margin-bottom: 6px;">💡 Opsi A: Upload File Excel (.xlsx / .csv)</div>
+                <div style="font-weight: 700; color: hsl(var(--accent-blue)); font-size: 0.9rem; margin-bottom: 6px;">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ Opsi A: Upload File Excel (.xlsx / .csv)</div>
                 <div style="font-size: 0.8rem; color: hsl(var(--text-secondary)); margin-bottom: 10px;">Gunakan kolom: <b>Nama Anggota</b>, <b>No HP</b> (opsional), <b>Alamat</b> (opsional).</div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                   <input type="file" id="file-import-members" accept=".xlsx,.xls,.csv" style="display: none;" />
@@ -2111,7 +2184,7 @@ function doGet(e) {
               </div>
 
               <div style="background: rgba(245, 158, 11, 0.1); border: 1px dashed rgba(245, 158, 11, 0.4); padding: 14px; border-radius: var(--radius-sm);">
-                <div style="font-weight: 700; color: hsl(var(--accent-gold)); font-size: 0.9rem; margin-bottom: 6px;">💡 Opsi B: Ketik / Paste Daftar Nama</div>
+                <div style="font-weight: 700; color: hsl(var(--accent-gold)); font-size: 0.9rem; margin-bottom: 6px;">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ Opsi B: Ketik / Paste Daftar Nama</div>
                 <div style="font-size: 0.8rem; color: hsl(var(--text-secondary)); margin-bottom: 8px;">1 nama per baris, atau format: <b>Nama, No HP, Alamat</b></div>
                 <textarea class="form-control" id="text-import-members" rows="6" placeholder="Cth:&#10;Bpk. R. Situmorang&#10;Keluarga Bpk. S. Hutapea, 08123456789, Lingkungan 1&#10;Ibu M. Panjaitan"></textarea>
               </div>
@@ -2132,8 +2205,8 @@ function doGet(e) {
           </div>
           <div style="display: flex; gap: 8px; padding: 10px 16px; background: var(--surface-subtle); border-bottom: 1px solid var(--border-color); align-items: center; justify-content: space-between;" class="receipt-toolbar">
             <div style="display: flex; gap: 6px;">
-              <button type="button" class="btn btn-sm active" id="btn-mode-standard" style="padding: 5px 10px; font-size: 0.78rem; border: 1px solid hsl(var(--accent-gold)); background: hsl(var(--accent-gold)); color: black; font-weight: 700;">📄 A4 / Standar</button>
-              <button type="button" class="btn btn-sm btn-secondary" id="btn-mode-thermal" style="padding: 5px 10px; font-size: 0.78rem; border: 1px solid var(--border-color); color: hsl(var(--text-primary));">🖨️ Thermal POS 58/80mm</button>
+              <button type="button" class="btn btn-sm active" id="btn-mode-standard" style="padding: 5px 10px; font-size: 0.78rem; border: 1px solid hsl(var(--accent-gold)); background: hsl(var(--accent-gold)); color: black; font-weight: 700;">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¾ A4 / Standar</button>
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-mode-thermal" style="padding: 5px 10px; font-size: 0.78rem; border: 1px solid var(--border-color); color: hsl(var(--text-primary));">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Thermal POS 58/80mm</button>
             </div>
             <button type="button" class="btn btn-sm btn-secondary" id="btn-help-thermal" style="padding: 5px 10px; font-size: 0.78rem; color: hsl(var(--accent-blue)); font-weight: 600;"><i data-lucide="help-circle" style="width:14px;height:14px;"></i> Panduan Driver Windows</button>
           </div>
@@ -2151,7 +2224,7 @@ function doGet(e) {
           </div>
           <div class="modal-body" style="padding: 20px; font-size: 0.88rem; line-height: 1.6; color: hsl(var(--text-primary)); max-height: 70vh; overflow-y: auto;">
             <div style="background: rgba(245, 158, 11, 0.15); border-left: 4px solid hsl(var(--accent-gold)); padding: 12px; margin-bottom: 16px; border-radius: 4px;">
-              <b>📌 Mengapa Butuh Driver?</b> Windows memerlukan driver agar printer kasir (58mm/80mm USB atau Bluetooth) terdeteksi saat Anda menekan tombol <b>Cetak Sekarang</b> di aplikasi ini.
+              <b>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ Mengapa Butuh Driver?</b> Windows memerlukan driver agar printer kasir (58mm/80mm USB atau Bluetooth) terdeteksi saat Anda menekan tombol <b>Cetak Sekarang</b> di aplikasi ini.
             </div>
             <h5 style="font-weight: 700; color: hsl(var(--accent-gold)); margin-bottom: 8px;">Langkah-Langkah Instalasi Driver di Windows:</h5>
             <ol style="padding-left: 20px; margin-bottom: 16px;">
@@ -2164,16 +2237,16 @@ function doGet(e) {
               </li>
               <li style="margin-bottom: 8px;"><b>Atau Gunakan Driver Universal Windows (Tanpa CD):</b>
                 <ul style="padding-left: 16px; margin-top: 4px; list-style: disc;">
-                  <li>Buka <b>Windows Settings</b> ➔ <b>Bluetooth & devices</b> ➔ <b>Printers & scanners</b>.</li>
-                  <li>Klik <b>Add device / Add printer</b> ➔ pilih <i>"The printer that I want isn't listed"</i>.</li>
-                  <li>Pilih <i>"Add a local printer... with manual settings"</i> ➔ pilih port <code>USB001</code> ➔ di kolom Manufacturer pilih <b>Generic</b> ➔ pilih <b>Generic / Text Only</b> ➔ beri nama <code>Printer Thermal Gereja</code> dan klik Next sampai selesai.</li>
+                  <li>Buka <b>Windows Settings</b> ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â <b>Bluetooth & devices</b> ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â <b>Printers & scanners</b>.</li>
+                  <li>Klik <b>Add device / Add printer</b> ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â pilih <i>"The printer that I want isn't listed"</i>.</li>
+                  <li>Pilih <i>"Add a local printer... with manual settings"</i> ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â pilih port <code>USB001</code> ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â di kolom Manufacturer pilih <b>Generic</b> ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â pilih <b>Generic / Text Only</b> ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â beri nama <code>Printer Thermal Gereja</code> dan klik Next sampai selesai.</li>
                 </ul>
               </li>
               <li style="margin-bottom: 8px;"><b>Cara Cetak Sempurna di Aplikasi Ini:</b>
                 <ul style="padding-left: 16px; margin-top: 4px; list-style: disc;">
-                  <li>Aktifkan tombol <b>🖨️ Thermal POS 58/80mm</b> di atas pada jendela kuitansi ini.</li>
+                  <li>Aktifkan tombol <b>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Thermal POS 58/80mm</b> di atas pada jendela kuitansi ini.</li>
                   <li>Klik tombol <b>Cetak Sekarang</b>. Saat dialog print browser muncul, pilih Tujuan/Destination: <b>[Nama Printer Thermal Anda]</b>.</li>
-                  <li>Klik menu <b>More settings</b> (Setelan tambahan) di dialog print ➔ ubah <b>Paper size</b> menjadi <code>58mm x 210mm</code> atau <code>80mm x 297mm</code> (Roll Paper), dan <b>Hilangkan centang</b> pada <i>Headers and footers</i>.</li>
+                  <li>Klik menu <b>More settings</b> (Setelan tambahan) di dialog print ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ubah <b>Paper size</b> menjadi <code>58mm x 210mm</code> atau <code>80mm x 297mm</code> (Roll Paper), dan <b>Hilangkan centang</b> pada <i>Headers and footers</i>.</li>
                 </ul>
               </li>
             </ol>
@@ -2218,7 +2291,7 @@ function doGet(e) {
         { name: "Umum/Anonim", subtitle: "-- Persembahan Kantong Umum / Anonim --", isDefault: true },
         ...members.map(m => ({
           name: m.name,
-          subtitle: `${m.address || '-'} • HP: ${m.phone || '-'}`
+          subtitle: `${m.address || '-'} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ HP: ${m.phone || '-'}`
         }))
       ];
 
@@ -2233,7 +2306,7 @@ function doGet(e) {
           dropdownList.innerHTML = `
             <div style="padding: 14px; text-align: center; color: hsl(var(--text-muted)); font-size: 0.85rem;">
               <div>Tidak ditemukan "${query}"</div>
-              <div style="font-size: 0.78rem; color: hsl(var(--accent-gold)); margin-top: 4px;">💡 Anda bisa tetap pilih/ketik nama ini & langsung simpan (otomatis jadi anggota baru)</div>
+              <div style="font-size: 0.78rem; color: hsl(var(--accent-gold)); margin-top: 4px;">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ Anda bisa tetap pilih/ketik nama ini & langsung simpan (otomatis jadi anggota baru)</div>
             </div>
           `;
           return;
@@ -2362,7 +2435,7 @@ function doGet(e) {
     container.querySelector('#btn-pick-excel')?.addEventListener('click', () => fileInput?.click());
     fileInput?.addEventListener('change', (e) => {
       const file = e.target.files[0];
-      fileNameDisplay.textContent = file ? `📄 Terpilih: ${file.name}` : '';
+      fileNameDisplay.textContent = file ? `ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¾ Terpilih: ${file.name}` : '';
     });
 
     container.querySelector('#btn-dl-template')?.addEventListener('click', () => {
@@ -2601,7 +2674,7 @@ function doGet(e) {
   function renderHistoryPengeluaran(container, state) {
     const pengeluaranList = state.pengeluaran || [];
     container.innerHTML = `
-      <div class="glass-card" style="max-width: 1000px; margin: 0 auto;">
+      <div class="glass-card" style="width: 100%; margin: 0 auto;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; background: rgba(0,0,0,0.15); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
           <h3 style="font-size: 1.2rem; font-weight: 700; margin: 0;"><i data-lucide="history" style="color: hsl(var(--danger)); margin-right: 8px;"></i> Riwayat Transaksi Pengeluaran</h3>
           <div style="display: flex; gap: 10px; flex: 1; justify-content: flex-end; flex-wrap: wrap;">
@@ -2626,36 +2699,48 @@ function doGet(e) {
             </div>
           </div>
         </div>
-        
-        <div class="table-responsive" style="max-height: 650px; overflow-x: auto; overflow-y: auto;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+        <style>
+          .history-data-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+          .history-data-table th { background: rgba(0,0,0,0.25); color: hsl(var(--text-secondary)); padding: 14px 12px; text-align: left; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; border-bottom: 2px solid rgba(255,255,255,0.05); letter-spacing: 0.5px; }
+          .history-data-table td { padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+          .history-data-table tbody tr { transition: background 0.2s ease; }
+          .history-data-table tbody tr:hover { background: rgba(255,255,255,0.04); }
+        </style>
+        <div class="table-responsive" style="overflow-x: auto;">
+          <table class="history-data-table">
             <thead>
-              <tr style="border-bottom: 1px solid var(--border-color);">
-                <th style="padding: 12px 8px; text-align: left; color: hsl(var(--text-muted)); font-weight: 600;">TANGGAL</th>
-                <th style="padding: 12px 8px; text-align: left; color: hsl(var(--text-muted)); font-weight: 600;">NO. VOUCHER</th>
-                <th style="padding: 12px 8px; text-align: left; color: hsl(var(--text-muted)); font-weight: 600;">DEPARTEMEN</th>
-                <th style="padding: 12px 8px; text-align: left; color: hsl(var(--text-muted)); font-weight: 600;">KETERANGAN</th>
-                <th style="padding: 12px 8px; text-align: right; color: hsl(var(--text-muted)); font-weight: 600;">NOMINAL</th>
-                <th style="padding: 12px 8px; text-align: center; color: hsl(var(--text-muted)); font-weight: 600;">AKSI</th>
+              <tr>
+                <th>TANGGAL</th>
+                <th>NO. VOUCHER</th>
+                <th>NO. AKUN</th>
+                <th>DEPARTEMEN</th>
+                <th>KETERANGAN</th>
+                <th style="text-align: right;">NOMINAL</th>
+                <th style="text-align: center;">AKSI</th>
               </tr>
             </thead>
             <tbody>
-              ${pengeluaranList.map(item => `
+              ${pengeluaranList.map(item => {
+                let depObj = getMappedExpenditureDepartment(item);
+                return `
                 <tr class="history-row-tab-out" data-date="${item.date}" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                  <td style="padding: 12px 8px; font-weight: 500;">${formatDateIndo(item.date)}</td>
-                  <td style="padding: 12px 8px; color: hsl(var(--text-muted));">${item.voucherNo || '-'}</td>
-                  <td style="padding: 12px 8px; color: hsl(var(--accent-gold)); font-weight: 600;">${item.department}</td>
-                  <td style="padding: 12px 8px; color: hsl(var(--text-primary));">${item.description}</td>
-                  <td style="padding: 12px 8px; text-align: right; font-weight: 700; color: hsl(var(--danger));">${formatRupiah(item.amount)}</td>
-                  <td style="padding: 12px 8px; text-align: center;">
+                  <td style="font-weight: 500;">${formatDateIndo(item.date)}</td>
+                  <td style="color: hsl(var(--text-muted));">${item.voucherNo || '-'}</td>
+                  <td style="color: hsl(var(--accent-gold)); font-weight: bold; font-family: monospace;">${depObj.id}</td>
+                  <td style="color: hsl(var(--accent-blue)); font-weight: 600;">
+                    ${depObj.name}
+                  </td>
+                  <td style="color: hsl(var(--text-primary));">${item.description}</td>
+                  <td style="text-align: right; font-weight: 700; color: hsl(var(--danger));">${formatRupiah(item.amount)}</td>
+                  <td style="text-align: center;">
                     <div style="display: flex; gap: 6px; justify-content: center;">
                       <button class="icon-btn btn-edit-keluar-tab" data-id="${item.id}" title="Edit" style="width: 32px; height: 32px; color: hsl(var(--accent-gold));"><i data-lucide="edit" style="width:16px;height:16px;"></i></button>
                       <button class="icon-btn btn-del-keluar-tab" data-id="${item.id}" title="Hapus" style="width: 32px; height: 32px; color: hsl(var(--danger));"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
                     </div>
                   </td>
                 </tr>
-              `).join('')}
-              ${pengeluaranList.length === 0 ? `<tr><td colspan="6" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada riwayat pengeluaran.</td></tr>` : ''}
+              `}).join('')}
+              ${pengeluaranList.length === 0 ? `<tr><td colspan="7" style="text-align: center; padding: 40px; color: hsl(var(--text-muted));">Belum ada riwayat pengeluaran.</td></tr>` : ''}
             </tbody>
           </table>
         </div>
@@ -3967,7 +4052,7 @@ function doGet(e) {
             <h3 style="font-size: 1.2rem; font-weight: 700; color: hsl(var(--accent-gold)); margin: 6px 0 2px 0;">${state.settings.churchName || 'Jemaat Teratai Batam'}</h3>
             <div style="font-size: 0.88rem; color: hsl(var(--text-secondary));">${state.settings.districtName || 'Daerah / Konferens DSKT'}</div>
             <div style="font-size: 0.85rem; font-weight: 700; color: hsl(var(--accent-blue)); margin-top: 6px; text-transform: uppercase;">
-              ${isQ ? `LAPORAN PERBENDAHARAAN & ARUS KAS JEMAAT — TRIWULAN ${curKeuQuarter === 1 ? 'I' : curKeuQuarter === 2 ? 'II' : curKeuQuarter === 3 ? 'III' : 'IV'} (${qData.quarterNames.toUpperCase()} ${curKeuYear})` : `LAPORAN PERBENDAHARAAN & ARUS KAS JEMAAT — PERIODE: ${new Date(curKeuYear, keuanganMonth, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`}
+              ${isQ ? `LAPORAN PERBENDAHARAAN & ARUS KAS JEMAAT ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â TRIWULAN ${curKeuQuarter === 1 ? 'I' : curKeuQuarter === 2 ? 'II' : curKeuQuarter === 3 ? 'III' : 'IV'} (${qData.quarterNames.toUpperCase()} ${curKeuYear})` : `LAPORAN PERBENDAHARAAN & ARUS KAS JEMAAT ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â PERIODE: ${new Date(curKeuYear, keuanganMonth, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`}
             </div>
           </div>
 
@@ -5399,6 +5484,10 @@ function doGet(e) {
         renderDaftarPemberi(container, state, showToast);
       });
 
+      container.querySelector('#btn-back-dashboard-pemberi')?.addEventListener('click', () => {
+        renderDaftarPemberi(container, state, showToast);
+      });
+
       container.querySelector('#rekap-year-filter')?.addEventListener('change', (e) => {
         renderDaftarPemberi(container, state, showToast, null, 'all', true, e.target.value, rekapKategoriFilter);
       });
@@ -5926,7 +6015,6 @@ function doGet(e) {
         }
       });
     });
-
     container.querySelectorAll('.btn-hapus-pemberi').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.getAttribute('data-id');
@@ -5940,6 +6028,165 @@ function doGet(e) {
     });
   }
 
+  // ============================================================================
+  // VIEW: NOMOR PERKIRAAN PENGELUARAN
+  // ============================================================================
+  function renderPerkiraanPengeluaran(container, selectedDepId = null) {
+    const state = getState();
+    const pengeluaran = state.pengeluaran || [];
+    const totalsPerDep = {};
+    
+    // Map transactions to standard department IDs
+    const mappedPengeluaran = pengeluaran.map(p => {
+      let depObj = getMappedExpenditureDepartment(p);
+      return { ...p, mappedDepId: depObj.id };
+    });
+
+    if (selectedDepId !== null) {
+       const depIdNum = Number(selectedDepId);
+       const dep = EXPENDITURE_DEPARTMENTS.find(d => d.id === depIdNum) || EXPENDITURE_DEPARTMENTS[29];
+       const depTransactions = mappedPengeluaran.filter(p => p.mappedDepId === depIdNum);
+       depTransactions.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+       
+       let detailHtml = `
+         <div class="card fade-in" style="margin-bottom: 20px;">
+           <div style="margin-bottom: 16px;">
+             <button type="button" class="btn btn-secondary" id="btn-back-perkiraan-list" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--surface-subtle); color: hsl(var(--text-primary)); cursor: pointer;">
+               <i data-lucide="arrow-left" style="width: 18px; height: 18px; color: hsl(var(--accent-gold));"></i>
+               <span>Kembali ke Daftar Perkiraan</span>
+             </button>
+           </div>
+           
+           <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px;">
+              <h3 style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 1.25rem;">
+                <i data-lucide="${dep.icon}" style="color: hsl(var(--accent-blue));"></i> Riwayat Transaksi: ${dep.name}
+              </h3>
+              <p style="color: hsl(var(--text-muted)); font-size: 0.9rem;">ID Pos: <span style="font-weight:bold; color:hsl(var(--accent-gold));">${dep.id}</span> | Kategori: ${dep.category}</p>
+           </div>
+           
+           <div class="table-responsive">
+             <table class="data-table">
+               <thead>
+                 <tr>
+                   <th style="width: 110px;">Tanggal</th>
+                   <th>No. Voucher</th>
+                   <th>Keterangan / Uraian</th>
+                   <th style="text-align: right;">Nominal</th>
+                 </tr>
+               </thead>
+               <tbody>
+       `;
+
+       if (depTransactions.length === 0) {
+           detailHtml += `<tr><td colspan="4" style="text-align: center; padding: 30px; color: hsl(var(--text-muted)); font-style: italic;">Belum ada riwayat transaksi pengeluaran untuk departemen ini.</td></tr>`;
+       } else {
+           let total = 0;
+           depTransactions.forEach(t => {
+               const amt = Number(t.amount) || 0;
+               total += amt;
+               detailHtml += `
+                 <tr>
+                   <td style="font-weight: 600;">${formatDateIndo(t.date)}</td>
+                   <td style="font-family: monospace; color: hsl(var(--text-secondary));">${t.voucherNo || '-'}</td>
+                   <td>${t.description || '-'}</td>
+                   <td style="text-align: right; font-weight: 700; color: hsl(var(--danger));">${formatRupiah(amt)}</td>
+                 </tr>
+               `;
+           });
+           detailHtml += `
+                 <tr style="background: rgba(255,255,255,0.03);">
+                   <td colspan="3" style="text-align: right; font-weight: 800; padding: 15px;">TOTAL KESELURUHAN</td>
+                   <td style="text-align: right; font-weight: 800; font-size: 1.1rem; color: hsl(var(--danger)); padding: 15px;">${formatRupiah(total)}</td>
+                 </tr>
+           `;
+       }
+
+       detailHtml += `
+               </tbody>
+             </table>
+           </div>
+         </div>
+       `;
+       
+       container.innerHTML = detailHtml;
+       if (window.lucide) window.lucide.createIcons();
+       
+       container.querySelector('#btn-back-perkiraan-list')?.addEventListener('click', () => {
+           renderPerkiraanPengeluaran(container);
+       });
+       return;
+    }
+
+    // Default View (List)
+    mappedPengeluaran.forEach(p => {
+      const depId = p.mappedDepId;
+      if (!totalsPerDep[depId]) totalsPerDep[depId] = 0;
+      totalsPerDep[depId] += Number(p.amount) || 0;
+    });
+
+    let html = `
+      <div class="card fade-in" style="margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3 style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="list-ordered" style="color: hsl(var(--accent-gold));"></i> Daftar Nomor Perkiraan (Pos Pengeluaran)
+            </h3>
+            <p style="color: hsl(var(--text-muted)); font-size: 0.85rem;">Referensi kode akun pengeluaran jemaat beserta total realisasi</p>
+          </div>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 80px; text-align: center;">ID</th>
+                <th>Kategori</th>
+                <th>Nama Pos / Departemen</th>
+                <th style="text-align: right;">Total Pengeluaran</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    EXPENDITURE_DEPARTMENTS.forEach(dep => {
+      const totalDep = totalsPerDep[dep.id] || 0;
+      html += `
+        <tr>
+          <td style="text-align: center; font-family: monospace; font-weight: bold; color: hsl(var(--accent-gold));">
+             <a href="#" class="view-dep-history" data-id="${dep.id}" style="color: inherit; text-decoration: none; border-bottom: 1px dashed hsl(var(--accent-gold)); transition: opacity 0.2s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1" title="Lihat riwayat transaksi pos ini">${dep.id}</a>
+          </td>
+          <td><span class="badge" style="background: rgba(255,255,255,0.1);">${dep.category}</span></td>
+          <td>
+            <div style="display: flex; align-items: center; gap: 8px; font-weight: 500;">
+              <i data-lucide="${dep.icon}" style="width: 16px; height: 16px; color: hsl(var(--text-muted));"></i>
+              <a href="#" class="view-dep-history" data-id="${dep.id}" style="color: inherit; text-decoration: none; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">${dep.name}</a>
+            </div>
+          </td>
+          <td style="text-align: right; font-weight: bold; color: hsl(var(--danger));">
+            <a href="#" class="view-dep-history" data-id="${dep.id}" style="color: inherit; text-decoration: none;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">${formatRupiah(totalDep)}</a>
+          </td>
+        </tr>
+      `;
+    });
+    
+    html += `
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    
+    container.innerHTML = html;
+    if (window.lucide) window.lucide.createIcons();
+    
+    container.querySelectorAll('.view-dep-history').forEach(link => {
+       link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const depId = link.getAttribute('data-id');
+          renderPerkiraanPengeluaran(container, depId);
+       });
+    });
+  }
   function renderPengaturan(container, state) {
     const settings = state.settings || {};
     const summary = calculateFinancialSummary(state);
@@ -6348,6 +6595,10 @@ function doGet(e) {
       case 'daftar-pemberi':
         updatePageTitle('Daftar Anggota & Pemberi');
         renderDaftarPemberi(container, state, showToast);
+        break;
+      case 'perkiraan-pengeluaran':
+        updatePageTitle('Nomor Perkiraan Pengeluaran');
+        renderPerkiraanPengeluaran(container);
         break;
       default:
         renderDashboard(container, state, navigateTo);
