@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Aplikasi WebApp Bendahara Gereja Advent (GMAHK) - Universal Bundle
  * Dirancang berjalan di semua lingkungan (File/Double-click lokal, Google Drive, Hosting) tanpa terblokir CORS Module.
  */
@@ -1687,7 +1687,7 @@ function doGet(e) {
     
     const today = isEdit && editItem.date ? editItem.date : new Date().toISOString().split('T')[0];
     const receiptVal = isEdit ? editItem.receiptNo : generateReceiptNo(today, state);
-    const memberVal = isEdit ? editItem.memberName : "Umum/Anonim";
+    const memberVal = isEdit ? editItem.memberName : "";
     const pspVal = isEdit && editItem.persepuluhan ? editItem.persepuluhan : "";
     const tpdVal = isEdit && editItem.persembahanTerpadu ? editItem.persembahanTerpadu : "";
     const khsVal = isEdit && editItem.persembahanKhusus ? editItem.persembahanKhusus : "";
@@ -5136,3 +5136,4 @@ function doGet(e) {
     initApp();
   }
 })();
+

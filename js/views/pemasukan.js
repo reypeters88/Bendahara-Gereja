@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tampilan & Logika Pencatatan Uang Masuk (Persepuluhan, Persembahan Terpadu, Khusus, Pembangunan, Lain-lain)
  */
 import { addPemasukan, deletePemasukan, addMember, addMembersBulk, formatRupiah, formatDateIndo, generateReceiptNo } from '../state.js';
@@ -40,7 +40,7 @@ export function renderPemasukan(container, state, showToast) {
             <div class="autocomplete-wrapper" style="position: relative;">
               <div style="position: relative; display: flex; align-items: center;">
                 <i data-lucide="search" style="position: absolute; left: 14px; color: hsl(var(--text-muted)); width: 18px; height: 18px; pointer-events: none;"></i>
-                <input type="text" class="form-control" id="in-member" placeholder="🔍 Ketik awal/tengah/akhir nama atau pilih dari daftar..." value="Umum/Anonim" autocomplete="off" required style="padding-left: 42px; padding-right: 42px; font-weight: 600;" />
+                <input type="text" class="form-control" id="in-member" placeholder="🔍 Ketik awal/tengah/akhir nama atau pilih dari daftar..." value="" autocomplete="off" required style="padding-left: 42px; padding-right: 42px; font-weight: 600;" />
                 <button type="button" id="btn-toggle-member-list" tabindex="-1" style="position: absolute; right: 6px; background: transparent; border: none; color: hsl(var(--text-muted)); padding: 8px; cursor: pointer; display: flex; align-items: center;">
                   <i data-lucide="chevron-down"></i>
                 </button>
@@ -722,3 +722,4 @@ export function renderPemasukan(container, state, showToast) {
     }, 800);
   });
 }
+
